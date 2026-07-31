@@ -148,6 +148,7 @@ export default async function middleware(request) {
       const token = await assinar(usuario);
       const headers = new Headers();
       headers.set('Location', '/');
+      headers.set('cache-control', 'no-store, must-revalidate');
       headers.append(
         'Set-Cookie',
         `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${SESSION_HOURS * 3600}`
@@ -156,7 +157,10 @@ export default async function middleware(request) {
     }
     return new Response(paginaLogin(true), {
       status: 401,
-      headers: { 'content-type': 'text/html; charset=utf-8' },
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-store, must-revalidate',
+      },
     });
   }
 
@@ -170,6 +174,9 @@ export default async function middleware(request) {
 
   return new Response(paginaLogin(false), {
     status: 200,
-    headers: { 'content-type': 'text/html; charset=utf-8' },
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      'cache-control': 'no-store, must-revalidate',
+    },
   });
 }
