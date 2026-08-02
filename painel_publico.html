@@ -26,6 +26,8 @@ header.top-publico .divider{width:1px;height:34px;background:rgba(255,255,255,.2
 header.top-publico h1{flex:1;font-size:19px;color:#fff;margin:0;font-weight:800;}
 header.top-publico .btn-sair{background:var(--red);color:#fff;padding:9px 20px;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:background .15s;}
 header.top-publico .btn-sair:hover{background:var(--red-dark);}
+header.top-publico .btn-paineis{background:transparent;color:#fff;padding:9px 16px;border-radius:9px;text-decoration:none;font-weight:700;font-size:13px;border:1.5px solid rgba(255,255,255,.5);transition:background .15s,border-color .15s;}
+header.top-publico .btn-paineis:hover{background:rgba(255,255,255,.12);border-color:#fff;}
 .layout{display:flex;min-height:calc(100vh - 66px);}
 nav.sidebar{width:148px;background:var(--bg);flex-shrink:0;padding:16px 12px;display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--border);}
 nav.sidebar button{width:100%;background:var(--navy);border:none;color:#e7ebf5;padding:12px 8px;text-align:center;font-size:11px;font-weight:bold;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;letter-spacing:.3px;border-radius:14px;box-shadow:0 1px 2px rgba(19,35,84,.25);transition:background .15s;}
@@ -257,6 +259,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <img id="logoPublico" class="logo" alt="Viação Sete">
   <div class="divider"></div>
   <h1>Painel de Indicadores Viação Sete</h1>
+  <a href="index.html" class="btn-paineis" title="Voltar para a tela de seleção de área">&#8592; Painéis</a>
   <a href="/__logout" class="btn-sair" title="Encerrar sessão">Sair</a>
 </header>
 <header class="top">
