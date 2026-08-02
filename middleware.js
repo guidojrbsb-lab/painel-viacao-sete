@@ -166,6 +166,22 @@ export default async function middleware(request) {
     });
   }
 
+  // Botao "Sair" do painel (so aparece no modo publico, ver header#headerPublico em
+  // painel.html): navegacao simples pra essa rota, sem precisar de JS pra manipular
+  // cookie (o cookie e HttpOnly de proposito, entao o navegador nao deixaria o JS da
+  // pagina apagar ele mesmo). Aqui no servidor apagamos o cookie (Max-Age=0) e manda
+  // de volta pra "/", que cai direto na tela de login de novo.
+  if (url.pathname === '/__logout') {
+    const headers = new Headers();
+    headers.set('Location', '/');
+    headers.set('cache-control', 'no-store, must-revalidate');
+    headers.append(
+      'Set-Cookie',
+      `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+    );
+    return new Response(null, { status: 303, headers });
+  }
+
   const cookieHeader = request.headers.get('cookie') || '';
   const match = cookieHeader.match(new RegExp(COOKIE_NAME + '=([^;]+)'));
   const valorCookie = match ? decodeURIComponent(match[1]) : null;
