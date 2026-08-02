@@ -66,7 +66,7 @@ table.rk-table tr.grupo-nao-identificado td{color:#8890a0;font-style:italic;}
 .modal-head button{background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;}
 .modal-body{padding:14px 20px;overflow:auto;}
 .modal-body table{width:100%;border-collapse:collapse;font-size:12px;}
-.modal-body th{background:#eef0f6;color:var(--navy);padding:7px 9px;text-align:left;position:sticky;top:0;}
+.modal-body th{background:#eef0f6;color:var(--navy);padding:7px 9px;text-align:left;position:sticky;top:0;cursor:pointer;user-select:none;}
 .modal-body td{padding:6px 9px;border-bottom:1px solid var(--border);}
 </style>
 </head>
@@ -343,16 +343,52 @@ function _ordenarPorColunaGenerico(lista, campo, dir){
 // =====================================================================
 // MODAL de detalhamento (lista de eventos brutos)
 // =====================================================================
+// Cabeçalho clicável (ordena) + setas indicando coluna/direção ativas -- mesmo
+// padrão já usado nos popups do painel Comercial (ex.: Popup de Convênio).
+let ocModalSortCol = 'dataHora', ocModalSortDir = -1; // padrão: evento mais recente primeiro
+let _ocModalItensAtual = [];
+const OC_MODAL_COLS = [
+  {key:'dataHora', label:'DATA/HORA'},
+  {key:'veiculo', label:'VEÍCULO'},
+  {key:'motorista', label:'MOTORISTA'},
+  {key:'tipo', label:'TIPO'},
+  {key:'detalhe', label:'DETALHE'},
+  {key:'duracaoSeg', label:'DURAÇÃO'},
+  {key:'localizacao', label:'LOCALIZAÇÃO'},
+];
+function _ocModalValorExibido(it, key){
+  if(key==='dataHora') return formatarDataBR(it.data)+' '+it.dataHora.slice(11);
+  if(key==='duracaoSeg') return fmtInt(it.duracaoSeg)+'s';
+  return it[key] || '-';
+}
 function abrirModalEventos(titulo, itens){
   document.getElementById('modalTitulo').textContent = titulo+' ('+itens.length+' evento'+(itens.length===1?'':'s')+')';
-  const corpo = document.getElementById('modalCorpo');
-  const linhas = itens.slice().sort((a,b)=> a.dataHora<b.dataHora?1:-1).map(it=>
-    '<tr><td>'+formatarDataBR(it.data)+' '+it.dataHora.slice(11)+'</td><td>'+it.veiculo+'</td><td>'+it.motorista+'</td>'+
-    '<td>'+it.tipo+'</td><td>'+it.detalhe+'</td><td>'+it.duracaoSeg+'s</td><td>'+it.localizacao+'</td></tr>'
-  ).join('');
-  corpo.innerHTML = '<table><thead><tr><th>Data/Hora</th><th>Veículo</th><th>Motorista</th><th>Tipo</th>'+
-    '<th>Detalhe</th><th>Duração</th><th>Localização</th></tr></thead><tbody>'+linhas+'</tbody></table>';
+  _ocModalItensAtual = itens;
+  ocModalSortCol = 'dataHora'; ocModalSortDir = -1;
+  _renderModalOcorrencias();
   document.getElementById('modalOverlay').classList.add('aberto');
+}
+function _renderModalOcorrencias(){
+  const corpo = document.getElementById('modalCorpo');
+  const ordenados = _ocModalItensAtual.slice().sort((a,b)=>{
+    let va=a[ocModalSortCol], vb=b[ocModalSortCol];
+    if(va===null||va===undefined) va='';
+    if(vb===null||vb===undefined) vb='';
+    if(typeof va==='number' && typeof vb==='number') return (va-vb)*ocModalSortDir;
+    return String(va).localeCompare(String(vb))*ocModalSortDir;
+  });
+  const head = '<tr>'+OC_MODAL_COLS.map(c=>
+    '<th onclick="_ordenarModalOcorrencias(\''+c.key+'\')">'+c.label+(ocModalSortCol===c.key?(ocModalSortDir===1?' ▲':' ▼'):'')+'</th>'
+  ).join('')+'</tr>';
+  const body = ordenados.map(it=>
+    '<tr>'+OC_MODAL_COLS.map(c=>'<td>'+_ocModalValorExibido(it,c.key)+'</td>').join('')+'</tr>'
+  ).join('');
+  corpo.innerHTML = '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+}
+function _ordenarModalOcorrencias(col){
+  if(ocModalSortCol===col) ocModalSortDir *= -1;
+  else { ocModalSortCol = col; ocModalSortDir = 1; }
+  _renderModalOcorrencias();
 }
 function fecharModal(){ document.getElementById('modalOverlay').classList.remove('aberto'); }
 document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target.id==='modalOverlay') fecharModal(); });
@@ -385,7 +421,9 @@ function _renderRankingOcorrencias(tableId, entradas, sortCol, sortDir, labelCol
   grupos.length = 0;
   entradas.forEach(e=> grupos.push({titulo:e.label, itens:e.itens}));
   const table = document.getElementById(tableId);
-  let head = '<thead><tr><th data-col="label">'+labelCol+'</th><th class="num" data-col="total">TOTAL</th></tr></thead>';
+  const setaLabel = sortCol==='label' ? (sortDir===1?' ▲':' ▼') : '';
+  const setaTotal = sortCol==='qtd' ? (sortDir===1?' ▲':' ▼') : '';
+  let head = '<thead><tr><th data-col="label">'+labelCol+setaLabel+'</th><th class="num" data-col="total">TOTAL'+setaTotal+'</th></tr></thead>';
   let body = '<tbody>';
   entradas.forEach((e,idx)=>{
     body += '<tr class="clickable'+(e.label===MOTORISTA_NAO_IDENTIFICADO?' grupo-nao-identificado':'')+'" data-idx="'+idx+'">'+
