@@ -87,11 +87,14 @@ table.rk-table tr.grupo-nao-identificado td{color:#8890a0;font-style:italic;}
   <main>
     <div id="tab-ocorrencias">
 
-      <div class="upload-box" id="uploadControlesEdicao">
-        <button onclick="document.getElementById('fileInput').click()">Carregar relatório(s)</button>
-        <input type="file" id="fileInput" multiple accept=".csv" style="display:none">
+      <div class="upload-box">
+        <span id="uploadControlesEdicao">
+          <button onclick="document.getElementById('fileInput').click()">Carregar relatório(s)</button>
+          <input type="file" id="fileInput" multiple accept=".csv" style="display:none">
+          <button onclick="limparBase()" style="background:var(--red);">Limpar base local</button>
+          <button onclick="exportarBaseOperacao()" style="background:var(--navy-dark);">Exportar base (para link público)</button>
+        </span>
         <div class="status" id="uploadStatus">Nenhum arquivo carregado ainda.</div>
-        <button onclick="limparBase()" style="background:var(--red);">Limpar base local</button>
       </div>
 
       <div class="filtro-box" id="filtroBox">
@@ -183,6 +186,17 @@ function toggleControlesModoPublico(){
   if(!MODO_PUBLICO) return;
   const controles = document.getElementById('uploadControlesEdicao');
   if(controles) controles.style.display = 'none';
+  const status = document.getElementById('uploadStatus');
+  if(status) status.textContent = 'Painel público (somente leitura) — dados carregados pelo administrador.';
+}
+function exportarBaseOperacao(){
+  const blob = new Blob([JSON.stringify(DB)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hoje = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = 'base_operacao_viacao_sete_'+hoje+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // =====================================================================
