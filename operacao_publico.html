@@ -34,10 +34,10 @@ main{flex:1;padding:18px 22px;min-width:0;}
 .filtro-campo{display:flex;flex-direction:column;gap:4px;}
 .filtro-campo label{font-size:10.5px;color:#66708a;font-weight:bold;}
 .filtro-campo input{padding:7px 9px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;color:var(--navy);}
-.upload-box{background:#fff;border:1px dashed #b9c0d4;border-radius:16px;padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.upload-box button{background:var(--navy);color:#fff;border:none;padding:10px 18px;border-radius:9px;font-weight:bold;font-size:12.5px;cursor:pointer;}
-.upload-box button:hover{background:var(--navy-dark);}
-.upload-box .status{font-size:12px;color:#66708a;flex:1;}
+#uploadBar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -1px 4px rgba(19,35,84,.05);padding:10px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;}
+#uploadBar .status{color:#66708a;}
+#uploadBar button{background:var(--red);color:#fff;border:none;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:bold;font-size:12px;}
+#uploadBar button.secondary{background:#fff;color:var(--navy);border:1px solid var(--navy);}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
 .kpi{background:#fff;border:1px solid var(--border);border-top:3px solid var(--red);border-radius:14px;padding:12px 14px;text-align:center;box-shadow:0 1px 3px rgba(19,35,84,.05);}
 .kpi .val{font-size:20px;font-weight:800;color:var(--navy);text-align:center;}
@@ -87,16 +87,6 @@ table.rk-table tr.grupo-nao-identificado td{color:#8890a0;font-style:italic;}
   <main>
     <div id="tab-ocorrencias">
 
-      <div class="upload-box">
-        <span id="uploadControlesEdicao">
-          <button onclick="document.getElementById('fileInput').click()">Carregar relatório(s)</button>
-          <input type="file" id="fileInput" multiple accept=".csv" style="display:none">
-          <button onclick="limparBase()" style="background:var(--red);">Limpar base local</button>
-          <button onclick="exportarBaseOperacao()" style="background:var(--navy-dark);">Exportar base (para link público)</button>
-        </span>
-        <div class="status" id="uploadStatus">Nenhum arquivo carregado ainda.</div>
-      </div>
-
       <div class="filtro-box" id="filtroBox">
         <h2 onclick="this.parentElement.classList.toggle('collapsed')">Filtros <span class="info-badge">clique para recolher/expandir</span></h2>
         <div class="filtro-corpo">
@@ -142,6 +132,16 @@ table.rk-table tr.grupo-nao-identificado td{color:#8890a0;font-style:italic;}
 
     </div>
   </main>
+</div>
+
+<div id="uploadBar">
+  <span id="uploadControlesEdicao">
+    <button onclick="document.getElementById('fileInput').click()">Carregar relatório(s)</button>
+    <input type="file" id="fileInput" multiple accept=".csv" style="display:none">
+    <button class="secondary" onclick="limparBase()">Limpar base local</button>
+    <button class="secondary" onclick="exportarBaseOperacao()">Exportar base (para link público)</button>
+  </span>
+  <span class="status" id="uploadStatus">Nenhum arquivo carregado ainda.</span>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
