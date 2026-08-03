@@ -181,7 +181,9 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td{background
 table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-child{background:#fafbfd;}
 .ind-topo{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
 .ind-topo label{font-size:11px;font-weight:700;color:var(--navy);}
-.ind-topo input[type="month"]{padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12.5px;}
+.ind-topo input[type="month"],.ind-topo input[type="date"]{padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12.5px;}
+.ind-topo button{background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;font-size:12px;white-space:nowrap;}
+.ind-topo button:hover{background:var(--navy-dark);}
 .two-col{display:grid;grid-template-columns:1.1fr 1.6fr;gap:16px;align-items:start;}
 /* Duas colunas de mesma largura — usado no Ranking por Vendedor da aba Seguro quando
    não precisa de mais espaço que o Ranking por Linha. */
@@ -407,7 +409,10 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       <div class="panel">
         <h2>Indicadores <span class="info-badge">valores calculados automaticamente a partir dos dados já carregados em todas as abas</span></h2>
         <div class="ind-topo">
-          <label>MÊS</label><input type="month" id="inMes">
+          <label>DATA INÍCIO</label><input type="date" id="inDataIni">
+          <label>DATA FIM</label><input type="date" id="inDataFim">
+          <button onclick="exportarIndicadoresCSV()">Exportar CSV</button>
+          <button onclick="exportarIndicadoresPDF()">Exportar PDF</button>
           <span class="pct-note" style="margin:0;">Linhas em cinza-itálico (% Venda Antecipada, % Cartão Crédito/Débito, % PIX) ainda não têm relatório de origem carregado no painel — ficam em branco até existir essa fonte de dado.</span>
         </div>
         <div class="ind-wrap"><table class="ind-table" id="inTable"></table></div>
@@ -3907,6 +3912,27 @@ function _diasDoMes(anoMes){
   for(let d=1; d<=totalDias; d++) dias.push(anoMes+'-'+String(d).padStart(2,'0'));
   return dias;
 }
+// Lista de dias (ISO, inclusive dos dois extremos) entre duas datas quaisquer --
+// pode atravessar mês/ano, ao contrário de _diasDoMes. Usado pelo filtro de
+// período (Data Início/Data Fim) da aba Indicadores.
+function _diasNoIntervalo(dataIni, dataFim){
+  let [ai,mi,di] = dataIni.split('-').map(Number);
+  const fim = new Date(...dataFim.split('-').map(Number).map((v,i)=>i===1?v-1:v));
+  const dias = [];
+  let cursor = new Date(ai, mi-1, di);
+  let guarda = 0;
+  while(cursor <= fim && guarda < 3660){ // limite de ~10 anos, só por segurança
+    dias.push(cursor.getFullYear()+'-'+String(cursor.getMonth()+1).padStart(2,'0')+'-'+String(cursor.getDate()).padStart(2,'0'));
+    cursor.setDate(cursor.getDate()+1);
+    guarda++;
+  }
+  return dias;
+}
+function _primeiroDiaMes(anoMes){ return anoMes+'-01'; }
+function _ultimoDiaMes(anoMes){
+  const [ano,mes] = anoMes.split('-').map(Number);
+  return anoMes+'-'+String(new Date(ano,mes,0).getDate()).padStart(2,'0');
+}
 function _mesMaisRecenteComDados(){
   const conjuntos = [DB.linhas, DB.agencias, DB.seguro, DB.encomendas, DB.convenios, DB.vendasResumo, DB.vendasEmbarcadaAgencia, DB.formaPagamento, DB.receitaPadrao];
   let max = null;
@@ -3915,11 +3941,24 @@ function _mesMaisRecenteComDados(){
 }
 const NOMES_DIA_SEMANA_IND = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 function renderIndicadores(){
-  const inputMes = document.getElementById('inMes');
-  if(inputMes && !inputMes.value) inputMes.value = _mesMaisRecenteComDados();
-  const anoMes = (inputMes && inputMes.value) || _mesMaisRecenteComDados();
-  const dias = _diasDoMes(anoMes);
+  const inputIni = document.getElementById('inDataIni');
+  const inputFim = document.getElementById('inDataFim');
+  // Na primeira carga (campos vazios), assume o mês mais recente com dados --
+  // mesmo comportamento padrão de antes, quando o filtro era só um seletor de mês.
+  if(inputIni && inputFim && !inputIni.value && !inputFim.value){
+    const mesRecente = _mesMaisRecenteComDados();
+    inputIni.value = _primeiroDiaMes(mesRecente);
+    inputFim.value = _ultimoDiaMes(mesRecente);
+  }
+  let dataIni = (inputIni && inputIni.value) || _primeiroDiaMes(_mesMaisRecenteComDados());
+  let dataFim = (inputFim && inputFim.value) || _ultimoDiaMes(_mesMaisRecenteComDados());
+  if(dataFim < dataIni){ const tmp=dataIni; dataIni=dataFim; dataFim=tmp; } // troca silenciosa se invertido
+  const dias = _diasNoIntervalo(dataIni, dataFim);
   const n = dias.length;
+  // Rótulo de cada coluna: se o período cai todo dentro do mesmo mês/ano, mostra só o
+  // dia (comportamento de sempre); se atravessa meses, mostra dd/mm pra não ambiguar
+  // (ex.: dia "05" de julho e de agosto na mesma tabela).
+  const _mesmoMes = dias.length ? dias.every(d=>d.slice(0,7)===dias[0].slice(0,7)) : true;
 
   const baseDia = {}; dias.forEach(d=>{ baseDia[d] = _indicadoresDiaBase(d); });
   const porDia = {}; dias.forEach(d=>{ porDia[d] = _indicadoresDerivados(baseDia[d]); });
@@ -3981,7 +4020,6 @@ function renderIndicadores(){
   const tiqueteMedioTransportadoTotal = totalPeriodo.passageirosTransportados ? receitaOrgaosTotal/totalPeriodo.passageirosTransportados : 0;
 
   // ---- Monta o HTML ----
-  const [anoSel, mesSel] = anoMes.split('-').map(Number);
   // Linha de datas/dia-da-semana: usada no <thead> (fixo no topo ao rolar) e
   // repetida de novo dentro do corpo, na MESMA linha do título de cada seção
   // (INDICADORES, RECEITA POR ÓRGÃO GESTOR, R$/KM POR ÓRGÃO GESTOR, ver
@@ -3992,8 +4030,12 @@ function renderIndicadores(){
   function linhaDatasHTML(primeiraCelula){
     let html = '<th>'+(primeiraCelula||'Indicador')+'</th>';
     dias.forEach(d=>{
-      const dow = NOMES_DIA_SEMANA_IND[new Date(anoSel, mesSel-1, Number(d.slice(8,10))).getDay()];
-      html += '<th>'+Number(d.slice(8,10))+'<span class="dow">'+dow+'</span></th>';
+      const [anoD, mesD, diaD] = d.split('-').map(Number);
+      const dow = NOMES_DIA_SEMANA_IND[new Date(anoD, mesD-1, diaD).getDay()];
+      // Dentro de um único mês, mostra só o dia (como sempre); num período que
+      // atravessa meses, mostra dd/mm pra não confundir dias de meses diferentes.
+      const rotuloDia = _mesmoMes ? String(diaD) : String(diaD).padStart(2,'0')+'/'+String(mesD).padStart(2,'0');
+      html += '<th>'+rotuloDia+'<span class="dow">'+dow+'</span></th>';
     });
     html += '<th>MÉDIA<span class="dow">&nbsp;</span></th><th>TOTAL<span class="dow">&nbsp;</span></th><th>%<span class="dow">&nbsp;</span></th>';
     return html;
@@ -4094,6 +4136,74 @@ function renderIndicadores(){
 }
 
 // =====================================================================
+// EXPORTAÇÃO DO RELATÓRIO COMPLETO DA ABA INDICADORES (CSV/PDF)
+// =====================================================================
+// Lê a tabela já renderizada em #inTable linha por linha -- garante que o
+// export reflita exatamente o que está na tela (mesmo período, mesmos
+// valores), sem duplicar a lógica de cálculo dos indicadores numa segunda
+// função à parte.
+function _tituloPeriodoIndicadores(){
+  const ini = document.getElementById('inDataIni').value;
+  const fim = document.getElementById('inDataFim').value;
+  if(ini && fim) return formatarDataBR(ini)+' a '+formatarDataBR(fim);
+  return 'Período selecionado';
+}
+function _nomeArquivoPeriodoIndicadores(){
+  const ini = (document.getElementById('inDataIni').value||'inicio').replace(/-/g,'');
+  const fim = (document.getElementById('inDataFim').value||'fim').replace(/-/g,'');
+  return ini+'_a_'+fim;
+}
+function _extrairLinhasIndicadoresTabela(){
+  const table = document.getElementById('inTable');
+  const linhas = [];
+  table.querySelectorAll('tr').forEach(tr=>{
+    const celulas = Array.from(tr.children).map(td=>td.textContent.replace(/\s+/g,' ').trim());
+    linhas.push(celulas);
+  });
+  return linhas;
+}
+function exportarIndicadoresCSV(){
+  const linhas = _extrairLinhasIndicadoresTabela();
+  const csv = linhas.map(cols=>cols.join(';')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'indicadores_'+_nomeArquivoPeriodoIndicadores()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function exportarIndicadoresPDF(){
+  const tabelaHTML = document.getElementById('inTable').outerHTML;
+  const titulo = _tituloPeriodoIndicadores();
+  const win = window.open('', '_blank');
+  if(!win) return;
+  win.document.write('<html><head><meta charset="UTF-8"><title>Indicadores - '+titulo+'</title><style>'+
+    '@page{size:landscape;margin:12mm;}'+
+    'body{font-family:Arial,sans-serif;padding:0;color:#1b2432;}'+
+    'h2{color:#132354;margin:0 0 12px;font-size:16px;}'+
+    'table.ind-table{border-collapse:separate;border-spacing:0;font-size:8.5px;white-space:nowrap;width:100%;}'+
+    'table.ind-table th,table.ind-table td{padding:4px 6px;border-bottom:1px solid #e2e6ee;border-right:1px solid #eef0f4;}'+
+    'table.ind-table thead th{background:#132354;color:#fff;font-weight:600;text-align:center;}'+
+    'table.ind-table td:first-child,table.ind-table th:first-child{text-align:left;font-weight:600;color:#132354;min-width:170px;}'+
+    'table.ind-table td{text-align:right;}'+
+    'table.ind-table tr.ind-secao td{background:#132354;color:#fff;font-weight:700;text-align:left;font-size:9.5px;}'+
+    'table.ind-table tr.ind-secao-datas th{background:#132354;color:#fff;font-weight:600;text-align:center;}'+
+    'table.ind-table tr.ind-secao-datas th:first-child{text-align:left;}'+
+    'table.ind-table tr.ind-total td{background:#eef2fb;font-weight:800;color:#132354;}'+
+    'table.ind-table td.ind-col-resumo{background:#f4f6fb;font-weight:700;}'+
+    'table.ind-table td.ind-negativo{color:#b71930;font-weight:800;}'+
+    'table.ind-table tr.ind-semdados td{color:#8a8f9c;font-style:italic;}'+
+    '.dow{display:block;font-weight:400;opacity:.75;font-size:7px;}'+
+    '</style></head><body>'+
+    '<h2>Indicadores Diários Consolidados — '+titulo+'</h2>'+
+    tabelaHTML+
+    '</body></html>');
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 400);
+}
+
+// =====================================================================
 // MAIN REFRESH + TAB SWITCHING
 // =====================================================================
 function atualizarTudo(){
@@ -4131,7 +4241,9 @@ document.getElementById('sidebar').addEventListener('click', e=>{
   document.getElementById('filtrosPanel').style.display = ['agencias','seguro','convenios','encomendas','indicadores'].includes(btn.dataset.tab) ? 'none' : '';
   document.getElementById('tituloAba').textContent = TITULOS_ABA[btn.dataset.tab] || 'Receita Diária por Linhas e Horários';
 });
-document.getElementById('inMes').addEventListener('change', renderIndicadores);
+['inDataIni','inDataFim'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', renderIndicadores);
+});
 
 // Os filtros categóricos (Sentido, Órgão, Horário, Linha, Classe, Origem, Destino, Grupo,
 // Agência, UF, Tipo, Local, Status, Forma) disparam a atualização diretamente pelo próprio
