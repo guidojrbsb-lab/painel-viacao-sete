@@ -1342,11 +1342,24 @@ function _resolverTransferenciasEntreContas(){
     { re: /BRADESCO/i, bancos: ['BRADESCO'] },
     { re: /UNICRED/i, bancos: ['UNICRED 49859','UNICRED 23957'] },
   ];
+  // Tolerância de dias entre a SAÍDA e a ENTRADA de uma transferência interna: bancos não
+  // liquidam PIX/TED/DOC em fim de semana/feriado -- uma saída de sexta ou sábado só cai
+  // na conta de destino na segunda-feira seguinte. Caso real confirmado pelo usuário em
+  // 2026-08-14: PIX enviado PAGSEGURO->SANTANDER FILIAL no sábado 08/08 (R$7.000,00) só
+  // apareceu como PIX recebido no Santander na segunda-feira 10/08 -- como a busca do
+  // lançamento espelho antes só olhava o MESMO DIA, essa transferência nunca era
+  // encontrada e ficava presa em Despesa (PagSeguro) e Receita (Santander) normais, cada
+  // lado contando como se fosse dinheiro de fora. Corrigido buscando o par numa JANELA de
+  // dias PRA FRENTE (nunca pra trás -- dinheiro nunca chega antes de sair), sempre
+  // preferindo o casamento de data MAIS PRÓXIMA quando há mais de um candidato com o
+  // mesmo valor (reduz o risco de casar por coincidência com um período maior aberto).
+  const GAP_DIAS_TRANSFERENCIA = 4; // cobre até feriado de 2ª-feira emendado num fim de semana
+  const _addDiasISO = (iso, n) => { const dt = new Date(iso+'T00:00:00Z'); dt.setUTCDate(dt.getUTCDate()+n); return dt.toISOString().slice(0,10); };
   const datas = Object.keys(DB.bancos||{});
   // Limpa marcação de uma rodada anterior -- idempotente, roda de novo a cada
   // upload/carregamento sem acumular lixo de execuções passadas.
   datas.forEach(d=>{ (DB.bancos[d]||[]).forEach(t=>{ delete t.transferencia; delete t.transferenciaAlvo; }); });
-  datas.forEach(d=>{
+  datas.sort().forEach(d=>{
     const lista = DB.bancos[d] || [];
     lista.forEach(t=>{
       if(t.transferencia) return;
@@ -1362,14 +1375,20 @@ function _resolverTransferenciasEntreContas(){
       const fam = t._transfInst ? FAMILIAS.find(f=> f.re.test(t._transfInst)) : null;
       const candidatosBanco = (fam ? fam.bancos : BANCOS_LISTA).filter(b=>b!==t.banco);
       const naturezaOposta = t.natureza==='despesa' ? 'receita' : 'despesa';
-      const par = candidatosBanco.length ? lista.find(t2=> t2!==t && !t2.transferencia && candidatosBanco.includes(t2.banco) && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01) : null;
+      if(!candidatosBanco.length) return;
+      let par = null;
+      for(let g=0; g<=GAP_DIAS_TRANSFERENCIA && !par; g++){
+        const listaCand = DB.bancos[_addDiasISO(d, g)];
+        if(!listaCand) continue;
+        par = listaCand.find(t2=> t2!==t && !t2.transferencia && candidatosBanco.includes(t2.banco) && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01) || null;
+      }
       // Correção 2026-08-07: só marca como TRANSFERÊNCIA ENTRE CONTAS quando o
-      // lançamento espelho (mesma data, mesmo valor, natureza oposta) é encontrado de
-      // fato em outra conta rastreada -- toda saída interna tem que ter uma entrada
-      // correspondente em algum banco da base, senão não é transferência conciliável.
-      // Quando não acha o par, o lançamento fica normal em Receita/Despesa (não seta
-      // t.transferencia): não existe mais "BANCO NÃO IDENTIFICADO" nem "(destino a
-      // confirmar)" -- o pedido do usuário foi que só entre no tópico à parte quem tem
+      // lançamento espelho (mesmo valor, natureza oposta, dentro da janela de dias acima)
+      // é encontrado de fato em outra conta rastreada -- toda saída interna tem que ter
+      // uma entrada correspondente em algum banco da base, senão não é transferência
+      // conciliável. Quando não acha o par, o lançamento fica normal em Receita/Despesa
+      // (não seta t.transferencia): não existe mais "BANCO NÃO IDENTIFICADO" nem "(destino
+      // a confirmar)" -- o pedido do usuário foi que só entre no tópico à parte quem tem
       // as duas pontas batendo, pra Entrada e Saída do tópico ficarem sempre iguais.
       if(par){
         t.transferencia = true;
