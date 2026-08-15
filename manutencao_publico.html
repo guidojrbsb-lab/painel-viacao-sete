@@ -777,7 +777,7 @@ function renderCombustivel(){
     const seta = cbOrdemCampo===c ? (cbOrdemAsc?'&#9650;':'&#9660;') : '';
     const cls = camposNum.has(c) ? ' class="cel-num"' : '';
     return `<th${cls} onclick="cbOrdenar('${c}')">${campos[c]}<span class="seta-ord">${seta}</span></th>`;
-  }).join('') + '<th class="cel-centro">Ações</th>';
+  }).join('') + (MODO_PUBLICO ? '' : '<th class="cel-centro">Ações</th>');
   document.getElementById('cbTabela').querySelector('thead').innerHTML = '<tr>'+th+'</tr>';
 
   const ordenada = [...lista].sort((a,b)=>{
@@ -790,7 +790,7 @@ function renderCombustivel(){
   });
   const tbody = document.getElementById('cbTabela').querySelector('tbody');
   if(!ordenada.length){
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:18px;">Nenhum lançamento no período/filtro selecionado.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="'+(MODO_PUBLICO?7:8)+'" style="text-align:center;color:var(--muted);padding:18px;">Nenhum lançamento no período/filtro selecionado.</td></tr>';
   } else {
     tbody.innerHTML = ordenada.map(r=>`
       <tr>
@@ -801,10 +801,10 @@ function renderCombustivel(){
         <td class="cel-num">${_fmtNum(r.litros,2)} L</td>
         <td class="cel-num">${_fmtBRL(r.preco)}</td>
         <td class="cel-num">${_fmtBRL(r.valorTotal)}</td>
-        <td class="cel-centro">
+        ${MODO_PUBLICO ? '' : `<td class="cel-centro">
           <button class="btn-acao" onclick="cbEditar('${r.id}')">Editar</button>
           <button class="btn-acao excluir" onclick="cbExcluir('${r.id}')">Excluir</button>
-        </td>
+        </td>`}
       </tr>
     `).join('');
   }
@@ -824,7 +824,7 @@ function renderCombustivel(){
         <td class="cel-num">${_fmtNum(totalLitros,2)} L</td>
         <td class="cel-num">${_fmtBRL(precoMedio)}</td>
         <td class="cel-num">${_fmtBRL(totalGasto)}</td>
-        <td></td>
+        ${MODO_PUBLICO ? '' : '<td></td>'}
       </tr>
     `;
   }
@@ -961,6 +961,13 @@ function toggleControlesModoPublico(){
   const status = document.getElementById('uploadStatus');
   if(controles) controles.style.display = 'none';
   if(status) status.textContent = 'Painel público (somente leitura) — dados carregados pelo administrador.';
+  // Link público é só consulta -- pedido do usuário em 2026-08-15: quem visualiza pelo
+  // Vercel não deve conseguir lançar/editar/excluir abastecimento, só ver o resumo do
+  // cabeçalho, os filtros e o relatório de Lançamentos (com export CSV/PDF). O formulário
+  // "Novo Abastecimento" some inteiro, e a coluna Ações (Editar/Excluir) já nem é
+  // gerada em renderCombustivel() quando MODO_PUBLICO é verdadeiro.
+  const formPanel = document.getElementById('painelFormCombustivel');
+  if(formPanel) formPanel.style.display = 'none';
 }
 
 _popularSelectsBase();
