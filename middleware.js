@@ -135,6 +135,20 @@ function paginaLogin(erro) {
 export default async function middleware(request) {
   const url = new URL(request.url);
 
+  // /api/dados fica FORA do login -- e a rota de sincronizacao automatica ("Opcao 3")
+  // entre os 4 paineis locais (admin) e os 4 publicos, adicionada em 2026-08-15. Ela
+  // precisa responder sem cookie de sessao porque: (1) o painel Comercial local
+  // ("Painel Viacao Sete.html") roda fora deste dominio, aberto via file://, entao
+  // nunca teria o cookie HttpOnly deste site pra mandar junto; e (2) essa rota ja tem
+  // sua propria protecao (POST exige "Authorization: Bearer <SYNC_TOKEN>", GET e
+  // leitura publica de proposito -- e o mesmo dado que ja fica visivel pra quem loga
+  // e abre qualquer _publico.html). Sem este bypass, o middleware intercepta a
+  // chamada antes de chegar em api/dados.js e devolve a pagina de login (HTML) no
+  // lugar do JSON esperado, quebrando a sincronizacao silenciosamente.
+  if (url.pathname === '/api/dados') {
+    return next();
+  }
+
   if (request.method === 'POST' && url.pathname === '/__login') {
     let usuario = '', senha = '';
     try {
