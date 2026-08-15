@@ -646,15 +646,27 @@ const SYNC_TOKEN = 'Mabd3cjIMNLuRWQuspNPGx38-KlcFk_N';
 // do Vercel quanto direto como arquivo local (file://). Ver comentário completo em
 // "Painel Viação Sete.html" (painel Comercial).
 const API_BASE = 'https://indicadoresv7.vercel.app';
-function _sincronizarNuvem(){
+async function _sincronizarNuvem(){
   if(MODO_PUBLICO) return;
   try{
-    fetch(API_BASE + '/api/dados?setor=financeiro', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SYNC_TOKEN },
-      body: JSON.stringify(DB),
-    }).catch(e=>console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e));
-  }catch(e){ console.warn('Sincronização com o link público falhou:', e); }
+    const texto = JSON.stringify(DB);
+    // O Vercel limita o corpo de uma Serverless Function a ~4,5 MB; a base do
+    // Comercial/Financeiro ja passa disso, entao fatiamos em pedacos de ~3,5 MB com
+    // margem de seguranca (Operacao/Manutencao nunca chegam perto, mas usam o mesmo
+    // caminho por simplicidade -- vira 1 pedaco so nesse caso). Ver api/dados.js.
+    const TAMANHO_CHUNK = 3500000;
+    const total = Math.max(1, Math.ceil(texto.length / TAMANHO_CHUNK));
+    const uploadId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+    for(let i=0;i<total;i++){
+      const pedaco = texto.slice(i*TAMANHO_CHUNK, (i+1)*TAMANHO_CHUNK);
+      const resp = await fetch(API_BASE + '/api/dados?setor=financeiro&chunk='+i+'&total='+total+'&uploadId='+uploadId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Authorization': 'Bearer ' + SYNC_TOKEN },
+        body: pedaco,
+      });
+      if(!resp.ok) throw new Error('HTTP '+resp.status+' no pedaco '+i+'/'+total);
+    }
+  }catch(e){ console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e); }
 }
 
 let DB = { resumo: {}, bancos: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [] };
