@@ -436,7 +436,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Viação Sete</span>
-    <h1 id="tituloAba">Financeiro</h1>
+    <h1 id="tituloAba">Bancos</h1>
   </div>
 </header>
 <div class="layout">
@@ -447,27 +447,14 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          leva class="tab" (visível por padrão) e o JS alterna a classe "hidden" -- NÃO usar
          "tab-content"/"active" (não existe CSS pra essas classes, ficaria tudo visível ao
          mesmo tempo assim que houver mais de uma aba). -->
-    <button data-tab="resumo" class="active"><span class="ic">&#9635;</span>Resumo</button>
-    <button data-tab="bancos"><span class="ic">&#127974;</span>Bancos</button>
+    <button data-tab="bancos" class="active"><span class="ic">&#127974;</span>Bancos</button>
     <button data-tab="dre"><span class="ic">&#128202;</span>DRE</button>
   </nav>
   <main>
-    <!-- ABA RESUMO (placeholder) -->
-    <section class="tab" id="tab-resumo">
-      <div class="panel">
-        <h2>Painel Financeiro</h2>
-        <p style="color:var(--muted);font-size:13.5px;line-height:1.6;">
-          Setor criado e pronto para receber novas demandas. A aba Bancos já está ativa;
-          as próximas entram aqui seguindo o mesmo padrão dos outros painéis
-          (Comercial/Convênios/Indicadores).
-        </p>
-      </div>
-    </section>
-
     <!-- ABA BANCOS: consolida os extratos de todas as contas (Itaú, PagSeguro, Santander
          Matriz/Filial, Stone x5) num único relatório de Receita x Despesa por banco.
          Pedido dos sócios em 2026-08-06 (1ª demanda do setor Financeiro). -->
-    <section class="tab hidden" id="tab-bancos">
+    <section class="tab" id="tab-bancos">
       <div class="panel filtro-box" id="filtrosPanelBancos">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -837,7 +824,7 @@ function toggleFiltroBox(h2){
   if(box) box.classList.toggle('collapsed');
 }
 
-const TITULOS_ABA_FIN = { resumo: 'Financeiro', bancos: 'Bancos', dre: 'DRE' };
+const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE' };
 
 // Troca de aba -- mesma convenção do painel Comercial: as <section class="tab"> ficam
 // visíveis por padrão, o JS só alterna a classe "hidden" (NÃO usar "tab-content"/"active",
