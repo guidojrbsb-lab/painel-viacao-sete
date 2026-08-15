@@ -703,6 +703,35 @@ let EMBEDDED_DB = {"rlh": {"2026-07-01": [{"hora": "17:15", "servico": 101305, "
 const MODO_PUBLICO = !!EMBEDDED_DB;
 
 // =====================================================================
+// SINCRONIZAÇÃO AUTOMÁTICA COM O LINK PÚBLICO -- "Opção 3", aprovada pelo usuário em
+// 2026-08-15. Antes, toda atualização de dado exigia: exportar a base local, mandar
+// pro Claude, o Claude regenerar painel_publico.html com o JSON embutido, e o usuário
+// subir esse arquivo manualmente no GitHub -- repetido pra cada um dos 4 setores.
+// Agora, cada saveDB() bem-sucedido também replica a base pro backend na nuvem
+// (Vercel KV, via /api/dados) automaticamente, e o painel_publico.html passa a buscar
+// esse dado ao vivo (ver loadDB() lá) em vez de depender só do que foi "assado" no
+// HTML na última publicação manual. SYNC_TOKEN precisa bater com a Environment
+// Variable de mesmo nome no Vercel -- sem ela, o POST é rejeitado (401), então só
+// quem tem este arquivo local consegue gravar.
+const SYNC_TOKEN = 'Mabd3cjIMNLuRWQuspNPGx38-KlcFk_N';
+// URL absoluta (não relativa) porque este arquivo mora FORA da pasta publicada no
+// Vercel e é aberto direto como arquivo local (file://) -- uma URL relativa tentaria
+// resolver contra "file:///api/dados" e nunca chegaria no servidor. Os outros 3
+// painéis locais (dentro da pasta publicada) funcionam com URL absoluta do mesmo
+// jeito, então não precisa de tratamento especial pra eles.
+const API_BASE = 'https://indicadoresv7.vercel.app';
+function _sincronizarNuvem(){
+  if(MODO_PUBLICO) return;
+  try{
+    fetch(API_BASE + '/api/dados?setor=comercial', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SYNC_TOKEN },
+      body: JSON.stringify(DB),
+    }).catch(e=>console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e));
+  }catch(e){ console.warn('Sincronização com o link público falhou:', e); }
+}
+
+// =====================================================================
 // PERSISTÊNCIA: IndexedDB (não mais localStorage) -- pedido dos sócios (2026-08-06).
 // O localStorage tem um limite fixo de ~5MB por navegador/origem, e essa base (vários
 // meses x vários relatórios) já passa disso rotineiramente -- mesmo depois de usar
@@ -790,8 +819,29 @@ function _reaplicarCorrecoesDataConvenio(){
   }
   return mudouAlgo;
 }
+function _normalizarComercial(){
+  for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {};
+  _reaplicarRedirecionamentosConvenio();
+  _reaplicarCorrecoesDataConvenio();
+}
 async function loadDB(){
-  if(EMBEDDED_DB){ DB = EMBEDDED_DB; for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {}; _reaplicarRedirecionamentosConvenio(); _reaplicarCorrecoesDataConvenio(); return; }
+  if(EMBEDDED_DB){
+    DB = EMBEDDED_DB; _normalizarComercial();
+    // Sincronização automática (Opção 3, 2026-08-15): tenta buscar a base mais
+    // recente do backend na nuvem (o mesmo que os saveDB() dos painéis locais vêm
+    // alimentando). Se der certo, substitui o EMBEDDED_DB (que é só o retrato do
+    // último "publicar" manual) pelo dado ao vivo. Se falhar (API fora do ar, banco
+    // ainda não configurado, sem internet), continua mostrando o EMBEDDED_DB
+    // normalmente -- nunca deixa a tela em branco por causa disso.
+    try{
+      const resp = await fetch(API_BASE + '/api/dados?setor=comercial', {cache:'no-store'});
+      if(resp.ok){
+        const dadosNuvem = await resp.json();
+        if(dadosNuvem){ DB = dadosNuvem; _normalizarComercial(); }
+      }
+    }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
+    return;
+  }
   try{
     const conn = await _idbAbrir();
     let raw = await _idbGet(conn, IDB_CHAVE);
@@ -984,6 +1034,7 @@ async function saveDB(){
   try{
     const conn = await _idbAbrir();
     await _idbPut(conn, IDB_CHAVE, DB);
+    _sincronizarNuvem();
     return true;
   }catch(e){
     console.error('Erro ao salvar base local (IndexedDB)', e);
