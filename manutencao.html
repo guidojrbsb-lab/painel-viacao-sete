@@ -391,7 +391,7 @@ function _idbPut(conn, chave, valor){
 }
 async function loadDB(){
   if(EMBEDDED_DB){
-    DB = EMBEDDED_DB; DB.combustivel = DB.combustivel || []; _migrarTipoCombustivel();
+    DB = EMBEDDED_DB; DB.combustivel = DB.combustivel || []; _migrarTipoCombustivel(); _migrarValorTotalCombustivel();
     // Sincronização automática (Opção 3, 2026-08-15) -- ver comentário completo no
     // painel Comercial ("Painel Viação Sete.html"). Tenta buscar a base ao vivo do
     // backend na nuvem; se falhar, continua mostrando o EMBEDDED_DB normalmente.
@@ -399,7 +399,7 @@ async function loadDB(){
       const resp = await fetch(API_BASE + '/api/dados?setor=manutencao', {cache:'no-store'});
       if(resp.ok){
         const dadosNuvem = await resp.json();
-        if(dadosNuvem){ DB = dadosNuvem; DB.combustivel = DB.combustivel || []; _migrarTipoCombustivel(); }
+        if(dadosNuvem){ DB = dadosNuvem; DB.combustivel = DB.combustivel || []; _migrarTipoCombustivel(); _migrarValorTotalCombustivel(); }
       }
     }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
     return;
@@ -410,7 +410,9 @@ async function loadDB(){
     if(raw) DB = raw;
   }catch(e){ console.error('Erro ao carregar base local (Manutenção)', e); }
   DB.combustivel = DB.combustivel || [];
-  if(_migrarTipoCombustivel()) saveDB();
+  const mudouTipo = _migrarTipoCombustivel();
+  const mudouValor = _migrarValorTotalCombustivel();
+  if(mudouTipo || mudouValor) saveDB();
 }
 // Migração automática (pedido do usuário, 2026-08-15): o campo "tipo" (Diesel/Arla 32)
 // não existia antes desta data -- todo lançamento já feito é Óleo Diesel de verdade
@@ -422,6 +424,20 @@ function _migrarTipoCombustivel(){
   let mudou = false;
   (DB.combustivel||[]).forEach(r=>{
     if(!r.tipo){ r.tipo = 'DIESEL'; mudou = true; }
+  });
+  return mudou;
+}
+// Migração automática (pedido do usuário, 2026-08-16): Valor Total deve ser truncado
+// pra 2 casas, nunca arredondado (384,496 L x 6,65 = 2.556,8984 -> 2.556,89, nao
+// 2.556,90). Lançamentos salvos antes dessa correção usavam Math.round e podem ter
+// 1 centavo a mais. Recalcula litros x preco com truncamento pra todo registro, toda
+// vez que carrega -- cobre a base local, qualquer JSON antigo reimportado e o
+// EMBEDDED_DB/dado ao vivo do público. Retorna true se algum valor mudou.
+function _migrarValorTotalCombustivel(){
+  let mudou = false;
+  (DB.combustivel||[]).forEach(r=>{
+    const correto = _truncar2Casas(r.litros * r.preco);
+    if(Math.abs((r.valorTotal||0) - correto) > 1e-9){ r.valorTotal = correto; mudou = true; }
   });
   return mudou;
 }
@@ -466,6 +482,14 @@ function _fmtBRL(v){
 }
 function _fmtNum(v, casas){
   return (v||0).toLocaleString('pt-BR', {minimumFractionDigits:casas, maximumFractionDigits:casas});
+}
+// Trunca (nao arredonda) pra 2 casas decimais -- pedido do usuario em 2026-08-16 pro
+// Valor Total do Controle de Combustivel: 384,496 L x 6,65 = 2.556,8984, deve mostrar
+// 2.556,89 (as duas primeiras casas que derem), nunca 2.556,90. O epsilon pequeno
+// (1e-9) so corrige ruido de ponto flutuante (ex: 10 as vezes vira 9.999999999998
+// internamente), nao muda o comportamento de truncar de verdade.
+function _truncar2Casas(v){
+  return Math.floor((v||0) * 100 + 1e-9) / 100;
 }
 function formatarDataBR(iso){
   if(!iso) return '';
@@ -644,7 +668,7 @@ function _cbAoTrocarTipo(){
 function _cbAtualizarValorTotal(){
   const litros = parseFloat(document.getElementById('cbLitros').value) || 0;
   const preco = parseFloat(document.getElementById('cbPreco').value) || 0;
-  document.getElementById('cbValorTotalDisplay').textContent = _fmtBRL(litros * preco);
+  document.getElementById('cbValorTotalDisplay').textContent = _fmtBRL(_truncar2Casas(litros * preco));
 }
 
 let cbEditandoId = null;
@@ -660,7 +684,7 @@ function cbSalvarRegistro(){
     return;
   }
   const frota = FROTA_LISTA.find(f=>f.prefixo===prefixo);
-  const valorTotal = Math.round(litros * preco * 100) / 100;
+  const valorTotal = _truncar2Casas(litros * preco);
   if(cbEditandoId){
     const reg = DB.combustivel.find(r=>r.id===cbEditandoId);
     if(reg){ Object.assign(reg, {data, posto, prefixo, tipo, placa: frota?frota.placa:'', litros, preco, valorTotal}); }
@@ -976,7 +1000,7 @@ document.getElementById('fileInputFotos').addEventListener('change', async (ev)=
       const chave = data+'|'+prefixo+'|'+litros+'|'+preco;
       if(chavesExistentes.has(chave)){ ignorados++; continue; }
       const frota = FROTA_LISTA.find(f=>f.prefixo===prefixo);
-      DB.combustivel.push({ id:'c'+Date.now()+Math.random().toString(36).slice(2,7)+i, data, posto, prefixo, tipo, placa: frota?frota.placa:'', litros, preco, valorTotal: Math.round(litros*preco*100)/100 });
+      DB.combustivel.push({ id:'c'+Date.now()+Math.random().toString(36).slice(2,7)+i, data, posto, prefixo, tipo, placa: frota?frota.placa:'', litros, preco, valorTotal: _truncar2Casas(litros*preco) });
       chavesExistentes.add(chave);
       adicionados++;
     }
