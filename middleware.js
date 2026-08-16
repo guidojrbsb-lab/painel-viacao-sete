@@ -91,9 +91,8 @@ function paginaLogin(erro) {
     animation:subir .4s ease;
   }
   @keyframes subir{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  .card-top{background:var(--azul-dark);padding:30px 24px 22px;text-align:center;}
-  .card-top img{max-width:190px;display:block;margin:0 auto 16px;}
-  .card-top h1{color:#fff;font-size:15px;font-weight:600;margin:0;letter-spacing:.2px;line-height:1.4;}
+  .card-top{background:#fff;border:2px solid var(--azul);border-radius:14px;margin:18px 18px 0;padding:26px 24px;text-align:center;}
+  .card-top img{max-width:190px;display:block;margin:0 auto;}
   .card-body{padding:26px 28px 30px;}
   label{display:block;font-size:12px;color:#5b6472;font-weight:600;margin:0 0 6px;}
   input{
@@ -102,10 +101,10 @@ function paginaLogin(erro) {
   }
   input:focus{outline:none;border-color:var(--azul);background:#fff;}
   button{
-    width:100%;padding:12px;border:none;border-radius:9px;background:var(--dourado);color:#151b2b;
-    font-size:14px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .15s;
+    width:100%;padding:12px;border:2px solid var(--azul);border-radius:9px;background:#fff;color:var(--azul);
+    font-size:14px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s;
   }
-  button:hover{background:var(--dourado-dark);}
+  button:hover{background:var(--azul);color:#fff;}
   .erro{
     background:#fdecec;color:#8f1226;border:1px solid #f6c9cc;border-radius:8px;
     font-size:12.5px;padding:9px 12px;margin:0 0 16px;text-align:center;
@@ -117,7 +116,6 @@ function paginaLogin(erro) {
   <div class="card">
     <div class="card-top">
       <img src="data:image/png;base64,${LOGO_BASE64}" alt="Grupo Bandeira Mobilidade">
-      <h1>Painel de Indicadores</h1>
     </div>
     <div class="card-body">
       <form method="POST" action="/__login">
