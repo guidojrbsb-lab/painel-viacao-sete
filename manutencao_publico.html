@@ -290,7 +290,11 @@ const FROTA_LISTA = [
   {prefixo:'052', placa:'SMY5A58'}, {prefixo:'053', placa:'SMY2J58'},
   {prefixo:'054', placa:'SMZ4B16'}, {prefixo:'055', placa:'SMZ4B06'},
   {prefixo:'056', placa:'SNE9E54'}, {prefixo:'057', placa:'SNG6D45'},
-  {prefixo:'058', placa:'SNH8I21'}, {prefixo:'059', placa:'SNI2H64'}
+  {prefixo:'058', placa:'SNH8I21'}, {prefixo:'059', placa:'SNI2H64'},
+  // Carros de apoio da empresa (confirmados pelo usuário em 2026-08-17) -- não fazem
+  // parte da frota de ônibus, mas usam o mesmo controle de abastecimento.
+  {prefixo:'JEC', placa:'PAG5498'}, {prefixo:'STRADA', placa:'SLR3E25'},
+  {prefixo:'COMPASS', placa:'OFN4E02'}
 ];
 
 // Postos com preço fixo por litro -- passados pelo usuário em 2026-08-15. Ao selecionar
@@ -315,7 +319,10 @@ const POSTOS_LISTA = [
 // replicar a mesma lógica de autofill usada pro Diesel.
 const TIPOS_COMBUSTIVEL = [
   {codigo:'DIESEL', nome:'Óleo Diesel'},
-  {codigo:'ARLA32', nome:'Arla 32'}
+  {codigo:'ARLA32', nome:'Arla 32'},
+  // Adicionado em 2026-08-17 (carros de apoio) -- sem preço fixo cadastrado por
+  // enquanto, mesma lógica do Arla 32: campo Preço do Litro fica livre/manual.
+  {codigo:'GASOLINA', nome:'Gasolina'}
 ];
 
 // Preenchido pelo mesmo processo de build dos outros 3 setores quando este arquivo for
