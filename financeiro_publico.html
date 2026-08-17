@@ -708,6 +708,38 @@ function _normalizarFinanceiro(){
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
 }
+// Correção 2026-08-16: o usuário confirmou que o mapeamento CONTA->banco em
+// _extrairSantander estava invertido desde o início (CONTA 130049081 é a FILIAL, não a
+// MATRIZ, e vice-versa). O parser já foi corrigido pra rotular certo daqui pra frente,
+// mas todo lançamento salvo ANTES dessa correção está com o rótulo trocado -- essa
+// migração roda uma vez (guardada por DB._migSantanderContaSwap, pra não trocar de volta
+// num load seguinte) e: (1) troca t.banco em DB.bancos, e (2) reconstrói as chaves de
+// DB.classificacao que começam com o nome do banco (_chaveClassificacao embute o banco
+// no início da chave -- ver comentário lá), senão a classificação da DRE já importada do
+// Excel pra essas linhas ficaria "órfã" (chave nova não bate mais com a antiga) e cairia
+// em DESCONHECIDO. No público isso só corrige a exibição em memória (saveDB é no-op aqui,
+// ver MODO_PUBLICO) -- serve de rede de segurança caso o admin ainda não tenha resincronizado.
+function _migrarContaSantander(){
+  if(DB._migSantanderContaSwap) return false;
+  Object.keys(DB.bancos||{}).forEach(dia=>{
+    (DB.bancos[dia]||[]).forEach(t=>{
+      if(t.banco === 'SANTANDER MATRIZ') t.banco = 'SANTANDER FILIAL';
+      else if(t.banco === 'SANTANDER FILIAL') t.banco = 'SANTANDER MATRIZ';
+    });
+  });
+  if(DB.classificacao){
+    const novo = {};
+    Object.keys(DB.classificacao).forEach(chave=>{
+      let novaChave = chave;
+      if(chave.startsWith('SANTANDER MATRIZ|')) novaChave = 'SANTANDER FILIAL|'+chave.slice('SANTANDER MATRIZ|'.length);
+      else if(chave.startsWith('SANTANDER FILIAL|')) novaChave = 'SANTANDER MATRIZ|'+chave.slice('SANTANDER FILIAL|'.length);
+      novo[novaChave] = DB.classificacao[chave];
+    });
+    DB.classificacao = novo;
+  }
+  DB._migSantanderContaSwap = true;
+  return true;
+}
 async function loadDB(){
   if(EMBEDDED_DB){
     DB = EMBEDDED_DB; _normalizarFinanceiro();
@@ -721,6 +753,7 @@ async function loadDB(){
         if(dadosNuvem){ DB = dadosNuvem; _normalizarFinanceiro(); }
       }
     }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
+    _migrarContaSantander();
     return;
   }
   try{
@@ -735,6 +768,7 @@ async function loadDB(){
   DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
+  if(_migrarContaSantander()) await saveDB();
 }
 async function saveDB(){
   if(MODO_PUBLICO) return true;
@@ -1109,11 +1143,13 @@ function _extrairPagseguro(aoa, hIdx){
   return { banco: 'PAGSEGURO', transacoes };
 }
 // SANTANDER (Matriz e Filial, mesmo layout -- distingue pelo Nº da CONTA no cabeçalho
-// do arquivo, linha antes da tabela: "AGENCIA 3333 CONTA 130049081" = Matriz,
-// "...CONTA 130078025" = Filial). A Matriz costuma chegar fragmentada em vários
-// arquivos por período do mês (ver comentário em _mesclarTransacoesBanco) -- cada
-// fragmento é só uma fatia de dias, sem sobreposição, então o merge por banco+data
-// funciona igual pra arquivo inteiro ou pedaço.
+// do arquivo, linha antes da tabela: "AGENCIA 3333 CONTA 130049081" = Filial,
+// "...CONTA 130078025" = Matriz -- confirmado pelo usuário em 2026-08-16, invertendo o
+// mapeamento original; ver _migrarContaSantander pra correção retroativa dos dados já
+// salvos com o rótulo antigo). A Matriz costuma chegar fragmentada em vários arquivos
+// por período do mês (ver comentário em _mesclarTransacoesBanco) -- cada fragmento é só
+// uma fatia de dias, sem sobreposição, então o merge por banco+data funciona igual pra
+// arquivo inteiro ou pedaço.
 function _extrairSantander(aoa, hIdx){
   let conta = '';
   for(let r=0;r<hIdx;r++){
@@ -1122,8 +1158,8 @@ function _extrairSantander(aoa, hIdx){
     if(idx>=0 && row[idx+1]!=null){ conta = String(row[idx+1]).trim(); break; }
   }
   let banco;
-  if(conta === '130049081') banco = 'SANTANDER MATRIZ';
-  else if(conta === '130078025') banco = 'SANTANDER FILIAL';
+  if(conta === '130049081') banco = 'SANTANDER FILIAL';
+  else if(conta === '130078025') banco = 'SANTANDER MATRIZ';
   else banco = conta ? ('SANTANDER (conta '+conta+')') : 'SANTANDER';
 
   const header = aoa[hIdx];
