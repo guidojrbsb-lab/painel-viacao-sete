@@ -612,7 +612,8 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          passa pelo banco (venda de agência/rota recebida em caixa, despesa paga direto do
          caixa, troco, fundo fixo etc.), planilha já 100% classificada manualmente pelo
          usuário (mesmo layout do Excel de Classificação, ver importarEspecie). -->
-    <button class="secondary" onclick="document.getElementById('fileInputEspecie').click()">Importar Espécie (Caixa)</button>
+    <button class="secondary" onclick="exportarExcelEspecie()">Exportar Excel de Espécie</button>
+    <button class="secondary" onclick="document.getElementById('fileInputEspecie').click()">Importar Classificação Espécie (DRE)</button>
     <input type="file" id="fileInputEspecie" accept=".xls,.xlsx" style="display:none">
     <!-- Recebíveis Stone (VENDA FUTURA) -- pedido dos sócios em 2026-08-10: mesmo padrão
          visual/posição dos demais botões do rodapé, em vez de ficar solto dentro da aba
@@ -939,6 +940,47 @@ function exportarExcelClassificacao(){
   XLSX.writeFile(wb, 'Classificacao_DRE_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
   const msgCompetencia = filtroCompetencia ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE)' : '';
   document.getElementById('uploadStatus').textContent = 'Excel de classificação exportado: '+linhas.length+' lançamento(s)'+msgCompetencia+'. Complete os pontos que precisarem de ajuste e reimporte pelo botão "Importar Classificação (DRE)".';
+}
+// Espelha exportarExcelClassificacao() logo acima, mas pra DB.especie (Caixa Espécie) --
+// pedido do usuário em 2026-08-16, pra poder baixar o que já foi importado, corrigir
+// algum lançamento do mês direto na planilha e reimportar pelo botão ao lado "Importar
+// Classificação Espécie (DRE)" sem precisar pedir pra mim toda vez. MESMO filtro de
+// competência do botão de Classificação (usa _dreUltimoMesAno -- as duas abas de DRE
+// leem a mesma base) e MESMO layout de 10 colunas que importarEspecie() lê de volta (ver
+// comentário lá): DATA DO EVENTO / ORIGEM (CAIXA) / DESCRIÇÃO / TIPO DE LANÇAMENTO /
+// VALOR (R$) / RECEITA OU DESPESA / AGÊNCIA-ROTA-ITEM / COMPETÊNCIA / SUBGRUPO / CENTRO
+// DE CUSTO -- reimportar sem editar nada é um roundtrip perfeito.
+function exportarExcelEspecie(){
+  const filtroCompetencia = _dreUltimoMesAno;
+  const registros = Object.values(DB.especie||{}).filter(t=>
+    !filtroCompetencia || (t.mes===filtroCompetencia.mes && t.ano===filtroCompetencia.ano)
+  );
+  registros.sort((a,b)=> a.data.localeCompare(b.data));
+  const linhas = registros.map(t=>{
+    const valorComSinal = t.natureza==='despesa' ? -Math.abs(t.valor) : Math.abs(t.valor);
+    return [
+      formatarDataBR(t.data),
+      t.banco,
+      t.descricao || '',
+      t.tipoLancamento || '',
+      valorComSinal,
+      t.natureza==='receita' ? 'RECEITA' : 'DESPESA',
+      t.contraparte || '',
+      MESES_PT[t.mes-1] || '',
+      t.subgrupo,
+      t.centroCusto,
+    ];
+  });
+  const cabecalho = ['DATA DO EVENTO','ORIGEM (CAIXA)','DESCRIÇÃO','TIPO DE LANÇAMENTO','VALOR (R$)','RECEITA OU DESPESA','AGÊNCIA/ROTA/ITEM','COMPETÊNCIA','SUBGRUPO','CENTRO DE CUSTO'];
+  const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
+  ws['!cols'] = [{wch:12},{wch:18},{wch:45},{wch:20},{wch:14},{wch:15},{wch:26},{wch:11},{wch:30},{wch:22}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Caixa Espécie');
+  const hoje = new Date().toISOString().slice(0,10);
+  const sufixoCompetencia = filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '';
+  XLSX.writeFile(wb, 'Especie_Caixa_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
+  const msgCompetencia = filtroCompetencia ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE)' : '';
+  document.getElementById('uploadStatus').textContent = 'Excel de Espécie exportado: '+linhas.length+' lançamento(s)'+msgCompetencia+'. Edite o que precisar e reimporte pelo botão "Importar Classificação Espécie (DRE)".';
 }
 
 function toggleFiltroBox(h2){
