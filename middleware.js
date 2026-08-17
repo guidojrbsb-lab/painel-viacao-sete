@@ -91,7 +91,7 @@ function paginaLogin(erro) {
     animation:subir .4s ease;
   }
   @keyframes subir{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-  .card-top{background:#fff;border:2px solid var(--azul);border-radius:14px;margin:18px 18px 0;padding:26px 24px;text-align:center;}
+  .card-top{background:#fff;border:5px solid var(--azul);border-radius:14px;margin:18px 18px 0;padding:26px 24px;text-align:center;}
   .card-top img{max-width:190px;display:block;margin:0 auto;}
   .card-body{padding:26px 28px 30px;}
   label{display:block;font-size:12px;color:#5b6472;font-weight:600;margin:0 0 6px;}
@@ -101,7 +101,7 @@ function paginaLogin(erro) {
   }
   input:focus{outline:none;border-color:var(--azul);background:#fff;}
   button{
-    width:100%;padding:12px;border:2px solid var(--azul);border-radius:9px;background:#fff;color:var(--azul);
+    width:100%;padding:12px;border:4px solid var(--azul);border-radius:9px;background:#fff;color:var(--azul);
     font-size:14px;font-weight:700;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s;
   }
   button:hover{background:var(--azul);color:#fff;}
