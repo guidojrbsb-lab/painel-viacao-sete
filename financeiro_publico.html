@@ -2889,10 +2889,14 @@ function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
   const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
   const badgeHtml = badge ? ' <span class="info-badge" title="Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.">?</span>' : '';
+  // pctVal null (RECEITA BRUTA/IMPOSTOS) -- combinado com o usuário em 2026-08-17: a
+  // coluna de % passou a ser sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA, e
+  // essas 2 linhas ficam sem percentual (vêm ANTES da Receita Líquida na tabela).
+  const pctTxt = pctVal===null ? '' : pctVal.toFixed(1)+'%';
   let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+
     '<td style="'+cor+'font-weight:bold;">'+seta+label+badgeHtml+'</td>'+
     '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(total)+'</td>'+
-    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctVal.toFixed(1)+'%</td></tr>';
+    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctTxt+'</td></tr>';
   if(aberto) html += _linhasSubgruposDREC(key, subgrupos, vermelho);
   return html;
 }
@@ -2951,7 +2955,9 @@ function renderDREContabil(){
   const df = d.DF.total;
   const financiamentos = d.FINANCIAMENTOS.total;
   const ll = ebitda - df - financiamentos;
-  const pct = v => receitaBruta ? (v / receitaBruta * 100) : 0;
+  // % agora é sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA -- pedido do
+  // usuário em 2026-08-17 (RECEITA BRUTA e IMPOSTOS ficam sem percentual, ver _linhaDREC).
+  const pct = v => receitaLiquida ? (v / receitaLiquida * 100) : 0;
 
   if(kpi){
     kpi.innerHTML =
@@ -2960,10 +2966,10 @@ function renderDREContabil(){
       '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+_fmtBRL(ll)+'</div></div>';
   }
 
-  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA BRUTA</th></tr></thead><tbody>';
+  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA LÍQUIDA</th></tr></thead><tbody>';
 
-  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, pct(receitaBruta), false, d.RECEITA_BRUTA.subgrupos);
-  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, pct(impostos), true, d.IMPOSTOS.subgrupos);
+  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, null, false, d.RECEITA_BRUTA.subgrupos);
+  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, null, true, d.IMPOSTOS.subgrupos);
   html += _linhaTotalDREC('RECEITA LÍQUIDA', receitaLiquida, pct(receitaLiquida));
 
   html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', dp, pct(dp), true, d.DP.subgrupos);
