@@ -19,6 +19,7 @@
    valores de cor/raio/sombra/tipografia. */
 :root{
   --navy:#132354; --navy-dark:#0c1938; --navy-soft:#eef1f8;
+  --blue-ll:#1c56c9; /* 2026-08-16: 2º tom de azul pedido pro destaque do LL na DRE-Contábil, distinto do navy padrão */
   --red:#b71930; --red-dark:#8f1226; --red-soft:#fdecee;
   --bg:#f5f6f9; --card:#ffffff; --border:#e5e8f0; --border-strong:#d6dae5;
   --ink:#151b2b; --muted:#6b7280; --muted-soft:#9aa1af;
@@ -448,7 +449,15 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          "tab-content"/"active" (não existe CSS pra essas classes, ficaria tudo visível ao
          mesmo tempo assim que houver mais de uma aba). -->
     <button data-tab="bancos" class="active"><span class="ic">&#127974;</span>Bancos</button>
-    <button data-tab="dre"><span class="ic">&#128202;</span>DRE</button>
+    <button data-tab="dre"><span class="ic">&#128202;</span>DRE - Simplificado</button>
+    <!-- DRE - CONTÁBIL (2026-08-16): pedido dos sócios pra estrutura mais próxima de um DRE
+         societário (Receita Bruta > Impostos > Receita Líquida > despesas agrupadas em
+         DP/DV/DA/DC > EBITDA > DF/Financiamentos > Lucro Líquido, com % sobre Receita Bruta
+         em cada linha). A aba antiga (Receitas x Centro de Custo, dupla expansão) foi
+         preservada como "DRE - Simplificado" pra não perder o trabalho já feito -- as duas
+         abas leem a MESMA base de lançamentos já classificados (DB.bancos/DB.especie/
+         DB.classificacao), só reagrupam de um jeito diferente na hora de exibir. -->
+    <button data-tab="dre-contabil"><span class="ic">&#128200;</span>DRE - Contábil</button>
   </nav>
   <main>
     <!-- ABA BANCOS: consolida os extratos de todas as contas (Itaú, PagSeguro, Santander
@@ -560,6 +569,26 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
           <table class="data" id="vfTabela"><thead></thead><tbody></tbody></table>
         </div>
         <table class="data" id="vfTabelaTotal"><tbody></tbody></table>
+      </div>
+    </section>
+
+    <!-- ABA DRE - CONTÁBIL (2026-08-16): estrutura societária clássica, ver
+         _montarDREContabil/renderDREContabil. Mesma convenção de filtro/tabela das outras
+         abas; competência PRÓPRIA (dreContabilCompetencia), independente do seletor da
+         DRE - Simplificado, pra cada aba poder olhar um mês diferente sem interferir uma
+         na outra. -->
+    <section class="tab hidden" id="tab-dre-contabil">
+      <div class="panel filtro-box" id="filtrosPanelDreContabil">
+        <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
+        <div class="filters-grid" style="grid-template-columns:240px;">
+          <div><label>COMPETÊNCIA</label><select id="dreContabilCompetencia" onchange="renderDREContabil()"></select></div>
+        </div>
+      </div>
+
+      <div class="kpi-row" id="dreContabilKpiRow"></div>
+
+      <div class="panel">
+        <table class="data" id="dreContabilTabela"><thead></thead><tbody></tbody></table>
       </div>
     </section>
   </main>
@@ -740,6 +769,24 @@ function _migrarContaSantander(){
   DB._migSantanderContaSwap = true;
   return true;
 }
+// Migração retroativa (2026-08-16, a pedido do usuário): o subgrupo TROCO estava caindo
+// dentro de DIRETORIA (catch-all antigo) em classificações já importadas via Excel; o
+// correto é CUSTO OPERAÇÃO (que forma o DV - Despesa Veículo na DRE-Contábil). Ao
+// contrário da migração do Santander, esta roda em TODO load (sem flag "já rodou"), pra
+// também autocorrigir qualquer reimportação futura da planilha que reclassifique TROCO
+// como DIRETORIA de novo. No público isso só corrige a exibição em memória (saveDB é
+// no-op aqui, ver MODO_PUBLICO).
+function _migrarTrocoParaDV(){
+  let mudou = false;
+  Object.keys(DB.classificacao||{}).forEach(chave=>{
+    const c = DB.classificacao[chave];
+    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO OPERAÇÃO'){
+      c.centroCusto = 'CUSTO OPERAÇÃO';
+      mudou = true;
+    }
+  });
+  return mudou;
+}
 async function loadDB(){
   if(EMBEDDED_DB){
     DB = EMBEDDED_DB; _normalizarFinanceiro();
@@ -754,6 +801,7 @@ async function loadDB(){
       }
     }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
     _migrarContaSantander();
+    _migrarTrocoParaDV();
     return;
   }
   try{
@@ -768,7 +816,9 @@ async function loadDB(){
   DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
-  if(_migrarContaSantander()) await saveDB();
+  const migrouSantander = _migrarContaSantander();
+  const migrouTroco = _migrarTrocoParaDV();
+  if(migrouSantander || migrouTroco) await saveDB();
 }
 async function saveDB(){
   if(MODO_PUBLICO) return true;
@@ -917,7 +967,7 @@ function toggleFiltroBox(h2){
   if(box) box.classList.toggle('collapsed');
 }
 
-const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE' };
+const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE - Simplificado', 'dre-contabil': 'DRE - Contábil' };
 
 // Troca de aba -- mesma convenção do painel Comercial: as <section class="tab"> ficam
 // visíveis por padrão, o JS só alterna a classe "hidden" (NÃO usar "tab-content"/"active",
@@ -2653,6 +2703,192 @@ function _montarDRE(mes, ano){
   });
   return guias;
 }
+// ==================================================================================
+// DRE - CONTÁBIL (2026-08-16): pedido dos sócios pra uma estrutura mais próxima de um DRE
+// societário -- Receita Bruta > Impostos > Receita Líquida > despesas agrupadas em
+// DP/DV/DA/DC > EBITDA > DF/Financiamentos > Lucro Líquido, com % de cada linha sobre a
+// Receita Bruta. NÃO é uma base de dados nova -- reaproveita 100% de _montarDRE(mes,ano)
+// (mesmos lançamentos já classificados em DB.bancos/DB.especie/DB.classificacao) e só
+// reagrupa os CENTRO DE CUSTO na hora de exibir. A aba antiga (Receitas x Centro de
+// Custo, dupla expansão) continua existindo, renomeada pra "DRE - Simplificado".
+//
+// Mapeamento pedido pelo usuário (2026-08-16, "Essa é exatamente a arquitetura que
+// preciso"): IMPOSTOS E TAXAS->IMPOSTOS, CUSTO PESSOAL->DP, CUSTO OPERAÇÃO+CUSTO
+// MANUTENÇÃO->DV (junção explícita), CUSTO ADMINISTRATIVO->DA, CUSTO COMERCIAL->DC,
+// CUSTO FINANCEIRO->DF, FINANCIAMENTOS continua bloco próprio (já existia separado na
+// DRE - Simplificado). O pedido NÃO menciona onde entram DIRETORIA e SEGURO CAPEMISA
+// (nem qualquer outro CENTRO DE CUSTO que apareça no futuro sem estar nesta lista) --
+// pra nunca "sumir" dinheiro da conta (o que quebraria a reconciliação EBITDA/LL), tudo
+// que sobra cai automaticamente em OUTRAS DESPESAS (só aparece na tela quando o total é
+// diferente de zero, com um selo "?" avisando que é um agrupamento provisório). Ver
+// resposta ao usuário: se ele confirmar que DIRETORIA/SEGURO CAPEMISA devem entrar em DA
+// (ou em outra rubrica), é só mover os nomes de OUTRAS_FONTES pra DA_FONTES abaixo.
+const DP_FONTES = ['CUSTO PESSOAL'];
+const DV_FONTES = ['CUSTO OPERAÇÃO', 'CUSTO MANUTENÇÃO'];
+const DA_FONTES = ['CUSTO ADMINISTRATIVO'];
+// 2026-08-16: SEGURO CAPEMISA redirecionado pro DC a pedido do usuário (antes caía no
+// catch-all OUTRAS/DIR).
+const DC_FONTES = ['CUSTO COMERCIAL', 'SEGURO CAPEMISA'];
+const DF_FONTES = ['CUSTO FINANCEIRO'];
+const IMPOSTOS_FONTES = ['IMPOSTOS E TAXAS'];
+// 2026-08-16: DIR (Diretoria) virou rubrica própria e explícita (antes caía dentro do
+// catch-all genérico "OUTRAS DESPESAS", já que o pedido original não mencionava onde
+// entrava). O catch-all continua existindo (ver outrasFontes em _montarDREContabil) só
+// como rede de segurança pra qualquer CENTRO DE CUSTO realmente novo que apareça no
+// futuro sem estar mapeado em nenhuma das rubricas nomeadas.
+const DIR_FONTES = ['DIRETORIA'];
+// Mescla subgrupos+total de vários guias (chaves de _montarDRE) num único bloco --
+// usado tanto pra DV (2 fontes) quanto pra OUTRAS (N fontes variáveis por mês). Quando o
+// mesmo SUBGRUPO existir em mais de uma fonte, soma total e concatena itens (nunca
+// sobrescreve).
+function _mesclarGuias(guias, nomes){
+  const out = { total: 0, subgrupos: {} };
+  nomes.forEach(nome=>{
+    const g = guias[nome];
+    if(!g) return;
+    out.total += g.total;
+    Object.keys(g.subgrupos).forEach(sub=>{
+      if(!out.subgrupos[sub]) out.subgrupos[sub] = { total: 0, itens: [] };
+      out.subgrupos[sub].total += g.subgrupos[sub].total;
+      out.subgrupos[sub].itens = out.subgrupos[sub].itens.concat(g.subgrupos[sub].itens);
+    });
+  });
+  return out;
+}
+function _montarDREContabil(mes, ano){
+  const guias = _montarDRE(mes, ano);
+  const nomeadas = new Set([...DP_FONTES, ...DV_FONTES, ...DA_FONTES, ...DC_FONTES, ...DF_FONTES, ...IMPOSTOS_FONTES, ...DIR_FONTES]);
+  const outrasFontes = Object.keys(guias).filter(k=> k!=='RECEITAS' && k!=='FINANCIAMENTOS' && !nomeadas.has(k));
+  return {
+    RECEITA_BRUTA: guias['RECEITAS'] || { total: 0, subgrupos: {} },
+    IMPOSTOS: _mesclarGuias(guias, IMPOSTOS_FONTES),
+    DP: _mesclarGuias(guias, DP_FONTES),
+    DV: _mesclarGuias(guias, DV_FONTES),
+    DA: _mesclarGuias(guias, DA_FONTES),
+    DC: _mesclarGuias(guias, DC_FONTES),
+    DIR: _mesclarGuias(guias, DIR_FONTES),
+    OUTRAS: _mesclarGuias(guias, outrasFontes),
+    OUTRAS_FONTES: outrasFontes,
+    DF: _mesclarGuias(guias, DF_FONTES),
+    FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, subgrupos: {} },
+  };
+}
+const _dreContabilExpandido = {}; // rubrica -> bool (estado próprio, independente do _dreExpandido da aba antiga)
+let _dreContabilUltimoMesAno = null; // {mes, ano} da última montagem, usado pelo popup de drill-down
+function _toggleDreContabilGuia(nome){
+  _dreContabilExpandido[nome] = !_dreContabilExpandido[nome];
+  renderDREContabil();
+}
+// Linha de rubrica (RECEITA BRUTA/IMPOSTOS/DP/DV/DA/DC/OUTRAS/DF/FINANCIAMENTOS) -- `key`
+// é o identificador curto usado no estado de expansão e no popup (bate com as chaves de
+// _montarDREContabil), `label` é o texto exibido. `badge` marca visualmente OUTRAS
+// DESPESAS como agrupamento provisório (ver comentário grande acima de DP_FONTES).
+function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
+  const aberto = !!_dreContabilExpandido[key];
+  const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
+  const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
+  const badgeHtml = badge ? ' <span class="info-badge" title="Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.">?</span>' : '';
+  let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+
+    '<td style="'+cor+'font-weight:bold;">'+seta+label+badgeHtml+'</td>'+
+    '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(total)+'</td>'+
+    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctVal.toFixed(1)+'%</td></tr>';
+  if(aberto) html += _linhasSubgruposDREC(key, subgrupos, vermelho);
+  return html;
+}
+function _linhasSubgruposDREC(rubricaKey, subgrupos, vermelho){
+  let html = '';
+  const cor = vermelho ? 'color:var(--red);' : '';
+  const subNomes = Object.keys(subgrupos).sort((a,b)=> a.localeCompare(b,'pt-BR'));
+  subNomes.forEach(sub=>{
+    const s = subgrupos[sub];
+    html += '<tr class="clickable" onclick="_abrirDreContabilSubgrupoPopup(\''+rubricaKey+'\',\''+sub.replace(/'/g,"\\'")+'\')">'+
+      '<td style="padding-left:18px;'+cor+'">'+sub+' <span style="color:var(--muted);">('+s.itens.length+')</span></td>'+
+      '<td style="text-align:right;'+cor+'">'+_fmtBRL(s.total)+'</td><td></td></tr>';
+  });
+  return html;
+}
+// Linha de fechamento (RECEITA LÍQUIDA/EBITDA/LL) -- mesmo padrão visual da linha de
+// fechamento da DRE - Simplificado (fundo vermelho quando negativo), com a 3ª coluna de %.
+function _linhaTotalDREC(rotulo, valor, pctVal, corFundo){
+  const estilo = valor < 0 ? 'background:var(--red);' : (corFundo ? 'background:'+corFundo+';' : '');
+  return '<tr class="total-row"><td style="'+estilo+'">'+rotulo+'</td>'+
+    '<td style="text-align:right;'+estilo+'">'+_fmtBRL(valor)+'</td>'+
+    '<td style="text-align:right;'+estilo+'">'+pctVal.toFixed(1)+'%</td></tr>';
+}
+function renderDREContabil(){
+  const tabela = document.getElementById('dreContabilTabela');
+  if(!tabela) return;
+  const sel = document.getElementById('dreContabilCompetencia');
+  const disponiveis = _competenciasDisponiveis();
+  if(sel){
+    const anterior = sel.value;
+    sel.innerHTML = disponiveis.map(v=>{
+      const [ano, mesStr] = v.split('-');
+      return '<option value="'+v+'">'+MESES_PT[Number(mesStr)-1]+'/'+ano+'</option>';
+    }).join('');
+    if(disponiveis.includes(anterior)) sel.value = anterior;
+    else if(disponiveis.length) sel.value = disponiveis[0];
+  }
+  const valorSel = sel ? sel.value : '';
+  const kpi = document.getElementById('dreContabilKpiRow');
+  if(!valorSel){
+    tabela.innerHTML = '<thead></thead><tbody><tr><td colspan="3">Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
+    if(kpi) kpi.innerHTML = '';
+    return;
+  }
+  const [anoStr, mesStr] = valorSel.split('-');
+  const mes = Number(mesStr), ano = Number(anoStr);
+  const d = _montarDREContabil(mes, ano);
+  _dreContabilUltimoMesAno = { mes, ano };
+
+  const receitaBruta = d.RECEITA_BRUTA.total;
+  const impostos = d.IMPOSTOS.total;
+  const receitaLiquida = receitaBruta - impostos;
+  const dp = d.DP.total, dv = d.DV.total, da = d.DA.total, dc = d.DC.total, dir = d.DIR.total, outras = d.OUTRAS.total;
+  const totalDespesasOperacionais = dp + dv + da + dc + dir + outras;
+  const ebitda = receitaLiquida - totalDespesasOperacionais;
+  const df = d.DF.total;
+  const financiamentos = d.FINANCIAMENTOS.total;
+  const ll = ebitda - df - financiamentos;
+  const pct = v => receitaBruta ? (v / receitaBruta * 100) : 0;
+
+  if(kpi){
+    kpi.innerHTML =
+      '<div class="kpi kpi-destaque"><div class="lbl">RECEITA BRUTA — '+MESES_PT[mes-1]+'/'+ano+'</div><div class="val">'+_fmtBRL(receitaBruta)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">EBITDA</div><div class="val" style="color:'+(ebitda<0?'var(--red)':'var(--green5)')+';">'+_fmtBRL(ebitda)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+_fmtBRL(ll)+'</div></div>';
+  }
+
+  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA BRUTA</th></tr></thead><tbody>';
+
+  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, pct(receitaBruta), false, d.RECEITA_BRUTA.subgrupos);
+  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, pct(impostos), true, d.IMPOSTOS.subgrupos);
+  html += _linhaTotalDREC('RECEITA LÍQUIDA', receitaLiquida, pct(receitaLiquida));
+
+  html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', dp, pct(dp), true, d.DP.subgrupos);
+  html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', dv, pct(dv), true, d.DV.subgrupos);
+  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', da, pct(da), true, d.DA.subgrupos);
+  html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', dc, pct(dc), true, d.DC.subgrupos);
+  html += _linhaDREC('DIR', 'DIR (DIRETORIA)', dir, pct(dir), true, d.DIR.subgrupos);
+  if(Math.abs(outras) > 0.004){
+    html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', outras, pct(outras), true, d.OUTRAS.subgrupos, true);
+  }
+
+  html += _linhaTotalDREC('EBITDA', ebitda, pct(ebitda), 'var(--green5)');
+
+  html += _linhaDREC('DF', 'DF (DESPESA FINANCEIRA)', df, pct(df), true, d.DF.subgrupos);
+  html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', financiamentos, pct(financiamentos), true, d.FINANCIAMENTOS.subgrupos);
+
+  html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', ll, pct(ll), 'var(--blue-ll)');
+
+  html += '</tbody>';
+  tabela.innerHTML = html;
+}
+function _abrirDreContabilSubgrupoPopup(rubrica, subgrupo){
+  _modalTipoAtual = 'dreContabil';
+  _dreModalAtual = { guia: rubrica, subgrupo };
+  _renderDreModalTabela();
+}
 const _dreExpandido = {}; // guiaNome -> bool (estado de expandir/recolher, persiste entre re-renders)
 let _dreUltimoMesAno = null; // {mes, ano} da última montagem, usado pelo popup de drill-down
 function renderDRE(){
@@ -2813,12 +3049,25 @@ function _ordenarDreModal(col){
   _renderDreModalTabela();
 }
 function _renderDreModalTabela(){
-  if(!_dreUltimoMesAno || !_dreModalAtual) return;
+  if(!_dreModalAtual) return;
   const { guia, subgrupo } = _dreModalAtual;
-  const { mes, ano } = _dreUltimoMesAno;
-  const guias = _montarDRE(mes, ano);
-  const g = guias[guia];
-  const itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+  // 2026-08-16: mesma função de render serve os dois popups (DRE - Simplificado e DRE -
+  // Contábil) -- só troca de onde vêm os itens (_modalTipoAtual seta qual das duas
+  // funções de montagem usar), o resto (ordenação, tabela, export) é idêntico.
+  let itens;
+  if(_modalTipoAtual==='dreContabil'){
+    if(!_dreContabilUltimoMesAno) return;
+    const { mes, ano } = _dreContabilUltimoMesAno;
+    const dados = _montarDREContabil(mes, ano);
+    const g = dados[guia];
+    itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+  } else {
+    if(!_dreUltimoMesAno) return;
+    const { mes, ano } = _dreUltimoMesAno;
+    const guias = _montarDRE(mes, ano);
+    const g = guias[guia];
+    itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+  }
   itens.sort((a,b)=> _dreModalSortCol==='valor'
     ? _dreModalSortDir*(a.valor-b.valor)
     : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
@@ -3080,7 +3329,7 @@ function _renderVfModalConvenio(){
 // tentar ler o innerHTML da tabela -- evita duplicar formatação e garante que o export
 // bate com o que está na tela, inclusive depois do usuário clicar pra reordenar.
 function _tituloModalFinanceiroAtual(){
-  if(_modalTipoAtual==='dre'){
+  if(_modalTipoAtual==='dre' || _modalTipoAtual==='dreContabil'){
     const { guia, subgrupo } = _dreModalAtual||{};
     return subgrupo+' - '+guia;
   }
@@ -3089,6 +3338,19 @@ function _tituloModalFinanceiroAtual(){
   return 'Detalhamento';
 }
 function _linhasModalFinanceiroCSV(){
+  if(_modalTipoAtual==='dreContabil' && _dreContabilUltimoMesAno && _dreModalAtual){
+    const { guia, subgrupo } = _dreModalAtual;
+    const { mes, ano } = _dreContabilUltimoMesAno;
+    const dados = _montarDREContabil(mes, ano);
+    const g = dados[guia];
+    const itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+    itens.sort((a,b)=> _dreModalSortCol==='valor'
+      ? _dreModalSortDir*(a.valor-b.valor)
+      : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
+    const linhas = [['DATA','BANCO','DESCRIÇÃO','CONTRAPARTE','VALOR']];
+    itens.forEach(t=> linhas.push([formatarDataBR(t.data), t.banco||'', t.descricao||'', t.contraparte||'', (t.valor||0).toFixed(2).replace('.',',')]));
+    return linhas;
+  }
   if(_modalTipoAtual==='dre' && _dreUltimoMesAno && _dreModalAtual){
     const { guia, subgrupo } = _dreModalAtual;
     const { mes, ano } = _dreUltimoMesAno;
@@ -3560,6 +3822,7 @@ function atualizarTudo(){
   _resolverTransferenciasEntreContas();
   renderBancos();
   renderDRE();
+  renderDREContabil();
   // Venda Futura é independente da competência da DRE (ver comentário grande em
   // renderVendaFutura, 2026-08-10) -- chamada em separado aqui, não dentro de
   // renderDRE(), porque não deve reagir à troca do seletor COMPETÊNCIA.
