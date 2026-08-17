@@ -768,22 +768,23 @@ function _migrarContaSantander(){
   DB._migSantanderContaSwap = true;
   return true;
 }
-// Correção 2026-08-16: o usuário confirmou que o SUBGRUPO "TROCO" está classificado sob
-// o CENTRO DE CUSTO "DIRETORIA" (import manual do Excel de Classificação, DB.classificacao
-// -- "TROCO" não existe em nenhuma tabela estática do código, só nos dados já importados
-// pelo usuário) e pediu pra mover pra DV (DESPESA VEÍCULO). Redireciona pra
-// 'CUSTO OPERAÇÃO' (uma das 2 fontes de DV, ver DV_FONTES) -- isso corrige tanto a DRE -
-// Contábil (nova) quanto a DRE - Simplificado (antiga), já que as duas leem o mesmo
-// DB.classificacao. Diferente de _migrarContaSantander (troca reversível, por isso tinha
-// flag de "rodou uma vez"), esta correção é de mão única e idempotente -- pode rodar em
-// TODO load sem flag, o que também cobre reimportações futuras da planilha que ainda
-// tragam "TROCO" classificado como DIRETORIA por engano.
-function _migrarTrocoParaDV(){
+// Correção 2026-08-16: o usuário confirmou que o SUBGRUPO "TROCO" está classificado
+// incorretamente (import manual do Excel de Classificação, DB.classificacao -- "TROCO"
+// não existe em nenhuma tabela estática do código, só nos dados já importados pelo
+// usuário) e pediu pra mover pra DA (DESPESA ADMINISTRATIVA) -- ajustado de DV pra DA
+// no mesmo dia, a pedido do usuário. Redireciona pra 'CUSTO ADMINISTRATIVO' (a fonte de
+// DA, ver DA_FONTES) -- isso corrige tanto a DRE - Contábil (nova) quanto a DRE -
+// Simplificado (antiga), já que as duas leem o mesmo DB.classificacao. Diferente de
+// _migrarContaSantander (troca reversível, por isso tinha flag de "rodou uma vez"), esta
+// correção é de mão única e idempotente -- pode rodar em TODO load sem flag, o que
+// também cobre reimportações futuras da planilha que ainda tragam "TROCO" classificado
+// incorretamente.
+function _migrarTrocoParaDA(){
   let mudou = false;
   Object.keys(DB.classificacao||{}).forEach(chave=>{
     const c = DB.classificacao[chave];
-    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO OPERAÇÃO'){
-      c.centroCusto = 'CUSTO OPERAÇÃO';
+    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO ADMINISTRATIVO'){
+      c.centroCusto = 'CUSTO ADMINISTRATIVO';
       mudou = true;
     }
   });
@@ -817,7 +818,7 @@ async function loadDB(){
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
   const migrouSantander = _migrarContaSantander();
-  const migrouTroco = _migrarTrocoParaDV();
+  const migrouTroco = _migrarTrocoParaDA();
   if(migrouSantander || migrouTroco) await saveDB();
 }
 async function saveDB(){

@@ -769,19 +769,19 @@ function _migrarContaSantander(){
   DB._migSantanderContaSwap = true;
   return true;
 }
-// Migração retroativa (2026-08-16, a pedido do usuário): o subgrupo TROCO estava caindo
-// dentro de DIRETORIA (catch-all antigo) em classificações já importadas via Excel; o
-// correto é CUSTO OPERAÇÃO (que forma o DV - Despesa Veículo na DRE-Contábil). Ao
-// contrário da migração do Santander, esta roda em TODO load (sem flag "já rodou"), pra
-// também autocorrigir qualquer reimportação futura da planilha que reclassifique TROCO
-// como DIRETORIA de novo. No público isso só corrige a exibição em memória (saveDB é
-// no-op aqui, ver MODO_PUBLICO).
-function _migrarTrocoParaDV(){
+// Migração retroativa (2026-08-16, a pedido do usuário): o subgrupo TROCO estava
+// classificado incorretamente em classificações já importadas via Excel; o correto é
+// CUSTO ADMINISTRATIVO (que forma o DA - Despesa Administrativa na DRE-Contábil --
+// ajustado de DV pra DA no mesmo dia, a pedido do usuário). Ao contrário da migração do
+// Santander, esta roda em TODO load (sem flag "já rodou"), pra também autocorrigir
+// qualquer reimportação futura da planilha que reclassifique TROCO incorretamente. No
+// público isso só corrige a exibição em memória (saveDB é no-op aqui, ver MODO_PUBLICO).
+function _migrarTrocoParaDA(){
   let mudou = false;
   Object.keys(DB.classificacao||{}).forEach(chave=>{
     const c = DB.classificacao[chave];
-    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO OPERAÇÃO'){
-      c.centroCusto = 'CUSTO OPERAÇÃO';
+    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO ADMINISTRATIVO'){
+      c.centroCusto = 'CUSTO ADMINISTRATIVO';
       mudou = true;
     }
   });
@@ -801,7 +801,7 @@ async function loadDB(){
       }
     }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
     _migrarContaSantander();
-    _migrarTrocoParaDV();
+    _migrarTrocoParaDA();
     return;
   }
   try{
@@ -817,7 +817,7 @@ async function loadDB(){
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
   const migrouSantander = _migrarContaSantander();
-  const migrouTroco = _migrarTrocoParaDV();
+  const migrouTroco = _migrarTrocoParaDA();
   if(migrouSantander || migrouTroco) await saveDB();
 }
 async function saveDB(){
