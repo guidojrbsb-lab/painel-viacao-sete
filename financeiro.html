@@ -768,28 +768,6 @@ function _migrarContaSantander(){
   DB._migSantanderContaSwap = true;
   return true;
 }
-// Correção 2026-08-16: o usuário confirmou que o SUBGRUPO "TROCO" está classificado
-// incorretamente (import manual do Excel de Classificação, DB.classificacao -- "TROCO"
-// não existe em nenhuma tabela estática do código, só nos dados já importados pelo
-// usuário) e pediu pra mover pra DA (DESPESA ADMINISTRATIVA) -- ajustado de DV pra DA
-// no mesmo dia, a pedido do usuário. Redireciona pra 'CUSTO ADMINISTRATIVO' (a fonte de
-// DA, ver DA_FONTES) -- isso corrige tanto a DRE - Contábil (nova) quanto a DRE -
-// Simplificado (antiga), já que as duas leem o mesmo DB.classificacao. Diferente de
-// _migrarContaSantander (troca reversível, por isso tinha flag de "rodou uma vez"), esta
-// correção é de mão única e idempotente -- pode rodar em TODO load sem flag, o que
-// também cobre reimportações futuras da planilha que ainda tragam "TROCO" classificado
-// incorretamente.
-function _migrarTrocoParaDA(){
-  let mudou = false;
-  Object.keys(DB.classificacao||{}).forEach(chave=>{
-    const c = DB.classificacao[chave];
-    if(c && c.subgrupo==='TROCO' && c.centroCusto!=='CUSTO ADMINISTRATIVO'){
-      c.centroCusto = 'CUSTO ADMINISTRATIVO';
-      mudou = true;
-    }
-  });
-  return mudou;
-}
 async function loadDB(){
   if(EMBEDDED_DB){
     DB = EMBEDDED_DB; _normalizarFinanceiro();
@@ -817,9 +795,7 @@ async function loadDB(){
   DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
-  const migrouSantander = _migrarContaSantander();
-  const migrouTroco = _migrarTrocoParaDA();
-  if(migrouSantander || migrouTroco) await saveDB();
+  if(_migrarContaSantander()) await saveDB();
 }
 async function saveDB(){
   if(MODO_PUBLICO) return true;
@@ -2726,10 +2702,18 @@ function _montarDRE(mes, ano){
 // (ou em outra rubrica), é só mover os nomes de OUTRAS_FONTES pra DA_FONTES abaixo.
 const DP_FONTES = ['CUSTO PESSOAL'];
 const DV_FONTES = ['CUSTO OPERAÇÃO', 'CUSTO MANUTENÇÃO'];
-const DA_FONTES = ['CUSTO ADMINISTRATIVO'];
-// 2026-08-16: SEGURO CAPEMISA redirecionado pro DC a pedido do usuário (antes caía no
-// catch-all OUTRAS/DIR).
-const DC_FONTES = ['CUSTO COMERCIAL', 'SEGURO CAPEMISA'];
+// 2026-08-16: TROCO redirecionado pra DA a pedido do usuário. "TROCO" é, ele mesmo, um
+// CENTRO DE CUSTO próprio nos dados importados (não fica dentro de DIRETORIA nem de
+// nenhum outro -- ver DB.classificacao), por isso dá pra resolver só incluindo o nome
+// aqui em *_FONTES (mesma mecânica de DV, que já junta 2 fontes).
+const DA_FONTES = ['CUSTO ADMINISTRATIVO', 'TROCO'];
+// 2026-08-16: SEGURO CAPEMISA redirecionado pro DC a pedido do usuário. Diferente de
+// TROCO, "SEGURO CAPEMISA" NÃO é um centro de custo -- é um SUBGRUPO dentro do centro de
+// custo "IMPOSTOS E TAXAS" (ver DB.classificacao), então incluir o nome aqui não teria
+// efeito nenhum (não existe guia['SEGURO CAPEMISA']). A extração desse subgrupo de dentro
+// de IMPOSTOS pra dentro de DC é feita à parte, via _redirecionarSubgrupoDREC() logo
+// abaixo, depois de montar os dois guias.
+const DC_FONTES = ['CUSTO COMERCIAL'];
 const DF_FONTES = ['CUSTO FINANCEIRO'];
 const IMPOSTOS_FONTES = ['IMPOSTOS E TAXAS'];
 // 2026-08-16: DIR (Diretoria) virou rubrica própria e explícita (antes caía dentro do
@@ -2756,17 +2740,36 @@ function _mesclarGuias(guias, nomes){
   });
   return out;
 }
+// Move um SUBGRUPO inteiro de uma rubrica já montada (_mesclarGuias) pra outra dentro da
+// DRE-Contábil, ajustando os totais dos dois -- usado quando o SUBGRUPO não é ele mesmo
+// um CENTRO DE CUSTO (não dá pra resolver só com *_FONTES, ver comentário em DC_FONTES).
+// Não mexe em DB.classificacao (não é uma migração de dados) -- só reagrupa na hora de
+// exibir a DRE-Contábil, então não afeta a DRE-Simplificado nem exportações que leem a
+// classificação bruta.
+function _redirecionarSubgrupoDREC(origem, destino, subgrupo){
+  const s = origem.subgrupos && origem.subgrupos[subgrupo];
+  if(!s) return;
+  origem.total -= s.total;
+  delete origem.subgrupos[subgrupo];
+  if(!destino.subgrupos[subgrupo]) destino.subgrupos[subgrupo] = { total: 0, itens: [] };
+  destino.subgrupos[subgrupo].total += s.total;
+  destino.subgrupos[subgrupo].itens = destino.subgrupos[subgrupo].itens.concat(s.itens);
+  destino.total += s.total;
+}
 function _montarDREContabil(mes, ano){
   const guias = _montarDRE(mes, ano);
   const nomeadas = new Set([...DP_FONTES, ...DV_FONTES, ...DA_FONTES, ...DC_FONTES, ...DF_FONTES, ...IMPOSTOS_FONTES, ...DIR_FONTES]);
   const outrasFontes = Object.keys(guias).filter(k=> k!=='RECEITAS' && k!=='FINANCIAMENTOS' && !nomeadas.has(k));
+  const impostos = _mesclarGuias(guias, IMPOSTOS_FONTES);
+  const dc = _mesclarGuias(guias, DC_FONTES);
+  _redirecionarSubgrupoDREC(impostos, dc, 'SEGURO CAPEMISA');
   return {
     RECEITA_BRUTA: guias['RECEITAS'] || { total: 0, subgrupos: {} },
-    IMPOSTOS: _mesclarGuias(guias, IMPOSTOS_FONTES),
+    IMPOSTOS: impostos,
     DP: _mesclarGuias(guias, DP_FONTES),
     DV: _mesclarGuias(guias, DV_FONTES),
     DA: _mesclarGuias(guias, DA_FONTES),
-    DC: _mesclarGuias(guias, DC_FONTES),
+    DC: dc,
     DIR: _mesclarGuias(guias, DIR_FONTES),
     OUTRAS: _mesclarGuias(guias, outrasFontes),
     OUTRAS_FONTES: outrasFontes,
