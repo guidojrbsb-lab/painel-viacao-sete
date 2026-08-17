@@ -553,6 +553,21 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
         </div>
       </div>
 
+      <!-- Ajuste Fiscal (gross-up) de Comissão de Agências/Internet -- pedido do usuário
+           em 2026-08-16: "COMISSÃO DE AGÊNCIAS" e "COMISSÃO INTERNET" só existem
+           calculadas no painel COMERCIAL (aba Agências), a partir de relatórios de venda
+           que o Financeiro não importa -- por isso são digitadas aqui manualmente, olhando
+           o Comercial, em vez de calculadas sozinhas. Ver salvarAjusteComissao/
+           _montarDRE. -->
+      <div class="panel" id="painelAjusteComissao">
+        <h2>Ajuste Fiscal — Comissão de Agências/Internet <span class="info-badge">soma como RECEITA e, espelhado, como DESPESA em DC (Despesa Comercial) -- não muda o resultado final (EBITDA/LL), só deixa a apresentação contábil mais correta. Digite olhando as caixas "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" do Painel Comercial &gt; Agências, para a mesma competência selecionada acima.</span></h2>
+        <div class="filters-grid" style="grid-template-columns:220px 220px 140px;align-items:end;">
+          <div><label>COMISSÃO DE AGÊNCIAS (R$)</label><input type="text" id="ajusteComissaoAgencias" placeholder="0,00"></div>
+          <div><label>COMISSÃO INTERNET (R$)</label><input type="text" id="ajusteComissaoInternet" placeholder="0,00"></div>
+          <div><button style="background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;cursor:pointer;width:100%;" onclick="salvarAjusteComissao()">Salvar</button></div>
+        </div>
+      </div>
+
       <div class="kpi-row" id="dreKpiRow"></div>
 
       <div class="panel">
@@ -699,7 +714,7 @@ async function _sincronizarNuvem(){
   }catch(e){ console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e); }
 }
 
-let DB = { resumo: {}, bancos: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [] };
+let DB = { resumo: {}, bancos: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [], comissaoGrossUp: {} };
 
 const IDB_NOME = 'viacaosete_financeiro_idb';
 const IDB_STORE = 'kv';
@@ -737,6 +752,7 @@ function _normalizarFinanceiro(){
   DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
+  DB.comissaoGrossUp = DB.comissaoGrossUp || {};
 }
 // Correção 2026-08-16: o usuário confirmou que o mapeamento CONTA->banco em
 // _extrairSantander estava invertido desde o início (CONTA 130049081 é a FILIAL, não a
@@ -796,6 +812,7 @@ async function loadDB(){
   DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
+  DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   if(_migrarContaSantander()) await saveDB();
 }
 async function saveDB(){
@@ -812,7 +829,7 @@ async function saveDB(){
 }
 async function limparBase(){
   if(!confirm('Isso vai apagar todos os dados do Painel Financeiro carregados neste navegador. Confirma?')) return;
-  DB = { resumo: {}, bancos: {}, classificacao: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [] };
+  DB = { resumo: {}, bancos: {}, classificacao: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [], comissaoGrossUp: {} };
   await saveDB();
   atualizarTudo();
   document.getElementById('uploadStatus').textContent = 'Base local do Financeiro limpa.';
@@ -2720,6 +2737,41 @@ function _montarDRE(mes, ano){
     g.subgrupos[t.subgrupo].itens.push(t);
     g.total += t.valor;
   });
+  // AJUSTE FISCAL - COMISSÃO DE AGÊNCIAS/INTERNET (gross-up), pedido do usuário em
+  // 2026-08-16: as caixas "COMISSÃO DE AGÊNCIAS" e "COMISSÃO INTERNET" do painel
+  // COMERCIAL (aba Agências) são calculadas só lá, a partir dos relatórios de venda --
+  // o Financeiro não importa esses relatórios, então o usuário digita os 2 valores do
+  // mês manualmente (painel "Ajuste Fiscal" na aba DRE - Simplificado, ver
+  // salvarAjusteComissao/DB.comissaoGrossUp). Na prática essa comissão já está embutida
+  // (líquida) na receita que chega no banco -- nunca aparece separada nem como receita
+  // nem como despesa. Pra ficar contabilmente correto (reconhecer a receita BRUTA da
+  // venda e a despesa de comissão paga à agência, em vez de só reportar o líquido), o
+  // MESMO valor entra 2 vezes: uma como RECEITA (mesmo SUBGRUPO que a caixa do Comercial
+  // já usa) e uma espelhada como DESPESA em CUSTO COMERCIAL (vira DC na DRE - Contábil,
+  // ver DC_FONTES). O resultado final (EBITDA/LL) não muda -- as duas entradas se
+  // cancelam --, é só um ajuste de apresentação. Os itens sintéticos abaixo têm o mesmo
+  // formato de t (data/banco/descricao/contraparte/valor) que os popups de drill-down e
+  // o export CSV/PDF já esperam (ver _renderDreModalTabela).
+  const chaveComissao = ano+'-'+String(mes).padStart(2,'0');
+  const ajusteComissao = (DB.comissaoGrossUp||{})[chaveComissao];
+  if(ajusteComissao){
+    const dataRepresentativa = chaveComissao+'-01';
+    [['COMISSÃO DE AGÊNCIAS', ajusteComissao.agencias], ['COMISSÃO INTERNET', ajusteComissao.internet]].forEach(([subgrupo, valor])=>{
+      if(!valor) return;
+      const itemBase = { data: dataRepresentativa, banco: 'AJUSTE FISCAL (COMERCIAL)', descricao: subgrupo+' -- ajuste fiscal digitado (ver Painel Comercial > Agências)', contraparte: '', valor };
+      if(!guias['RECEITAS']) guias['RECEITAS'] = { tipo: 'receita', subgrupos: {}, total: 0 };
+      if(!guias['RECEITAS'].subgrupos[subgrupo]) guias['RECEITAS'].subgrupos[subgrupo] = { total: 0, itens: [] };
+      guias['RECEITAS'].subgrupos[subgrupo].total += valor;
+      guias['RECEITAS'].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      guias['RECEITAS'].total += valor;
+
+      if(!guias['CUSTO COMERCIAL']) guias['CUSTO COMERCIAL'] = { tipo: 'despesa', subgrupos: {}, total: 0 };
+      if(!guias['CUSTO COMERCIAL'].subgrupos[subgrupo]) guias['CUSTO COMERCIAL'].subgrupos[subgrupo] = { total: 0, itens: [] };
+      guias['CUSTO COMERCIAL'].subgrupos[subgrupo].total += valor;
+      guias['CUSTO COMERCIAL'].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      guias['CUSTO COMERCIAL'].total += valor;
+    });
+  }
   return guias;
 }
 // ==================================================================================
@@ -3032,6 +3084,46 @@ function renderDRE(){
 
   html += '</tbody>';
   tabela.innerHTML = html;
+  _preencherAjusteComissao(mes, ano);
+}
+// Preenche os 2 campos do painel "Ajuste Fiscal" com o que já está salvo em
+// DB.comissaoGrossUp pra competência atual (chave igual à de _competenciasDisponiveis:
+// "AAAA-MM") -- chamado no fim de renderDRE() toda vez que a COMPETÊNCIA muda, pra nunca
+// mostrar o valor do mês errado. Campo fica vazio (não "0,00") quando não há nada salvo
+// ainda pra esse mês, pra diferenciar "zero digitado" de "nunca preenchido".
+function _preencherAjusteComissao(mes, ano){
+  const inputAgencias = document.getElementById('ajusteComissaoAgencias');
+  const inputInternet = document.getElementById('ajusteComissaoInternet');
+  if(!inputAgencias || !inputInternet) return;
+  const chave = ano+'-'+String(mes).padStart(2,'0');
+  const salvo = (DB.comissaoGrossUp||{})[chave];
+  inputAgencias.value = salvo && salvo.agencias ? String(salvo.agencias).replace('.',',') : '';
+  inputInternet.value = salvo && salvo.internet ? String(salvo.internet).replace('.',',') : '';
+}
+// Salva os 2 valores digitados no painel "Ajuste Fiscal" pra COMPETÊNCIA selecionada no
+// seletor da DRE - Simplificado (_dreUltimoMesAno, populado pelo último renderDRE()) --
+// mesma competência vale pros dois DREs, já que os dois leem _montarDRE(). Aceita vírgula
+// ou ponto decimal (_parseValorBanco já trata os dois formatos, mesma função usada nos
+// parsers de extrato bancário). Campo vazio ou 0 remove a entrada em vez de salvar zero,
+// pra não deixar lixo em DB.comissaoGrossUp.
+function salvarAjusteComissao(){
+  if(!_dreUltimoMesAno){
+    alert('Selecione uma competência na DRE antes de salvar o Ajuste Fiscal.');
+    return;
+  }
+  const { mes, ano } = _dreUltimoMesAno;
+  const chave = ano+'-'+String(mes).padStart(2,'0');
+  const agencias = _parseValorBanco(document.getElementById('ajusteComissaoAgencias').value) || 0;
+  const internet = _parseValorBanco(document.getElementById('ajusteComissaoInternet').value) || 0;
+  DB.comissaoGrossUp = DB.comissaoGrossUp || {};
+  if(agencias || internet){
+    DB.comissaoGrossUp[chave] = { agencias, internet };
+  } else {
+    delete DB.comissaoGrossUp[chave];
+  }
+  saveDB();
+  atualizarTudo();
+  document.getElementById('uploadStatus').textContent = 'Ajuste Fiscal de Comissão salvo pra '+MESES_PT[mes-1]+'/'+ano+'.';
 }
 // Linha de guia/centro de custo clicável (expande/recolhe) -- nivel 0 = guia
 // principal (RECEITAS/DESPESAS/FINANCIAMENTOS), nivel 1 = CENTRO DE CUSTO dentro de
