@@ -1770,6 +1770,11 @@ const CONVENIO_REGRAS_TEXTO = [
   [/BENEDITO\s*LEIT/, 'PREFEITURA DE BENEDITO LEITE'],
   [/CURRAIS/, 'PREFEITURA DE CURRAIS'],
   [/FAZENDA\s*PROGRESSO/, 'FAZENDA PROGRESSO'],
+  // Confirmado pelo usuário em 2026-08-17: repasse de 05/08/2026 (Bradesco, PIX
+  // "PROGRESSO AGRICOLA LT", R$8.535,66) é da FAZENDA PROGRESSO -- nome jurídico usado
+  // no PIX, sem a palavra "FAZENDA" no texto, então passava batido tanto pela regra
+  // específica quanto pelo sinal amplo (nenhum dos dois tem "PROGRESSO AGRICOLA").
+  [/PROGRESSO\s*AGR[IÍ]COLA/, 'FAZENDA PROGRESSO'],
   [/FAZENDA\s*RIBEIR[AÃ]O/, 'FAZENDA RIBEIRÃO'],
   [/\bDPL\b/, 'DPL CONSTRUÇÕES'],
   // Confirmados pelo usuário em 2026-08-07 a partir de descrições reais de extrato --
