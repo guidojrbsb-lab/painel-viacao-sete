@@ -1718,6 +1718,39 @@ function _resolverTransferenciasEntreContas(){
       }
     });
   });
+  // Segunda passada, só pro par SANTANDER MATRIZ <-> SANTANDER FILIAL: o novo layout do
+  // Santander (_extrairSantanderNovo, 2026-08-18) não traz nome nem CPF/CNPJ junto do
+  // PIX ("PIX RECEBIDO"/"PIX ENVIADO" genérico, sem complemento) -- a passada acima
+  // (que exige _transfNome) nunca pega essas transferências internas nesse formato.
+  // Como as duas contas são do mesmo CNPJ/empresa (é exatamente o par que a passada
+  // acima já tratava via CNPJS_EMPRESA no formato antigo), casar só por DATA+VALOR+
+  // natureza oposta ENTRE ESSAS DUAS CONTAS ESPECÍFICAS é seguro: um PIX externo de
+  // terceiro batendo por coincidência com o valor exato de outro PIX entre nossas duas
+  // contas Santander, na mesma janela de dias, é praticamente impossível -- ainda mais
+  // com valores redondos como o caso confirmado pelo usuário em 2026-08-18 (PIX de
+  // R$100.000,00, Matriz -> Filial, 17/08/2026).
+  datas.sort().forEach(d=>{
+    const lista = DB.bancos[d] || [];
+    lista.forEach(t=>{
+      if(t.transferencia) return;
+      if(t.banco!=='SANTANDER MATRIZ' && t.banco!=='SANTANDER FILIAL') return;
+      if(t._transfNome) return; // já tem nome -- ou não é PIX genérico, ou já foi tratado acima
+      if(!/^PIX (RECEBIDO|ENVIADO)$/.test(t.descricao||'')) return;
+      const bancoAlvo = t.banco==='SANTANDER MATRIZ' ? 'SANTANDER FILIAL' : 'SANTANDER MATRIZ';
+      const naturezaOposta = t.natureza==='despesa' ? 'receita' : 'despesa';
+      let par = null;
+      for(let g=0; g<=GAP_DIAS_TRANSFERENCIA && !par; g++){
+        const listaCand = DB.bancos[_addDiasISO(d, g)];
+        if(!listaCand) continue;
+        par = listaCand.find(t2=> t2!==t && !t2.transferencia && t2.banco===bancoAlvo && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01) || null;
+      }
+      if(par){
+        t.transferencia = true;
+        t.transferenciaAlvo = par.banco;
+        par.transferencia = true; par.transferenciaAlvo = t.banco;
+      }
+    });
+  });
 }
 // Correção 2026-08-10 (pedido dos sócios, ajustado no mesmo dia -- primeira versão
 // usava "1º dia ÚTIL do mês", corrigido pra "1º dia DO MÊS" mesmo, sem pular fim de
