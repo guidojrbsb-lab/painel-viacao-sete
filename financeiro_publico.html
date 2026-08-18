@@ -364,6 +364,20 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 #tab-bancos table.data th{padding:6px 8px;}
 #tab-bancos table.data td{padding:5px 8px;}
 #tab-bancos .vg-topico-titulo{margin-top:20px;}
+/* Tabela do DRE - CONTÁBIL mais compacta -- pedido do usuário em 2026-08-18, ajustado
+   no mesmo dia pra só mexer nesta tabela (não na DRE - Simplificado) e usar exatamente
+   o mesmo tamanho da tabela da aba Bancos (#tab-bancos table.data, valores copiados
+   abaixo -- font-size 11px, padding th 6px 8px / td 5px 8px). Ajustado de novo no mesmo
+   dia: o pedido original era reduzir a LARGURA da tabela (colunas mais próximas), não
+   só a altura das linhas -- agora fica lado a lado com a coluna de KPIs extras
+   (#dreContabilKpiLateral) dentro de um flex container (.dre-contabil-layout).
+   min-width evita a tabela espremer demais em telas menores que ~900px. */
+.dre-contabil-layout{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+#dreContabilTabela{font-size:11px;flex:0 0 50%;max-width:50%;min-width:460px;}
+#dreContabilTabela th{padding:6px 8px;}
+#dreContabilTabela td{padding:5px 8px;}
+#dreContabilKpiLateral{flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px;}
+#dreContabilKpiLateral .kpi{width:100%;box-sizing:border-box;}
 /* Cabeçalho congelado nos popups de detalhe da aba Bancos (pedido dos sócios,
    2026-08-07) -- mesmo motivo/técnica já documentada acima para as tabelas de
    Ranking do Comercial: "overflow:hidden" em table.data (usado pra arredondar os
@@ -603,8 +617,13 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 
       <div class="kpi-row" id="dreContabilKpiRow"></div>
 
-      <div class="panel">
+      <!-- Layout lado a lado (2026-08-18, pedido do usuário): tabela reduzida a ~50% de
+           largura (colunas Discriminação/Valor/% mais próximas) + coluna de KPIs extras
+           (Receita Líquida/Impostos/Total Despesas Operacionais) preenchendo o espaço
+           que sobra à direita, em vez de ficarem na barra principal de KPIs. -->
+      <div class="panel dre-contabil-layout">
         <table class="data" id="dreContabilTabela"><thead></thead><tbody></tbody></table>
+        <div id="dreContabilKpiLateral"></div>
       </div>
     </section>
   </main>
@@ -3010,9 +3029,11 @@ function renderDREContabil(){
   }
   const valorSel = sel ? sel.value : '';
   const kpi = document.getElementById('dreContabilKpiRow');
+  const kpiLateral = document.getElementById('dreContabilKpiLateral');
   if(!valorSel){
     tabela.innerHTML = '<thead></thead><tbody><tr><td colspan="3">Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
     if(kpi) kpi.innerHTML = '';
+    if(kpiLateral) kpiLateral.innerHTML = '';
     return;
   }
   const [anoStr, mesStr] = valorSel.split('-');
@@ -3034,10 +3055,21 @@ function renderDREContabil(){
   const pct = v => receitaLiquida ? (v / receitaLiquida * 100) : 0;
 
   if(kpi){
+    // Barra principal: só as 3 caixas originais (2026-08-18 -- voltou a ser assim a
+    // pedido do usuário; as 3 novas abaixo foram pra coluna lateral da tabela).
     kpi.innerHTML =
       '<div class="kpi kpi-destaque"><div class="lbl">RECEITA BRUTA — '+MESES_PT[mes-1]+'/'+ano+'</div><div class="val">'+_fmtBRL(receitaBruta)+'</div></div>'+
       '<div class="kpi"><div class="lbl">EBITDA</div><div class="val" style="color:'+(ebitda<0?'var(--red)':'var(--green5)')+';">'+_fmtBRL(ebitda)+'</div></div>'+
       '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+_fmtBRL(ll)+'</div></div>';
+  }
+  if(kpiLateral){
+    // 3 caixas extras (2026-08-18) ao lado da tabela, preenchendo o espaço que sobrou
+    // com a tabela reduzida a ~50% de largura: RECEITA LÍQUIDA, IMPOSTOS e TOTAL
+    // DESPESAS OPERACIONAIS.
+    kpiLateral.innerHTML =
+      '<div class="kpi"><div class="lbl">RECEITA LÍQUIDA</div><div class="val" style="color:var(--navy);">'+_fmtBRL(receitaLiquida)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">IMPOSTOS</div><div class="val" style="color:var(--red);">'+_fmtBRL(impostos)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">TOTAL DESPESAS OPERACIONAIS</div><div class="val" style="color:var(--red);">'+_fmtBRL(totalDespesasOperacionais)+'</div></div>';
   }
 
   let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA LÍQUIDA</th></tr></thead><tbody>';
