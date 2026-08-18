@@ -1290,6 +1290,69 @@ function _extrairSantander(aoa, hIdx){
   }
   return { banco, transacoes };
 }
+// Novo layout de extrato do Santander (confirmado em 2026-08-18, arquivos "17.08.2026") --
+// exportação diferente do formato antigo (_extrairSantander acima), com cabeçalho de
+// título "EXTRATO DE CONTA CORRENTE" + "Conta: 13007802-5" (texto único, com dois-pontos
+// e hífen, em vez de duas células separadas "CONTA"/"130078025"), data por extenso
+// ("Segunda, 17 de agosto de 2026" em vez de "17/08/2026") e colunas de Crédito/Débito
+// SEPARADAS (em vez de uma única "Valor (R$)" com sinal) -- mesmo padrão do Bradesco,
+// mas sem a coluna "Dcto." no meio. O número de conta, uma vez extraído só os dígitos,
+// continua batendo com os mesmos códigos já conhecidos (130049081=Filial/130078025=Matriz).
+// Diferente do layout antigo, a Descrição NÃO traz CPF/CNPJ/nome embutido nem em PIX
+// ("PIX RECEBIDO"/"PIX ENVIADO" genérico, sem complemento) -- contraparte/_transfNome
+// ficam em branco (mesmo comportamento que boleto/tarifa/cartão já tinham no layout
+// antigo); a detecção de TRANSFERÊNCIA ENTRE CONTAS (_resolverTransferenciasEntreContas)
+// continua funcionando normalmente quando o OUTRO lado da transferência (Stone/Itaú/
+// PagSeguro/Bradesco) tem o nome "VIACAO SETE" na própria descrição.
+function _extrairSantanderNovo(aoa, hIdx){
+  let conta = '';
+  for(let r=0;r<hIdx;r++){
+    const row = aoa[r]; if(!row) continue;
+    for(const cell of row){
+      const m = String(cell||'').match(/CONTA:?\s*([\d.\-\/]+)/i);
+      if(m){ conta = m[1].replace(/\D/g,''); break; }
+    }
+    if(conta) break;
+  }
+  let banco;
+  if(conta === '130049081') banco = 'SANTANDER FILIAL';
+  else if(conta === '130078025') banco = 'SANTANDER MATRIZ';
+  else banco = conta ? ('SANTANDER (conta '+conta+')') : 'SANTANDER';
+
+  const header = aoa[hIdx];
+  const iData = header.indexOf('Data'), iDesc = header.findIndex(c=> /^descri..o$/i.test(String(c||''))),
+        iCredito = header.indexOf('Crédito (R$)'), iDebito = header.indexOf('Débito (R$)');
+  const transacoes = [];
+  for(let r=hIdx+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const data = _parseDataSantanderNovo(row[iData]);
+    if(!data) continue; // pula a linha "TOTAL" final (data em branco) e qualquer outra sem data válida
+    const credito = _parseValorBanco(row[iCredito]);
+    const debito = _parseValorBanco(row[iDebito]);
+    if(!credito && !debito) continue;
+    const valor = credito || -debito;
+    const descricao = String(row[iDesc]||'').trim();
+    transacoes.push({
+      banco, data, descricao,
+      contraparte: '',
+      valor: Math.abs(valor), natureza: valor>=0 ? 'receita' : 'despesa',
+      _transfNome: '', _transfInst: '', _transfTipo: '',
+    });
+  }
+  return { banco, transacoes };
+}
+// Data por extenso em português do novo layout Santander, ex.: "Segunda, 17 de agosto
+// de 2026" -- extrai dia/mês/ano pelo NOME do mês (reaproveita MESES_PT, ignorando o
+// dia da semana no início, que não importa pro parse).
+function _parseDataSantanderNovo(v){
+  if(typeof v !== 'string') return null;
+  const m = v.trim().match(/(\d{1,2})\s+de\s+(\S+)\s+de\s+(\d{4})/i);
+  if(!m) return null;
+  const mesNorm = m[2].toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const idx = MESES_PT.findIndex(mes=> mes.normalize('NFD').replace(/[̀-ͯ]/g,'')===mesNorm);
+  if(idx<0) return null;
+  return m[3]+'-'+String(idx+1).padStart(2,'0')+'-'+m[1].padStart(2,'0');
+}
 // BRADESCO (adicionado em 2026-08-07 -- 10ª conta): aba única "BRADESCO", cabeçalho
 // "Data | Lançamento | Dcto. | Crédito (R$) | Débito (R$) | Saldo (R$)". Crédito e
 // Débito são colunas de TEXTO em formato BR (igual Stone), mutuamente exclusivas por
@@ -1451,6 +1514,12 @@ function _extrairTransacoesBanco(aoa){
   // _extrairSantander pra mesma tolerância na hora de achar a coluna pelo índice.
   hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Data' && /^hist.rico$/i.test(String(row[1]||'')) && row[3]==='Valor (R$)');
   if(hIdx>=0) return _extrairSantander(aoa, hIdx);
+
+  // Novo layout Santander (2026-08-18) -- ver _extrairSantanderNovo. Cabeçalho
+  // ['Data','Descrição','Crédito (R$)','Débito (R$)'], distinto do Bradesco (que tem
+  // uma coluna extra "Dcto." entre Lançamento e Crédito, deslocando os índices).
+  hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Data' && /^descri..o$/i.test(String(row[1]||'')) && row[2]==='Crédito (R$)' && row[3]==='Débito (R$)');
+  if(hIdx>=0) return _extrairSantanderNovo(aoa, hIdx);
 
   hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Movimentação' && row[1]==='Tipo' && row[2]==='Valor');
   if(hIdx>=0) return _extrairStone(aoa, hIdx);
@@ -1767,6 +1836,11 @@ const CONVENIO_REGRAS_TEXTO = [
   [/BENEDITO\s*LEIT/, 'PREFEITURA DE BENEDITO LEITE'],
   [/CURRAIS/, 'PREFEITURA DE CURRAIS'],
   [/FAZENDA\s*PROGRESSO/, 'FAZENDA PROGRESSO'],
+  // Confirmado pelo usuário em 2026-08-17: repasse de 05/08/2026 (Bradesco, PIX
+  // "PROGRESSO AGRICOLA LT", R$8.535,66) é da FAZENDA PROGRESSO -- nome jurídico usado
+  // no PIX, sem a palavra "FAZENDA" no texto, então passava batido tanto pela regra
+  // específica quanto pelo sinal amplo (nenhum dos dois tem "PROGRESSO AGRICOLA").
+  [/PROGRESSO\s*AGR[IÍ]COLA/, 'FAZENDA PROGRESSO'],
   [/FAZENDA\s*RIBEIR[AÃ]O/, 'FAZENDA RIBEIRÃO'],
   [/\bDPL\b/, 'DPL CONSTRUÇÕES'],
   // Confirmados pelo usuário em 2026-08-07 a partir de descrições reais de extrato --
@@ -2886,10 +2960,14 @@ function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
   const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
   const badgeHtml = badge ? ' <span class="info-badge" title="Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.">?</span>' : '';
+  // pctVal null (RECEITA BRUTA/IMPOSTOS) -- combinado com o usuário em 2026-08-17: a
+  // coluna de % passou a ser sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA, e
+  // essas 2 linhas ficam sem percentual (vêm ANTES da Receita Líquida na tabela).
+  const pctTxt = pctVal===null ? '' : pctVal.toFixed(1)+'%';
   let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+
     '<td style="'+cor+'font-weight:bold;">'+seta+label+badgeHtml+'</td>'+
     '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(total)+'</td>'+
-    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctVal.toFixed(1)+'%</td></tr>';
+    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctTxt+'</td></tr>';
   if(aberto) html += _linhasSubgruposDREC(key, subgrupos, vermelho);
   return html;
 }
@@ -2952,7 +3030,9 @@ function renderDREContabil(){
   const df = d.DF.total;
   const financiamentos = d.FINANCIAMENTOS.total;
   const ll = ebitda - df - financiamentos;
-  const pct = v => receitaBruta ? (v / receitaBruta * 100) : 0;
+  // % agora é sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA -- pedido do
+  // usuário em 2026-08-17 (RECEITA BRUTA e IMPOSTOS ficam sem percentual, ver _linhaDREC).
+  const pct = v => receitaLiquida ? (v / receitaLiquida * 100) : 0;
 
   if(kpi){
     kpi.innerHTML =
@@ -2961,10 +3041,10 @@ function renderDREContabil(){
       '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+_fmtBRL(ll)+'</div></div>';
   }
 
-  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA BRUTA</th></tr></thead><tbody>';
+  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA LÍQUIDA</th></tr></thead><tbody>';
 
-  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, pct(receitaBruta), false, d.RECEITA_BRUTA.subgrupos);
-  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, pct(impostos), true, d.IMPOSTOS.subgrupos);
+  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, null, false, d.RECEITA_BRUTA.subgrupos);
+  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, null, true, d.IMPOSTOS.subgrupos);
   html += _linhaTotalDREC('RECEITA LÍQUIDA', receitaLiquida, pct(receitaLiquida));
 
   html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', dp, pct(dp), true, d.DP.subgrupos);

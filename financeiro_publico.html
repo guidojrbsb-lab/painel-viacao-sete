@@ -1293,6 +1293,69 @@ function _extrairSantander(aoa, hIdx){
   }
   return { banco, transacoes };
 }
+// Novo layout de extrato do Santander (confirmado em 2026-08-18, arquivos "17.08.2026") --
+// exportação diferente do formato antigo (_extrairSantander acima), com cabeçalho de
+// título "EXTRATO DE CONTA CORRENTE" + "Conta: 13007802-5" (texto único, com dois-pontos
+// e hífen, em vez de duas células separadas "CONTA"/"130078025"), data por extenso
+// ("Segunda, 17 de agosto de 2026" em vez de "17/08/2026") e colunas de Crédito/Débito
+// SEPARADAS (em vez de uma única "Valor (R$)" com sinal) -- mesmo padrão do Bradesco,
+// mas sem a coluna "Dcto." no meio. O número de conta, uma vez extraído só os dígitos,
+// continua batendo com os mesmos códigos já conhecidos (130049081=Filial/130078025=Matriz).
+// Diferente do layout antigo, a Descrição NÃO traz CPF/CNPJ/nome embutido nem em PIX
+// ("PIX RECEBIDO"/"PIX ENVIADO" genérico, sem complemento) -- contraparte/_transfNome
+// ficam em branco (mesmo comportamento que boleto/tarifa/cartão já tinham no layout
+// antigo); a detecção de TRANSFERÊNCIA ENTRE CONTAS (_resolverTransferenciasEntreContas)
+// continua funcionando normalmente quando o OUTRO lado da transferência (Stone/Itaú/
+// PagSeguro/Bradesco) tem o nome "VIACAO SETE" na própria descrição.
+function _extrairSantanderNovo(aoa, hIdx){
+  let conta = '';
+  for(let r=0;r<hIdx;r++){
+    const row = aoa[r]; if(!row) continue;
+    for(const cell of row){
+      const m = String(cell||'').match(/CONTA:?\s*([\d.\-\/]+)/i);
+      if(m){ conta = m[1].replace(/\D/g,''); break; }
+    }
+    if(conta) break;
+  }
+  let banco;
+  if(conta === '130049081') banco = 'SANTANDER FILIAL';
+  else if(conta === '130078025') banco = 'SANTANDER MATRIZ';
+  else banco = conta ? ('SANTANDER (conta '+conta+')') : 'SANTANDER';
+
+  const header = aoa[hIdx];
+  const iData = header.indexOf('Data'), iDesc = header.findIndex(c=> /^descri..o$/i.test(String(c||''))),
+        iCredito = header.indexOf('Crédito (R$)'), iDebito = header.indexOf('Débito (R$)');
+  const transacoes = [];
+  for(let r=hIdx+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const data = _parseDataSantanderNovo(row[iData]);
+    if(!data) continue; // pula a linha "TOTAL" final (data em branco) e qualquer outra sem data válida
+    const credito = _parseValorBanco(row[iCredito]);
+    const debito = _parseValorBanco(row[iDebito]);
+    if(!credito && !debito) continue;
+    const valor = credito || -debito;
+    const descricao = String(row[iDesc]||'').trim();
+    transacoes.push({
+      banco, data, descricao,
+      contraparte: '',
+      valor: Math.abs(valor), natureza: valor>=0 ? 'receita' : 'despesa',
+      _transfNome: '', _transfInst: '', _transfTipo: '',
+    });
+  }
+  return { banco, transacoes };
+}
+// Data por extenso em português do novo layout Santander, ex.: "Segunda, 17 de agosto
+// de 2026" -- extrai dia/mês/ano pelo NOME do mês (reaproveita MESES_PT, ignorando o
+// dia da semana no início, que não importa pro parse).
+function _parseDataSantanderNovo(v){
+  if(typeof v !== 'string') return null;
+  const m = v.trim().match(/(\d{1,2})\s+de\s+(\S+)\s+de\s+(\d{4})/i);
+  if(!m) return null;
+  const mesNorm = m[2].toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const idx = MESES_PT.findIndex(mes=> mes.normalize('NFD').replace(/[̀-ͯ]/g,'')===mesNorm);
+  if(idx<0) return null;
+  return m[3]+'-'+String(idx+1).padStart(2,'0')+'-'+m[1].padStart(2,'0');
+}
 // BRADESCO (adicionado em 2026-08-07 -- 10ª conta): aba única "BRADESCO", cabeçalho
 // "Data | Lançamento | Dcto. | Crédito (R$) | Débito (R$) | Saldo (R$)". Crédito e
 // Débito são colunas de TEXTO em formato BR (igual Stone), mutuamente exclusivas por
@@ -1454,6 +1517,12 @@ function _extrairTransacoesBanco(aoa){
   // _extrairSantander pra mesma tolerância na hora de achar a coluna pelo índice.
   hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Data' && /^hist.rico$/i.test(String(row[1]||'')) && row[3]==='Valor (R$)');
   if(hIdx>=0) return _extrairSantander(aoa, hIdx);
+
+  // Novo layout Santander (2026-08-18) -- ver _extrairSantanderNovo. Cabeçalho
+  // ['Data','Descrição','Crédito (R$)','Débito (R$)'], distinto do Bradesco (que tem
+  // uma coluna extra "Dcto." entre Lançamento e Crédito, deslocando os índices).
+  hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Data' && /^descri..o$/i.test(String(row[1]||'')) && row[2]==='Crédito (R$)' && row[3]==='Débito (R$)');
+  if(hIdx>=0) return _extrairSantanderNovo(aoa, hIdx);
 
   hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='Movimentação' && row[1]==='Tipo' && row[2]==='Valor');
   if(hIdx>=0) return _extrairStone(aoa, hIdx);
