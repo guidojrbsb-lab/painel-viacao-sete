@@ -562,8 +562,18 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <section class="tab hidden" id="tab-dre">
       <div class="panel filtro-box" id="filtrosPanelDre">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
-        <div class="filters-grid" style="grid-template-columns:240px;">
+        <div class="filters-grid" style="grid-template-columns:240px 180px 180px;">
           <div><label>COMPETÊNCIA</label><select id="dreCompetencia" onchange="renderDRE()"></select></div>
+          <!-- DATA INÍCIO/FIM (2026-08-18, pedido do usuário; critério corrigido em
+               2026-08-19 -- ver comentário de _periodoExportacaoDRE() no script): filtro
+               ADICIONAL, só usado pelos botões "Exportar Excel de Classificação/Espécie"
+               do rodapé -- não muda o que aparece na tabela acima (isso continua 100%
+               controlado pela COMPETÊNCIA à esquerda). Compara a DATA CRUA do evento dia
+               a dia (mesmo critério do filtro da aba Bancos) -- Início=Fim=17/08 exporta
+               SÓ o dia 17/08, mesmo que a competência classificada de algum lançamento
+               seja outro mês. -->
+          <div><label>DATA INÍCIO (exportação)</label><input type="date" id="dreDataIni"></div>
+          <div><label>DATA FIM (exportação)</label><input type="date" id="dreDataFim"></div>
         </div>
       </div>
 
@@ -610,8 +620,13 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <section class="tab hidden" id="tab-dre-contabil">
       <div class="panel filtro-box" id="filtrosPanelDreContabil">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
-        <div class="filters-grid" style="grid-template-columns:240px;">
+        <div class="filters-grid" style="grid-template-columns:240px 180px 180px;">
           <div><label>COMPETÊNCIA</label><select id="dreContabilCompetencia" onchange="renderDREContabil()"></select></div>
+          <!-- DATA INÍCIO/FIM (2026-08-18) -- mesmo filtro adicional da DRE - Simplificado
+               (ver comentário lá e _periodoExportacaoDRE()), só que pro período exportado
+               quando esta aba (DRE - Contábil) é a que está ativa no momento do clique. -->
+          <div><label>DATA INÍCIO (exportação)</label><input type="date" id="dreContabilDataIni"></div>
+          <div><label>DATA FIM (exportação)</label><input type="date" id="dreContabilDataFim"></div>
         </div>
       </div>
 
@@ -944,14 +959,47 @@ function exportarBaseCompleta(){
 // _dreUltimoMesAno (populado pelo último renderDRE(), reflete o valor atual do seletor
 // #dreCompetencia) -- se ainda não houver competência selecionada (base vazia), cai no
 // comportamento antigo (exporta tudo) só pra não travar o botão.
+//
+// Atualização 2026-08-18 (pedido do usuário): antes só dava pra exportar 1 mês inteiro
+// por vez (o valor exato do seletor COMPETÊNCIA), obrigando repetir a exportação mês a
+// mês pra juntar um período maior. Cada aba de DRE ganhou um filtro adicional DATA
+// INÍCIO/FIM (não muda o que a TELA do DRE mostra, só o Excel exportado) -- ver
+// _periodoExportacaoDRE() logo abaixo.
+//
+// Correção 2026-08-19 (bug real reportado pelo usuário): a 1ª versão comparava só
+// MÊS/ANO (competência), então Início=Fim=17/08 virava "agosto inteiro" (17 e 17 caem
+// no mesmo mês) -- o usuário esperava exportar SÓ o dia 17/08 e continuou saindo o mês
+// inteiro. Corrigido pra comparar a DATA CRUA do evento (a chave `dia` de DB.bancos /
+// `t.data` de DB.especie) contra Início/Fim dia a dia, exatamente como o filtro da aba
+// Bancos -- não mais por competência. SUBGRUPO/CENTRO DE CUSTO/COMPETÊNCIA de cada linha
+// continuam vindo de _classificacaoTransacao normalmente, só a SELEÇÃO de quais
+// lançamentos entram na exportação mudou de critério.
+function _periodoExportacaoDRE(){
+  const abaAtivaBtn = document.querySelector('#sidebar button[data-tab].active');
+  const usarContabil = !!abaAtivaBtn && abaAtivaBtn.dataset.tab === 'dre-contabil';
+  const filtroCompetencia = usarContabil ? _dreContabilUltimoMesAno : _dreUltimoMesAno;
+  const iniEl = document.getElementById(usarContabil ? 'dreContabilDataIni' : 'dreDataIni');
+  const fimEl = document.getElementById(usarContabil ? 'dreContabilDataFim' : 'dreDataFim');
+  const dataIni = iniEl ? iniEl.value : '';
+  const dataFim = fimEl ? fimEl.value : '';
+  let rotulo = '';
+  const sufixoAba = usarContabil ? ' - Contábil' : ' - Simplificado';
+  if(dataIni && dataFim){
+    rotulo = ' (período '+formatarDataBR(dataIni)+' a '+formatarDataBR(dataFim)+', filtro da DRE'+sufixoAba+')';
+  } else if(filtroCompetencia){
+    rotulo = ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE'+sufixoAba+')';
+  }
+  return { filtroCompetencia, dataIni: (dataIni && dataFim) ? dataIni : null, dataFim: (dataIni && dataFim) ? dataFim : null, rotulo };
+}
 function exportarExcelClassificacao(){
-  const filtroCompetencia = _dreUltimoMesAno;
+  const { filtroCompetencia, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
   const linhas = [];
   Object.keys(DB.bancos||{}).sort().forEach(dia=>{
+    if(dataIni && dataFim && (dia < dataIni || dia > dataFim)) return;
     (DB.bancos[dia]||[]).forEach(t=>{
       if(t.transferencia) return;
       const c = _classificacaoTransacao(t);
-      if(filtroCompetencia && (c.mes!==filtroCompetencia.mes || c.ano!==filtroCompetencia.ano)) return;
+      if(!dataIni && filtroCompetencia && (c.mes!==filtroCompetencia.mes || c.ano!==filtroCompetencia.ano)) return;
       const valorComSinal = t.natureza==='despesa' ? -Math.abs(t.valor) : Math.abs(t.valor);
       linhas.push([
         formatarDataBR(t.data),
@@ -973,25 +1021,25 @@ function exportarExcelClassificacao(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Receitas e Despesas');
   const hoje = new Date().toISOString().slice(0,10);
-  const sufixoCompetencia = filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '';
+  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : (filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '');
   XLSX.writeFile(wb, 'Classificacao_DRE_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
-  const msgCompetencia = filtroCompetencia ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE)' : '';
-  document.getElementById('uploadStatus').textContent = 'Excel de classificação exportado: '+linhas.length+' lançamento(s)'+msgCompetencia+'. Complete os pontos que precisarem de ajuste e reimporte pelo botão "Importar Classificação (DRE)".';
+  document.getElementById('uploadStatus').textContent = 'Excel de classificação exportado: '+linhas.length+' lançamento(s)'+rotulo+'. Complete os pontos que precisarem de ajuste e reimporte pelo botão "Importar Classificação (DRE)".';
 }
 // Espelha exportarExcelClassificacao() logo acima, mas pra DB.especie (Caixa Espécie) --
 // pedido do usuário em 2026-08-16, pra poder baixar o que já foi importado, corrigir
 // algum lançamento do mês direto na planilha e reimportar pelo botão ao lado "Importar
 // Classificação Espécie (DRE)" sem precisar pedir pra mim toda vez. MESMO filtro de
-// competência do botão de Classificação (usa _dreUltimoMesAno -- as duas abas de DRE
-// leem a mesma base) e MESMO layout de 10 colunas que importarEspecie() lê de volta (ver
-// comentário lá): DATA DO EVENTO / ORIGEM (CAIXA) / DESCRIÇÃO / TIPO DE LANÇAMENTO /
-// VALOR (R$) / RECEITA OU DESPESA / AGÊNCIA-ROTA-ITEM / COMPETÊNCIA / SUBGRUPO / CENTRO
-// DE CUSTO -- reimportar sem editar nada é um roundtrip perfeito.
+// período do botão de Classificação (_periodoExportacaoDRE(), ver comentário lá -- as
+// duas abas de DRE leem a mesma base) e MESMO layout de 10 colunas que importarEspecie()
+// lê de volta (ver comentário lá): DATA DO EVENTO / ORIGEM (CAIXA) / DESCRIÇÃO / TIPO DE
+// LANÇAMENTO / VALOR (R$) / RECEITA OU DESPESA / AGÊNCIA-ROTA-ITEM / COMPETÊNCIA /
+// SUBGRUPO / CENTRO DE CUSTO -- reimportar sem editar nada é um roundtrip perfeito.
 function exportarExcelEspecie(){
-  const filtroCompetencia = _dreUltimoMesAno;
-  const registros = Object.values(DB.especie||{}).filter(t=>
-    !filtroCompetencia || (t.mes===filtroCompetencia.mes && t.ano===filtroCompetencia.ano)
-  );
+  const { filtroCompetencia, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
+  const registros = Object.values(DB.especie||{}).filter(t=>{
+    if(dataIni && dataFim) return t.data >= dataIni && t.data <= dataFim;
+    return !filtroCompetencia || (t.mes===filtroCompetencia.mes && t.ano===filtroCompetencia.ano);
+  });
   registros.sort((a,b)=> a.data.localeCompare(b.data));
   const linhas = registros.map(t=>{
     const valorComSinal = t.natureza==='despesa' ? -Math.abs(t.valor) : Math.abs(t.valor);
@@ -1014,10 +1062,9 @@ function exportarExcelEspecie(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Caixa Espécie');
   const hoje = new Date().toISOString().slice(0,10);
-  const sufixoCompetencia = filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '';
+  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : (filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '');
   XLSX.writeFile(wb, 'Especie_Caixa_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
-  const msgCompetencia = filtroCompetencia ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE)' : '';
-  document.getElementById('uploadStatus').textContent = 'Excel de Espécie exportado: '+linhas.length+' lançamento(s)'+msgCompetencia+'. Edite o que precisar e reimporte pelo botão "Importar Classificação Espécie (DRE)".';
+  document.getElementById('uploadStatus').textContent = 'Excel de Espécie exportado: '+linhas.length+' lançamento(s)'+rotulo+'. Edite o que precisar e reimporte pelo botão "Importar Classificação Espécie (DRE)".';
 }
 
 function toggleFiltroBox(h2){
