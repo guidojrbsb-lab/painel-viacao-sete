@@ -3271,24 +3271,38 @@ function renderVisaoGeral(){
   row2.appendChild(kpiCard('KM RODADO', fmtNum(kmRodado)));
   row2.appendChild(kpiCard('PASSAGEIRO TRANSPORTADO', fmtInt(paxTransportado)));
 
-  // Linha de Maior/Menor Receita/Km no período filtrado (por combinação horário+linha+sentido).
+  // Linha de Maior/Menor R$/KM no período filtrado -- consolidado por LINHA (soma de
+  // TODOS os horários/sentidos daquela linha), não mais por horário específico. Pedido
+  // do usuário em 2026-08-19: antes agrupava por horário+linha+sentido (ex.: "17:15 -
+  // TIMON(MA) - BAIXA GRANDE DO RIBEIRO(PI)"), então a caixa mostrava só um horário
+  // isolado, que podia estar distorcido por pouca amostra. Agora agrupa só por x.linha
+  // -- mesmo critério já usado no Ranking Geral de Linhas (porRotaOrgao, ver
+  // renderLinhas() logo abaixo), então o R$/KM aqui bate com o R$/KM daquela linha na
+  // tabela/ranking.
+  //
+  // Correção 2026-08-19 (usuário reportou leve diferença entre esta caixa e a tabela
+  // ANTT -- R$9,84 aqui vs. R$9,82 lá, mesma linha): a receita aqui somava x.receitaTotal
+  // (campo bruto do relatório de origem), enquanto Análise por Órgão/Ranking Geral de
+  // Linhas sempre somaram _receitaLinhas(x) = embarque+receitaPassagens (ver
+  // porRotaOrgao em renderLinhas()). Os dois campos não são idênticos em todo caso --
+  // trocado para _receitaLinhas(x) aqui também, pra bater exatamente com a tabela.
   const porLinhaKey = {};
   rows.forEach(x=>{
-    const key = (x.hora||'--')+' - '+x.linha+'||'+x.sentido;
-    porLinhaKey[key] = porLinhaKey[key] || {r:0, k:0, hora:x.hora, linha:x.linha};
-    porLinhaKey[key].r += x.receitaTotal||0; porLinhaKey[key].k += x.kmRodado||0;
+    const key = x.linha;
+    porLinhaKey[key] = porLinhaKey[key] || {r:0, k:0, linha:x.linha};
+    porLinhaKey[key].r += _receitaLinhas(x); porLinhaKey[key].k += x.kmRodado||0;
   });
   let linhaMax=null, linhaMin=null, linhaMaxV=-Infinity, linhaMinV=Infinity;
   for(const k in porLinhaKey){
     const info = porLinhaKey[k];
     if(!info.k) continue;
     const v = info.r/info.k;
-    const texto = (info.hora?info.hora+' - ':'')+info.linha;
+    const texto = info.linha;
     if(v>linhaMaxV){ linhaMaxV=v; linhaMax=texto; }
     if(v<linhaMinV){ linhaMinV=v; linhaMin=texto; }
   }
-  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MAIOR RECEITA/KM', linhaMax, linhaMaxV));
-  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MENOR RECEITA/KM', linhaMin, linhaMinV));
+  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MAIOR R$/KM', linhaMax, linhaMaxV));
+  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MENOR R$/KM', linhaMin, linhaMinV));
 
   // Pedido dos sócios (2026-08-04): as mesmas caixas de KPI da Visão Geral também
   // aparecem na aba Linhas, logo abaixo dos filtros. Como renderLinhas() sempre roda
