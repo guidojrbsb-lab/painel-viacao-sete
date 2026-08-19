@@ -1739,6 +1739,12 @@ const REDIRECIONAMENTOS_BILHETE = {
   '143690': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
   '143691': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
   '143692': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  // Bilhetes ANA MARIA BARBOSA MIRANDA e JULIANE BARBOSA GUEDES (TERESINA(PI) -
+  // SEBASTIAO LEAL(PI), 17/08/2026), gravados sob PREFEITURA DE URUÇUÍ SAÚDE (sem
+  // regra de valor, por isso apareciam vermelhos no popup), confirmados pelo usuário
+  // em 2026-08-19 como sendo da PREFEITURA DE SEBASTIÃO LEAL.
+  '146501': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
+  '146502': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -1774,6 +1780,10 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '71323': '2026-08-16',
   // Bilhete DANYLLO DE SOUSA SILVA, Convênio Fazenda Progresso (ANTONIO ALMEIDA x URUCUI).
   '146468': '2026-08-16',
+  // Bilhete GERIVALDO FERREIRA DE LIMA, Convênio DPL Construções (ELISEU MARTINS x BOM
+  // JESUS): relatório gravou 19/08, mas a viagem foi de fato em 18/08 (confirmado pelo
+  // usuário em 2026-08-19).
+  '147791': '2026-08-18',
 };
 
 // "Data MD" às vezes chega como número serial do Excel (dias desde 1899-12-30, com
@@ -1833,6 +1843,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
       { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
       { cidades: ['TERESINA','BOM JESUS'], valor: 175.00 },
+      // Confirmado pelo usuário em 2026-08-19.
+      { cidades: ['TERESINA','BENEDITO LEITE'], valor: 128.00 },
     ],
   },
   // Mesma regra de valor da Uruçuí Saúde, replicada para os demais contratos de
@@ -1978,6 +1990,9 @@ const REGRAS_VALOR_CONVENIO = {
     rotas: [
       { cidades: ['TERESINA','CURIMATA'], valor: 186.95 },
       { cidades: ['FLORIANO','CURIMATA'], valor: 150.00 },
+      // Confirmado pelo usuário em 2026-08-19 (ida e volta -- `cidades` já cobre os
+      // dois sentidos automaticamente, sem precisar de entrada duplicada).
+      { cidades: ['CURIMATA','BOM JESUS'], valor: 50.00 },
     ],
   },
   'PREFEITURA DE AVELINO LOPES': {
@@ -2023,6 +2038,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['BAIXA GRANDE DO RIBEIRO','SEBASTIAO LEAL'], valor: 80.00 },
       { cidades: ['BAIXA GRANDE DO RIBEIRO','BERTOLINIA'], valor: 90.00 },
       { cidades: ['TERESINA','URUCUI'], valor: 160.00 },
+      // Confirmado pelo usuário em 2026-08-19.
+      { cidades: ['URUCUI','FLORIANO'], valor: 90.00 },
     ],
   },
   'PREFEITURA DE BENEDITO LEITE': {
@@ -2084,6 +2101,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['JERUMENHA', 'URUCUI'], valor: 65.00 },
       { cidades: ['BERTOLINIA', 'ELISEU MARTINS'], valor: 60.00 },
       { cidades: ['CRISTINO CASTRO', 'BOM JESUS'], valor: 60.00 },
+      // Confirmado pelo usuário em 2026-08-19 (ida e volta -- `cidades` já cobre os
+      // dois sentidos automaticamente, sem precisar de entrada duplicada).
+      { cidades: ['CORRENTE', 'TERESINA'], valor: 240.00 },
       { cidades: ['ESTACA ZERO', 'SEBASTIAO LEAL'], valor: 110.00 },
       { cidades: ['SEBASTIAO LEAL', 'URUCUI'], valor: 40.00 },
       { cidades: ['AMARANTE', 'FLORIANO'], valor: 30.00 },
