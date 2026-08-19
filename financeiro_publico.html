@@ -3137,10 +3137,14 @@ function renderDREContabil(){
   if(kpi){
     // Barra principal: só as 3 caixas originais (2026-08-18 -- voltou a ser assim a
     // pedido do usuário; as 3 novas abaixo foram pra coluna lateral da tabela).
+    //
+    // Atualização 2026-08-19 (pedido do usuário): EBITDA e LUCRO LÍQUIDO (LL) passam a
+    // mostrar o PERCENTUAL (% s/ RECEITA LÍQUIDA, mesma base `pct()` usada na tabela)
+    // em vez do valor em R$ -- só essas 2 caixas; RECEITA BRUTA continua em R$.
     kpi.innerHTML =
       '<div class="kpi kpi-destaque"><div class="lbl">RECEITA BRUTA — '+MESES_PT[mes-1]+'/'+ano+'</div><div class="val">'+_fmtBRL(receitaBruta)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">EBITDA</div><div class="val" style="color:'+(ebitda<0?'var(--red)':'var(--green5)')+';">'+_fmtBRL(ebitda)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+_fmtBRL(ll)+'</div></div>';
+      '<div class="kpi"><div class="lbl">EBITDA</div><div class="val" style="color:'+(ebitda<0?'var(--red)':'var(--green5)')+';">'+pct(ebitda).toFixed(1)+'%</div></div>'+
+      '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+pct(ll).toFixed(1)+'%</div></div>';
   }
   if(kpiLateral){
     // 3 caixas extras (2026-08-18) ao lado da tabela, preenchendo o espaço que sobrou
