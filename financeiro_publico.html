@@ -2992,6 +2992,14 @@ const IMPOSTOS_FONTES = ['IMPOSTOS E TAXAS'];
 // como rede de segurança pra qualquer CENTRO DE CUSTO realmente novo que apareça no
 // futuro sem estar mapeado em nenhuma das rubricas nomeadas.
 const DIR_FONTES = ['DIRETORIA'];
+// 2026-08-19, pedido do usuário: novo CENTRO DE CUSTO "PAGAMENTOS EXTRA - V7" criado na
+// planilha de classificação. Diferente de todas as rubricas acima, essa NÃO entra na soma
+// de nenhuma linha da DRE-Contábil (nem DP/DV/DA/DC/DIR/OUTRAS, nem EBITDA, nem LL) --
+// aparece só como linha informativa, abaixo do fechamento de LL, pra consulta. Por isso
+// fica de fora de `nomeadas` em _montarDREContabil (senão cairia no catch-all OUTRAS e
+// impactaria o resultado) e ganha campo próprio (EXTRA) no objeto retornado, que
+// renderDREContabil() usa só pra exibir a linha extra, nunca nos cálculos de totalDespesasOperacionais/ebitda/ll.
+const EXTRA_FONTES = ['PAGAMENTOS EXTRA - V7'];
 // Mescla subgrupos+total de vários guias (chaves de _montarDRE) num único bloco --
 // usado tanto pra DV (2 fontes) quanto pra OUTRAS (N fontes variáveis por mês). Quando o
 // mesmo SUBGRUPO existir em mais de uma fonte, soma total e concatena itens (nunca
@@ -3028,7 +3036,7 @@ function _redirecionarSubgrupoDREC(origem, destino, subgrupo){
 }
 function _montarDREContabil(mes, ano){
   const guias = _montarDRE(mes, ano);
-  const nomeadas = new Set([...DP_FONTES, ...DV_FONTES, ...DA_FONTES, ...DC_FONTES, ...DF_FONTES, ...IMPOSTOS_FONTES, ...DIR_FONTES]);
+  const nomeadas = new Set([...DP_FONTES, ...DV_FONTES, ...DA_FONTES, ...DC_FONTES, ...DF_FONTES, ...IMPOSTOS_FONTES, ...DIR_FONTES, ...EXTRA_FONTES]);
   const outrasFontes = Object.keys(guias).filter(k=> k!=='RECEITAS' && k!=='FINANCIAMENTOS' && !nomeadas.has(k));
   const impostos = _mesclarGuias(guias, IMPOSTOS_FONTES);
   const dc = _mesclarGuias(guias, DC_FONTES);
@@ -3045,6 +3053,8 @@ function _montarDREContabil(mes, ano){
     OUTRAS_FONTES: outrasFontes,
     DF: _mesclarGuias(guias, DF_FONTES),
     FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, subgrupos: {} },
+    // Informativo -- nunca usado em totalDespesasOperacionais/ebitda/ll (ver comentário em EXTRA_FONTES).
+    EXTRA: _mesclarGuias(guias, EXTRA_FONTES),
   };
 }
 const _dreContabilExpandido = {}; // rubrica -> bool (estado próprio, independente do _dreExpandido da aba antiga)
@@ -3061,7 +3071,10 @@ function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
   const aberto = !!_dreContabilExpandido[key];
   const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
-  const badgeHtml = badge ? ' <span class="info-badge" title="Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.">?</span>' : '';
+  // `badge` aceita true (texto padrão, usado por OUTRAS DESPESAS) ou uma string com texto
+  // próprio (usado por EXTRA, ver renderDREContabil) -- mesmo mecanismo visual, tooltip diferente.
+  const badgeTitulo = typeof badge === 'string' ? badge : 'Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.';
+  const badgeHtml = badge ? ' <span class="info-badge" title="'+badgeTitulo+'">?</span>' : '';
   // pctVal null (RECEITA BRUTA/IMPOSTOS) -- combinado com o usuário em 2026-08-17: a
   // coluna de % passou a ser sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA, e
   // essas 2 linhas ficam sem percentual (vêm ANTES da Receita Líquida na tabela).
@@ -3130,6 +3143,8 @@ function renderDREContabil(){
   const df = d.DF.total;
   const financiamentos = d.FINANCIAMENTOS.total;
   const ll = ebitda - df - financiamentos;
+  // Informativo -- não entra em nenhuma conta acima (ver comentário em EXTRA_FONTES).
+  const extra = d.EXTRA.total;
   // % agora é sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA -- pedido do
   // usuário em 2026-08-17 (RECEITA BRUTA e IMPOSTOS ficam sem percentual, ver _linhaDREC).
   const pct = v => receitaLiquida ? (v / receitaLiquida * 100) : 0;
@@ -3177,6 +3192,13 @@ function renderDREContabil(){
   html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', financiamentos, pct(financiamentos), true, d.FINANCIAMENTOS.subgrupos);
 
   html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', ll, pct(ll), 'var(--blue-ll)');
+
+  // 2026-08-19, pedido do usuário: PAGAMENTOS EXTRA - V7 aparece abaixo do fechamento de
+  // LL, só pra consulta -- não soma nem deduz em nenhuma linha acima (ver EXTRA_FONTES).
+  if(Math.abs(extra) > 0.004){
+    html += '<tr><td colspan="3" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
+    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', extra, null, true, d.EXTRA.subgrupos, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.');
+  }
 
   html += '</tbody>';
   tabela.innerHTML = html;
