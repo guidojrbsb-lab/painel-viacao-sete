@@ -1745,6 +1745,19 @@ const REDIRECIONAMENTOS_BILHETE = {
   // em 2026-08-19 como sendo da PREFEITURA DE SEBASTIÃO LEAL.
   '146501': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
   '146502': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
+  // Bilhete WESLEY BANDEIRA DA SILVA (São Raimundo Nonato -> Teresina, 20/08/2026)
+  // vendido com o código de Prefeitura de Corrente por engano — pertence ao contrato
+  // de São Raimundo Nonato.
+  '148780': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  // Bilhetes ANA GABRIELA PIRES e ALDENIR PEREIRA PIRES (Teresina -> Uruçuí, 20/08/2026)
+  // vendidos com o código de Prefeitura de Corrente por engano — pertencem ao contrato
+  // de Uruçuí Saúde.
+  '148886': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  '148887': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  // Bilhete JESIMAR RIBEIRO BATISTA (Corrente -> Teresina, 19/08/2026) vendido com o
+  // código de Prefeitura de Currais por engano — pertence ao contrato de Prefeitura de
+  // Corrente.
+  '147703': { convenio: 'PREFEITURA DE CORRENTE', bilheteiro: 'PREFCOR01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -2031,6 +2044,8 @@ const REGRAS_VALOR_CONVENIO = {
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
       { cidades: ['TERESINA','BOM JESUS'], valor: 185.00 },
+      // Confirmado pelo usuário em 2026-08-20.
+      { cidades: ['BOM JESUS','FLORIANO'], valor: 120.00 },
     ],
   },
   'FAZENDA RIBEIRÃO': {
