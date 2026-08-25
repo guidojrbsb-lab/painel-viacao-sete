@@ -1759,6 +1759,10 @@ const REDIRECIONAMENTOS_BILHETE = {
   // código de Prefeitura de Currais por engano — pertence ao contrato de Prefeitura de
   // Corrente.
   '147703': { convenio: 'PREFEITURA DE CORRENTE', bilheteiro: 'PREFCOR01' },
+  // Bilhete TEREZA DIAS DA SILVA (Teresina -> Uruçuí, 24/08/2026) vendido com o código
+  // de Prefeitura de São Raimundo Nonato por engano — pertence ao contrato de Uruçuí
+  // Saúde.
+  '150521': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -1816,6 +1820,12 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '72271': '2026-08-23',
   '72970': '2026-08-23',
   '72902': '2026-08-23',
+  // Bilhete RENATO FERREIRA GUIMARAES, Convênio DPL Construções (ELISEU MARTINS x BOM
+  // JESUS); bilhete DANYLLO DE SOUSA SILVA, Convênio Fazenda Progresso (ANTONIO ALMEIDA
+  // x URUCUÍ): relatório gravou 25/08, mas as viagens foram de fato em 24/08 (confirmado
+  // pelo usuário em 2026-08-24).
+  '150785': '2026-08-24',
+  '150909': '2026-08-24',
 };
 
 // "Data MD" às vezes chega como número serial do Excel (dias desde 1899-12-30, com
@@ -2005,6 +2015,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['REDENCAO DO GURGUEIA','FLORIANO'], valor: 130.00 },
       { cidades: ['FLORIANO','TERESINA'], valor: 90.00 },
       { cidades: ['BARAO DE GRAJAU','TERESINA'], valor: 90.00 },
+      // Confirmado pelo usuário em 2026-08-25 (ida e volta -- `cidades` já cobre os dois
+      // sentidos automaticamente).
+      { cidades: ['REDENCAO DO GURGUEIA','BARAO DE GRAJAU'], valor: 130.00 },
     ],
   },
   'PREFEITURA DE MONTE ALEGRE DO PIAUÍ': {
@@ -2052,6 +2065,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['CORRENTE','BOM JESUS'], valor: 70.00 },
       { cidades: ['CORRENTE','BARREIRAS'], valor: 80.00 },
       { cidades: ['CORRENTE','BARAO DE GRAJAU'], valor: 165.00 },
+      // Confirmado pelo usuário em 2026-08-25.
+      { cidades: ['CORRENTE','FLORIANO'], valor: 160.00 },
     ],
   },
   'PREFEITURA DE CURRAIS': {
