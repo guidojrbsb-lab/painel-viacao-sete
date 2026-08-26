@@ -1723,6 +1723,16 @@ function _resolverTransferenciasEntreContas(){
   // mesmo valor (reduz o risco de casar por coincidência com um período maior aberto).
   const GAP_DIAS_TRANSFERENCIA = 4; // cobre até feriado de 2ª-feira emendado num fim de semana
   const _addDiasISO = (iso, n) => { const dt = new Date(iso+'T00:00:00Z'); dt.setUTCDate(dt.getUTCDate()+n); return dt.toISOString().slice(0,10); };
+  // Guarda anti-falso-positivo (confirmado pelo usuário em 2026-08-26, caso real: tarifa
+  // "TAR LIQ COB COM REG COMPE" de R$18,00 no SANTANDER MATRIZ apareceu dentro de
+  // TRANSFERÊNCIA ENTRE CONTAS porque, por coincidência, batia em VALOR+NATUREZA OPOSTA
+  // com um PIX genuíno de R$18,00 no SANTANDER FILIAL dentro da janela de dias -- nenhuma
+  // das duas buscas de par (`par = listaCand.find(...)`) checava se o lado ESPELHO
+  // também parecia um PIX/TED/DOC de verdade, só valor+data+natureza. Lançamento de
+  // tarifa/juros/IOF/encargo nunca pode ser o lado espelho de uma transferência, mesmo
+  // batendo valor por coincidência -- é custo bancário real, não dinheiro entrando em
+  // outra conta.
+  const _EH_TARIFA_OU_ENCARGO = /\bTAR(IFA)?\b|\bIOF\b|JUROS|ENCARGO|SEGURO\s*PRESTAMISTA|MANUTEN[CÇ][AÃ]O|ANUIDADE/i;
   const datas = Object.keys(DB.bancos||{});
   // Limpa marcação de uma rodada anterior -- idempotente, roda de novo a cada
   // upload/carregamento sem acumular lixo de execuções passadas.
@@ -1748,7 +1758,7 @@ function _resolverTransferenciasEntreContas(){
       for(let g=0; g<=GAP_DIAS_TRANSFERENCIA && !par; g++){
         const listaCand = DB.bancos[_addDiasISO(d, g)];
         if(!listaCand) continue;
-        par = listaCand.find(t2=> t2!==t && !t2.transferencia && candidatosBanco.includes(t2.banco) && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01) || null;
+        par = listaCand.find(t2=> t2!==t && !t2.transferencia && candidatosBanco.includes(t2.banco) && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01 && !_EH_TARIFA_OU_ENCARGO.test(t2.descricao||'')) || null;
       }
       // Correção 2026-08-07: só marca como TRANSFERÊNCIA ENTRE CONTAS quando o
       // lançamento espelho (mesmo valor, natureza oposta, dentro da janela de dias acima)
@@ -1789,7 +1799,7 @@ function _resolverTransferenciasEntreContas(){
       for(let g=0; g<=GAP_DIAS_TRANSFERENCIA && !par; g++){
         const listaCand = DB.bancos[_addDiasISO(d, g)];
         if(!listaCand) continue;
-        par = listaCand.find(t2=> t2!==t && !t2.transferencia && t2.banco===bancoAlvo && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01) || null;
+        par = listaCand.find(t2=> t2!==t && !t2.transferencia && t2.banco===bancoAlvo && t2.natureza===naturezaOposta && Math.abs(t2.valor - t.valor) < 0.01 && !_EH_TARIFA_OU_ENCARGO.test(t2.descricao||'')) || null;
       }
       if(par){
         t.transferencia = true;
@@ -1956,6 +1966,11 @@ const CONVENIO_REGRAS_TEXTO = [
   [/\bEMENDA\b/, 'PREFEITURA DE CURRAIS'],
   [/\bGEES\s*S\s*A\b/, 'FAZENDA RIBEIRÃO'],
   [/SEC\s*MUN\s*ACAO\s*SOC\s*SEB/, 'PREFEITURA DE SEBASTIÃO LEAL'],
+  // Confirmado pelo usuário em 2026-08-25: "PREF M B G R. FMAS" (Bradesco, PIX
+  // 25/08/2026, R$4.678,94) = Prefeitura Municipal de Baixa Grande do Ribeiro, Fundo
+  // Municipal de Assistência Social -- "M B G R" é a abreviação do nome do município
+  // usada nesse lançamento, não coberta pela regra ampla "B G RIBEIRO|BAIXA GRANDE".
+  [/\bM\s*B\s*G\s*R\b/, 'PREFEITURA DE BAIXA GRANDE DO RIBEIRO'],
 ];
 // Sinal amplo de que o lançamento É algum tipo de repasse de prefeitura/convênio, mesmo
 // quando nenhuma regra específica acima bate (vira "CONVÊNIO NÃO IDENTIFICADO" em vez de
