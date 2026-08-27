@@ -832,10 +832,79 @@ function _reaplicarCorrecoesDataConvenio(){
   }
   return mudouAlgo;
 }
+// Remove retroativamente de DB.convenios qualquer item cujo bilhete (individual ou
+// mesclado por escala, ex.: "146070/145801/71056") bata com EXCLUSOES_BILHETE -- mesmos
+// 2 pontos de chamada de _reaplicarRedirecionamentosConvenio/_reaplicarCorrecoesDataConvenio
+// (loadDB() modo público e migrarBaseAntiga() modo local, com saveDB depois). Devolve
+// true se algo mudou.
+function _reaplicarExclusoesConvenio(){
+  let mudouAlgo = false;
+  for(const d of Object.keys(DB.convenios||{})){
+    const lista = DB.convenios[d]||[];
+    for(let i=lista.length-1; i>=0; i--){
+      const item = lista[i];
+      if(!item || !item.bilhete) continue;
+      const partes = String(item.bilhete).split('/');
+      if(!partes.some(p=>EXCLUSOES_BILHETE.has(p))) continue;
+      lista.splice(i,1);
+      mudouAlgo = true;
+    }
+    if(lista.length===0) delete DB.convenios[d];
+  }
+  return mudouAlgo;
+}
+// Aplica retroativamente ESCALAS_MANUAIS_BILHETE em cima de bilhetes JÁ SALVOS
+// separados em DB.convenios (ver comentário completo em ESCALAS_MANUAIS_BILHETE e em
+// _mesclarEscalasConvenio, que já faz isso pra uploads novos). Como os dois trechos de
+// uma escala manual podem cair em BALDES DE DIA DIFERENTES (dataVenda = Data Servi.,
+// que muda de um trecho pro outro em rotas com pernoite), a busca é feita por índice de
+// bilhete CRUZANDO todos os dias, não só dentro do mesmo dia como as outras funções
+// _reaplicar* acima. Mesmos 2 pontos de chamada (loadDB() modo público e
+// migrarBaseAntiga() modo local, com saveDB depois). Devolve true se algo mudou.
+function _reaplicarEscalasManuaisConvenio(){
+  let mudouAlgo = false;
+  const porBilhete = {};
+  for(const d of Object.keys(DB.convenios||{})){
+    (DB.convenios[d]||[]).forEach(item=>{
+      if(item && item.bilhete && !porBilhete[item.bilhete]) porBilhete[item.bilhete] = { data: d, item };
+    });
+  }
+  const jaProcessados = new Set();
+  Object.keys(ESCALAS_MANUAIS_BILHETE).forEach(chave=>{
+    const [b1, b2] = chave.split('|');
+    if(jaProcessados.has(b1) || jaProcessados.has(b2)) return;
+    const e1 = porBilhete[b1], e2 = porBilhete[b2];
+    if(!e1 || !e2) return; // já mesclado antes, ou algum dos dois não está (mais) na base
+    const valorManual = ESCALAS_MANUAIS_BILHETE[chave];
+    const a = e1.item, b = e2.item;
+    const [primeiro, segundo] = (a.dataVenda||'') <= (b.dataVenda||'') ? [a,b] : [b,a];
+    const mesclado = Object.assign({}, primeiro, {
+      destino: segundo.destino,
+      bilhete: primeiro.bilhete+'/'+segundo.bilhete,
+      valorOriginal: (primeiro.valorOriginal||0)+(segundo.valorOriginal||0),
+      valorCobrado: valorManual,
+      valorCobradoManual: valorManual,
+      semRegra: false,
+      escala: true,
+    });
+    [e1, e2].forEach(e=>{
+      const lista = DB.convenios[e.data]||[];
+      const idx = lista.indexOf(e.item);
+      if(idx>=0) lista.splice(idx,1);
+      if(lista.length===0) delete DB.convenios[e.data];
+    });
+    (DB.convenios[mesclado.dataVenda] = DB.convenios[mesclado.dataVenda]||[]).push(mesclado);
+    jaProcessados.add(b1); jaProcessados.add(b2);
+    mudouAlgo = true;
+  });
+  return mudouAlgo;
+}
 function _normalizarComercial(){
   for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {};
   _reaplicarRedirecionamentosConvenio();
   _reaplicarCorrecoesDataConvenio();
+  _reaplicarExclusoesConvenio();
+  _reaplicarEscalasManuaisConvenio();
 }
 async function loadDB(){
   if(EMBEDDED_DB){
@@ -1033,6 +1102,15 @@ async function migrarBaseAntiga(){
   // _reaplicarCorrecoesDataConvenio) -- corrige e MOVE pro balde do dia certo qualquer
   // bilhete já salvo com data de serviço desatualizada, sem exigir reenvio do relatório.
   if(_reaplicarCorrecoesDataConvenio()) mudou = true;
+  // Idem para EXCLUSOES_BILHETE (ver comentário completo em _reaplicarExclusoesConvenio)
+  // -- remove definitivamente do relatório qualquer bilhete já salvo que tenha sido
+  // marcado como duplicidade/lançamento errado, sem exigir reenvio do relatório.
+  if(_reaplicarExclusoesConvenio()) mudou = true;
+  // Idem para ESCALAS_MANUAIS_BILHETE (ver comentário completo em
+  // _reaplicarEscalasManuaisConvenio) -- mescla retroativamente qualquer par de
+  // bilhetes já salvo que o usuário confirmou como escala manual, sem exigir reenvio
+  // do relatório.
+  if(_reaplicarEscalasManuaisConvenio()) mudou = true;
 
   await saveDB();
 }
@@ -1763,6 +1841,11 @@ const REDIRECIONAMENTOS_BILHETE = {
   // de Prefeitura de São Raimundo Nonato por engano — pertence ao contrato de Uruçuí
   // Saúde.
   '150521': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  // Bilhete POLLYANA MOTA DE SANTANA (Barão de Grajaú -> São Raimundo Nonato, 26/08/2026)
+  // vendido com o código de Redenção do Gurguéia por engano (sem regra de valor, por isso
+  // aparecia vermelho no popup) — pertence ao contrato de São Raimundo Nonato (confirmado
+  // pelo usuário em 2026-08-27).
+  '73338': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -1826,6 +1909,44 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // pelo usuário em 2026-08-24).
   '150785': '2026-08-24',
   '150909': '2026-08-24',
+  // Bilhete WELDER ROMARIO DA SILVA, Convênio Prefeitura de Corrente (CORRENTE x
+  // BARREIRAS): relatório gravou 27/08, mas a viagem foi de fato em 26/08 (confirmado
+  // pelo usuário em 2026-08-27).
+  '152373': '2026-08-26',
+};
+// Bilhetes que devem ser excluídos por inteiro do Relatório de Convênios (lançamento
+// duplicado/marcado errado, não uma correção de data ou de convênio) -- usado em
+// _extrairBrutosConvenio (bloqueia entrada de novos uploads) e
+// _reaplicarExclusoesConvenio (remove retroativamente de bilhetes já salvos). Chaves
+// pelo NÚMERO INDIVIDUAL do bilhete, mesmo quando ele aparece mesclado com outro(s) por
+// escala (ex.: "146070/145801/71056") -- ver _reaplicarExclusoesConvenio.
+const EXCLUSOES_BILHETE = new Set([
+  // Bilhete YUSSEF KELSON DOS NJOS MARINHO, Convênio DPL Construções (AMARANTE x BAIXA
+  // GRANDE DO RIBEIRO via TIMON/FLORIANO) -- confirmado pelo usuário em 2026-08-26 como
+  // duplicidade, deve ser removido do relatório.
+  '146070', '145801', '71056',
+  // Bilhete JACKSON DE FRANCA SANTOS, Convênio DPL Construções (BOM JESUS x GILBUÉS) --
+  // confirmado pelo usuário em 2026-08-26 como lançamento duplicado pelo atendente.
+  '144837',
+]);
+// Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
+// usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
+// valor cobrado próprio, mas NÃO quer cadastrar uma rota nova em REGRAS_VALOR_CONVENIO
+// (que valeria pra qualquer bilhete futuro com essas mesmas cidades -- pedido explícito
+// do usuário de que a regra seja única e exclusiva pro par). Chave = os dois números de
+// bilhete em ORDEM ALFABÉTICA (independe de qual bilhete aparece primeiro no
+// relatório), unidos por "|". Usado em _mesclarEscalasConvenio, que decide sozinho qual
+// dos dois bilhetes vira ORIGEM (o de Data Servi. mais cedo) e qual vira DESTINO;
+// _precificarConvenio usa o valor daqui direto, sem passar pela busca em
+// REGRAS_VALOR_CONVENIO (que marcaria "sem regra" por essas cidades não serem uma rota
+// cadastrada do convênio).
+const ESCALAS_MANUAIS_BILHETE = {
+  // Bilhetes FLAVIO BENVINDO DE ALBUQUERQUE NASCIMENTO (146939, CRISTINO CASTRO x CANTO
+  // DO BURITI) e FLAVIO BENVINDO DE ALBUQUERQUE (146949, CANTO DO BURITI x SÃO RAIMUNDO
+  // NONATO), Convênio DPL Construções: escala CRISTINO CASTRO x SÃO RAIMUNDO NONATO
+  // confirmada pelo usuário em 2026-08-26, valor R$95,00 -- caso único, não é rota
+  // recorrente do contrato.
+  '146939|146949': 95.00,
 };
 
 // "Data MD" às vezes chega como número serial do Excel (dias desde 1899-12-30, com
@@ -2079,6 +2200,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['TERESINA','BOM JESUS'], valor: 185.00 },
       // Confirmado pelo usuário em 2026-08-20.
       { cidades: ['BOM JESUS','FLORIANO'], valor: 120.00 },
+      // Confirmado pelo usuário em 2026-08-27.
+      { cidades: ['CRISTINO CASTRO','TERESINA'], valor: 170.00 },
     ],
   },
   'FAZENDA RIBEIRÃO': {
@@ -2138,7 +2261,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['FLORIANO', 'ITAUEIRA'], valor: 40.00 },
       { cidades: ['FLORIANO', 'JERUMENHA'], valor: 25.00 },
       { cidades: ['FLORIANO', 'REDENCAO DO GURGUEIA'], valor: 130.00 },
-      { cidades: ['FLORIANO', 'SAO JOAO DO PIAUI'], valor: 70.00 },
+      // Ajustado pelo usuário em 2026-08-26 (de R$70,00 pra R$90,00, só neste convênio).
+      { cidades: ['FLORIANO', 'SAO JOAO DO PIAUI'], valor: 90.00 },
       { cidades: ['FLORIANO', 'SAO RAIMUNDO NONATO'], valor: 90.00 },
       { cidades: ['FLORIANO', 'SEBASTIAO LEAL'], valor: 65.00 },
       { cidades: ['FLORIANO', 'TERESINA'], valor: 90.00 },
@@ -2269,8 +2393,40 @@ function _nomesSimilar(a, b){
 // _nomesSimilar), em que o destino de um bate com a origem do outro (após aplicar os
 // sinônimos de cidade do convênio) e a rota combinada (origem do 1º -> destino do 2º) é
 // uma das rotas cadastradas para o convênio.
-function _mesclarEscalasConvenio(itens, regra){
-  if(!regra || !regra.rotas || !regra.rotas.length) return itens;
+function _mesclarEscalasConvenio(itensOriginais, regra){
+  // Passe MANUAL (ver ESCALAS_MANUAIS_BILHETE) roda antes de qualquer coisa baseada em
+  // regra -- cobre pares de bilhetes que o usuário confirmou como escala mas que não
+  // batem nos critérios automáticos abaixo (nome de passageiro incompleto/diferente
+  // entre os dois trechos, ou rota que não é recorrente o bastante pra virar entrada em
+  // REGRAS_VALOR_CONVENIO). Roda independente de `regra` existir, então funciona mesmo
+  // pra convênio sem nenhuma rota cadastrada ainda.
+  const usadosManual = new Set();
+  const mescladosManual = [];
+  itensOriginais.forEach((a, i)=>{
+    if(usadosManual.has(i)) return;
+    for(let j=i+1; j<itensOriginais.length; j++){
+      if(usadosManual.has(j)) continue;
+      const b = itensOriginais[j];
+      const chave = [a.bilhete, b.bilhete].sort().join('|');
+      const valorManual = ESCALAS_MANUAIS_BILHETE[chave];
+      if(valorManual===undefined) continue;
+      // O bilhete de Data Servi. mais cedo fornece a ORIGEM; o outro fornece o
+      // DESTINO -- independe da ordem em que os dois aparecem no relatório/array.
+      const [primeiro, segundo] = (a.dataVenda||'') <= (b.dataVenda||'') ? [a,b] : [b,a];
+      usadosManual.add(i); usadosManual.add(j);
+      mescladosManual.push(Object.assign({}, primeiro, {
+        destino: segundo.destino,
+        bilhete: primeiro.bilhete+'/'+segundo.bilhete,
+        valorOriginal: (primeiro.valorOriginal||0)+(segundo.valorOriginal||0),
+        valorCobradoManual: valorManual,
+        escala: true,
+      }));
+      break;
+    }
+  });
+  const itens = itensOriginais.filter((_, i)=>!usadosManual.has(i));
+
+  if(!regra || !regra.rotas || !regra.rotas.length) return mescladosManual.concat(itens);
   const sin = regra.sinonimosCidade || {};
   const norm = c => sin[c] || c;
   const porGrupo = {};
@@ -2280,7 +2436,7 @@ function _mesclarEscalasConvenio(itens, regra){
     porGrupo[chave].push(i);
   });
   const usados = new Set();
-  const mesclados = [];
+  const mesclados = mescladosManual.slice();
   Object.values(porGrupo).forEach(indices=>{
     if(indices.length < 2) return;
     for(let x=0; x<indices.length; x++){
@@ -2354,6 +2510,13 @@ function _aplicarSinonimosExibicao(itens, regra){
 // troca de nomenclatura de exibição (pra casar a cidade certa nos sinônimos).
 function _precificarConvenio(itens, convenio, regra){
   return itens.map(it=>{
+    // Escala mesclada manualmente (ver ESCALAS_MANUAIS_BILHETE/_mesclarEscalasConvenio):
+    // usa o valor já confirmado pelo usuário pro par, sem passar pela busca em
+    // REGRAS_VALOR_CONVENIO (que marcaria "sem regra" por essas cidades não serem uma
+    // rota cadastrada do convênio).
+    if(it.valorCobradoManual!==undefined){
+      return Object.assign({}, it, { valorCobrado: it.valorCobradoManual, semRegra: false });
+    }
     const res = _valorCobradoConvenio(convenio, it.origem, it.destino, it.valorOriginal);
     return Object.assign({}, it, {
       valorCobrado: res.valor,
@@ -2405,6 +2568,7 @@ function _extrairBrutosConvenio(aoa){
     if(bilheteRaw===undefined || bilheteRaw===null || bilheteRaw==='') continue;
     if(typeof bilheteRaw!=='number' && !/^\d+$/.test(String(bilheteRaw).trim())) continue;
     const bilheteStr = String(bilheteRaw).trim();
+    if(EXCLUSOES_BILHETE.has(bilheteStr)) continue; // duplicidade/lançamento errado -- ver EXCLUSOES_BILHETE
     if(convenioPorBilhete[bilheteStr]) continue; // já resolvido por uma linha anterior
     const bilheteiroCodOriginal = String(row[iBilheteiro]||'').trim().toUpperCase();
     const redirecionamento = REDIRECIONAMENTOS_BILHETE[bilheteStr];
