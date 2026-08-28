@@ -472,6 +472,10 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          abas leem a MESMA base de lançamentos já classificados (DB.bancos/DB.especie/
          DB.classificacao), só reagrupam de um jeito diferente na hora de exibir. -->
     <button data-tab="dre-contabil"><span class="ic">&#128200;</span>DRE - Contábil</button>
+    <!-- ORÇAMENTO (2026-08-27): Programado x Realizado a partir da Estrutura de Custo
+         Padrão anexada pelo usuário. Ver bloco de comentário grande no script, logo
+         antes de renderOrcamento(). -->
+    <button data-tab="orcamento"><span class="ic">&#128176;</span>Orçamento</button>
   </nav>
   <main>
     <!-- ABA BANCOS: consolida os extratos de todas as contas (Itaú, PagSeguro, Santander
@@ -640,6 +644,26 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
         <table class="data" id="dreContabilTabela"><thead></thead><tbody></tbody></table>
         <div id="dreContabilKpiLateral"></div>
       </div>
+    </section>
+
+    <!-- ABA ORÇAMENTO (2026-08-27): Programado (planilha de custo padrão, com rateio por
+         sazonalidade Alta/Média/Baixa) x Realizado (mesma base bancária classificada da
+         DRE, filtrada dia a dia pelo período abaixo). Ver renderOrcamento() no script. -->
+    <section class="tab hidden" id="tab-orcamento">
+      <div class="panel filtro-box" id="filtrosPanelOrcamento">
+        <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
+        <div class="filters-grid" style="grid-template-columns:180px 180px;">
+          <div><label>DATA INÍCIO</label><input type="date" id="orcDataIni" onchange="renderOrcamento()"></div>
+          <div><label>DATA FIM</label><input type="date" id="orcDataFim" onchange="renderOrcamento()"></div>
+        </div>
+      </div>
+
+      <div class="kpi-row" id="orcKpiRow"></div>
+
+      <div class="panel">
+        <table class="data" id="orcTabela"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="orcNotaRodape" style="font-size:11px;color:var(--muted);padding:4px 4px 12px;line-height:1.5;"></div>
     </section>
   </main>
 </div>
@@ -1072,7 +1096,7 @@ function toggleFiltroBox(h2){
   if(box) box.classList.toggle('collapsed');
 }
 
-const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE - Simplificado', 'dre-contabil': 'DRE - Contábil' };
+const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE - Simplificado', 'dre-contabil': 'DRE - Contábil', orcamento: 'Orçamento' };
 
 // Troca de aba -- mesma convenção do painel Comercial: as <section class="tab"> ficam
 // visíveis por padrão, o JS só alterna a classe "hidden" (NÃO usar "tab-content"/"active",
@@ -1085,6 +1109,7 @@ document.getElementById('sidebar').addEventListener('click', (ev)=>{
   document.querySelectorAll('main .tab').forEach(s=>s.classList.add('hidden'));
   document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
   document.getElementById('tituloAba').textContent = TITULOS_ABA_FIN[btn.dataset.tab] || 'Financeiro';
+  if(btn.dataset.tab === 'orcamento'){ renderOrcamento(); _carregarDadosComercial().then(renderOrcamento); }
 });
 
 function fecharModal(){
@@ -3500,6 +3525,478 @@ function _linhaConvenioVF(nome, total, contagem){
       ' <button style="margin-left:8px;font-size:11px;padding:6px 12px;background:var(--red);color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer;" onclick="event.stopPropagation();_abrirBaixaConvenioModal(\''+nomeEsc+'\')">Baixar</button>'+
     '</td></tr>';
 }
+// ==================================================================================
+// ABA ORÇAMENTO (2026-08-27, pedido dos sócios): Programado x Realizado, a partir da
+// "Planilha de Custos - v2.xlsx" (nossa Estrutura de Custo Padrão) enviada pelo usuário.
+// A planilha define 3 cenários de sazonalidade por mês -- ALTA (Jan/Jul/Dez), MÉDIA
+// (Jun/Ago/Set/Out/Nov) e BAIXA (Fev/Mar/Abr/Mai) -- cada linha de receita/custo tem um
+// valor MENSAL por cenário (ex.: Diesel varia porque a frota roda menos KM nos meses de
+// baixa/média demanda; Folha/Ticket/Diretoria/Financiamentos são fixos o ano inteiro,
+// mesmo valor nos 3 cenários).
+//
+// PROGRAMADO: pra um período Início/Fim arbitrário (pode cortar um mês no meio), rateia
+// o valor mensal do cenário de cada mês tocado proporcionalmente aos dias do período que
+// caem dentro daquele mês (_diasTocadosPorMes + _valorProgramadoLinha).
+//
+// REALIZADO: confirmado pelo usuário em 2026-08-27 -- vem 100% dos MESMOS lançamentos
+// bancários/espécie já classificados que alimentam a DRE - Contábil (DB.bancos/
+// DB.especie via _classificacaoTransacao), filtrando pela DATA CRUA do evento dentro de
+// Início/Fim (mesmo critério de _periodoExportacaoDRE: dia a dia, não por competência) e
+// reagrupando por SUBGRUPO nas linhas do Orçamento (ver ORCAMENTO_LINHA_SUBGRUPOS). Como
+// a fonte é só banco, as receitas recebidas em espécie/direto na agência sem um texto de
+// contraparte identificável (venda embarcada PI-112, encomendas, embarcados motorista,
+// aluguel garagem) ficam marcadas `semDadoBancario` e aparecem como "SEM DADO BANCÁRIO"
+// em vez de um Realizado zerado enganoso. Mapeamentos DIRETORIA/DESP. FINANCEIRA/
+// FINANCIAMENTOS usam o(s) subgrupo(s) inteiro(s) do respectivo CENTRO DE CUSTO -- podem
+// incluir itens que a planilha de custo padrão não previu linha a linha (ex.: bank
+// classifica ENERGIA/INTERNET de qualquer unidade como CUSTO ADMINISTRATIVO, não
+// DIRETORIA, então o Realizado de Diretoria tende a ficar mais enxuto que o Programado
+// -- é uma limitação conhecida da granularidade do extrato, não um erro de cálculo).
+// ==================================================================================
+
+const MES_SAZONALIDADE_ORCAMENTO = {1:'ALTA',2:'BAIXA',3:'BAIXA',4:'BAIXA',5:'BAIXA',6:'MEDIA',7:'ALTA',8:'MEDIA',9:'MEDIA',10:'MEDIA',11:'MEDIA',12:'ALTA'};
+
+// Valores MENSAIS por cenário, extraídos das abas RESUMO e RECEITA da planilha anexa.
+const ORCAMENTO_ESTRUTURA = {
+  'Agências e Parceiros':              { tipo:'receita', ALTA:2600000, MEDIA:2100000, BAIXA:1950000 },
+  'Venda Embarcada PI 112':            { tipo:'receita', ALTA:310000, MEDIA:310000, BAIXA:310000, fonteComercial:'embarcado' },
+  'Carga e Encomendas':                { tipo:'receita', ALTA:90000, MEDIA:90000, BAIXA:90000, fonteComercial:'encomendas' },
+  'Fretamento e Turismo':              { tipo:'receita', ALTA:70000, MEDIA:70000, BAIXA:70000 },
+  'Convênio e Prefeituras':            { tipo:'receita', ALTA:550000, MEDIA:550000, BAIXA:550000 },
+  'Embarcados Motorista':              { tipo:'receita', ALTA:60000, MEDIA:60000, BAIXA:60000, fonteComercial:'receitaPadraoEmbarcado' },
+  'Aluguel Garagem':                   { tipo:'receita', ALTA:20000, MEDIA:20000, BAIXA:20000, semDadoBancario:true },
+  'Impostos s/ Venda':                 { tipo:'custo', ALTA:435632.63374149665, MEDIA:376763.3589115646, BAIXA:359102.576462585 },
+  'Taxa de Embarque':                  { tipo:'custo', ALTA:48000, MEDIA:44000, BAIXA:40000 },
+  'Folha':                             { tipo:'custo', ALTA:262356.72679999995, MEDIA:262356.72679999995, BAIXA:262356.72679999995 },
+  'Ticket':                            { tipo:'custo', ALTA:77100, MEDIA:77100, BAIXA:77100 },
+  'Impostos sobre Folha (FGTS/INSS)':  { tipo:'custo', ALTA:93715, MEDIA:93715, BAIXA:93715 },
+  'Comissão Terceiros':                { tipo:'custo', ALTA:339053.287250178, MEDIA:288110.43185866025, BAIXA:272827.57524120493, composicaoEspecial:'comissaoTerceiros', origemLabel:'DRE Contábil + Painel Comercial + 17,5% de Encomendas' },
+  'Diesel':                            { tipo:'custo', ALTA:772327.792910033, MEDIA:718444.458520961, BAIXA:718444.458520961 },
+  'Arla':                              { tipo:'custo', ALTA:23624.096385542172, MEDIA:21975.903614457835, BAIXA:21975.903614457835 },
+  'Lubrificante':                      { tipo:'custo', ALTA:8289.156626506025, MEDIA:7710.843373493976, BAIXA:7710.843373493976 },
+  'Peças':                             { tipo:'custo', ALTA:90000, MEDIA:90000, BAIXA:90000 },
+  'Pneu':                              { tipo:'custo', ALTA:24000, MEDIA:24000, BAIXA:24000 },
+  'Higienização Frota':                { tipo:'custo', ALTA:5000, MEDIA:5000, BAIXA:5000 },
+  '1- Prestadores de Serviço':         { tipo:'custo', ALTA:47353.73, MEDIA:47353.73, BAIXA:47353.73 },
+  '2- Sistemas':                       { tipo:'custo', ALTA:13528.42, MEDIA:13528.42, BAIXA:13528.42 },
+  '3- Itens de Consumo':               { tipo:'custo', ALTA:4231.04, MEDIA:4231.04, BAIXA:4231.04 },
+  '4- Aluguel P.A. Motoristas':        { tipo:'custo', ALTA:10080, MEDIA:10080, BAIXA:10080 },
+  '5- Refeição Motoristas':            { tipo:'custo', ALTA:13016, MEDIA:13016, BAIXA:13016, semDadoBancario:true },
+  '6- Aluguel Guichê/Garagem':         { tipo:'custo', ALTA:51178.76, MEDIA:51178.76, BAIXA:51178.76 },
+  '7- Custos Frota':                   { tipo:'custo', ALTA:23364.5, MEDIA:23364.5, BAIXA:23364.5 },
+  '8- Outros':                         { tipo:'custo', ALTA:6570, MEDIA:6570, BAIXA:6570, semDadoBancario:true },
+  'Diretoria':                         { tipo:'custo', ALTA:9931.74, MEDIA:9931.74, BAIXA:9931.74 },
+  'Desp. Financeira':                  { tipo:'custo', ALTA:20645.2176, MEDIA:20645.2176, BAIXA:20645.2176 },
+  'Financiamentos':                    { tipo:'custo', ALTA:515361.81000000006, MEDIA:515361.81000000006, BAIXA:515361.81000000006 },
+};
+
+// Quais SUBGRUPO(s) do DRE bancário (ver SUBGRUPO_CENTRO_CUSTO) alimentam o Realizado de
+// cada linha do Orçamento. Linhas com `semDadoBancario` em ORCAMENTO_ESTRUTURA não têm
+// entrada aqui (nunca são consultadas).
+const ORCAMENTO_LINHA_SUBGRUPOS = {
+  'Agências e Parceiros': ['AGÊNCIAS','VENDA INTERNET'],
+  'Fretamento e Turismo': ['FRETAMENTO E TURISMO'],
+  'Convênio e Prefeituras': ['PREFEITURAS / CORRENTISTAS'],
+  'Impostos s/ Venda': ['ISS - MA','ICMS - BA','ICMS - DF','ICMS - GO','ICMS - MA','ICMS - PI','PIS','COFINS','SIMPLES NACIONAL WS'],
+  'Taxa de Embarque': ['TAXA DE EMBARQUE'],
+  'Folha': ['SALÁRIOS','SALÁRIOS (DIRETORIA)','RESCISÃO','DIÁRIAS','EXAME TOXICOLÓGICO'],
+  'Ticket': ['TICKET'],
+  'Impostos sobre Folha (FGTS/INSS)': ['FGTS','INSS'],
+  'Diesel': ['COMBUSTÍVEL'],
+  'Arla': ['ARLA-32'],
+  'Lubrificante': ['ÓLEO MOTOR'],
+  'Peças': ['PEÇAS, SERVIÇOS E ACESSÓRIOS'],
+  'Pneu': ['PNEUS NOVOS','PNEUS RECAPADOS E ALINHAMENTO'],
+  'Higienização Frota': ['MATERIAL DE LIMPEZA'],
+  '1- Prestadores de Serviço': ['CONSULTOR CONTÁBIL - MATRIZ','CONSULTOR DE TI','CONSULTORIA CONTÁBIL BANDEIRA','CONTADOR - BA','CONTADOR - MATRIZ','CONTATOR - DF','CONTATOR - SP','MELO ADVOCACIA','MSN ADVOGADOS ','MSN ADVOGADOS - PORTO RICO','SINDICATO PI'],
+  '2- Sistemas': ['SISTEMA DE VENDAS - SISTEF (NUVEM)','SISTEMA DE VENDAS - SITEF (LICENÇAS)','SISTEMA DE VENDAS - TOTALBUS','SISTEMA DE VENDAS - TiSISTEMA','SISTEMA DE ENCOMENDAS - LEVER INFO'],
+  '3- Itens de Consumo': ['MATERIAL DE ESCRITÓRIO','ÁGUA E ESGOSTO','ENERGIA','INTERNET E TELEFONIA'],
+  '4- Aluguel P.A. Motoristas': ['ALUGUEL DE P.A.','ALUGUEL DE P.A. - URUÇUÍ'],
+  '6- Aluguel Guichê/Garagem': ['ALGUEL DE GUICHÊ','ALUGUEL DE GUICHÊ','ALUGUEL DE GUICHÊ - BSB','ALUGUEL DE GUICHÊ - LEM','ALUGUEL DE GUICHÊ - SOB','ALUGUEL DE GUICHÊ - TAG','ALUGUEL DE GUICHÊS - BES','CONDOMÍNIO GUICHÊ - LEM','ALUGUEL SALA ENCOMENDAS - BSB'],
+  '7- Custos Frota': ['SEGURO FROTA','VISTORIA VEÍCULOS FROTA','MONITRIIP - TRYVIA','DETRAN - SE','DESPACHANTE - MA','DESPACHANTE - PI','COMPRA DE BELICHES -  ALOJAMENTO BGR','COMPRA DE COLCHÕES - ALOJAMENTO BGR'],
+  'Diretoria': ['PARCERIA SETRANS-PI','REEMBOLSO ACIONISTA'],
+  'Desp. Financeira': ['CARTÃO CORPORATIVO (VER FARTURA)','ENCARGOS CONTA GARANTIDA','JUROS E MULTA','MAQUINETA GETNET - POS','MAQUINETA UNICRED - POS','MAQUINETAS CIELO - POS','TARIFA BANCÁRIA','ANTECIPAÇÃO DE CARTÃO - STONE'],
+  'Financiamentos': ['CONSÓRCIO CAMINHÃO','CONSÓRCIO VIATURA DIRETORIA','FINANCIAMENTOS'],
+};
+
+// Grupos de exibição (ordem = mesmo fluxo da aba RESUMO: Receita Bruta > Impostos >
+// Receita Líquida > custos operacionais > EBITDA > Financeira/Financiamentos >
+// Resultado Líquido). Grupos com 1 item só (COMISSAO/DIRETORIA/FINANCEIRA/FINANCIAM)
+// são renderizados como linha simples, sem seta de expandir (não faz sentido expandir
+// um grupo pra mostrar de novo o mesmo número).
+const ORCAMENTO_GRUPOS = [
+  { key:'RECEITA', label:'RECEITA BRUTA', tipo:'receita', itens:['Agências e Parceiros','Venda Embarcada PI 112','Carga e Encomendas','Fretamento e Turismo','Convênio e Prefeituras','Embarcados Motorista','Aluguel Garagem'] },
+  { key:'IMPOSTOS', label:'IMPOSTOS', tipo:'custo', itens:['Impostos s/ Venda','Taxa de Embarque'] },
+  { key:'PESSOAL', label:'CUSTO PESSOAL', tipo:'custo', itens:['Folha','Ticket','Impostos sobre Folha (FGTS/INSS)'] },
+  { key:'COMISSAO', label:'COMISSÃO TERCEIROS', tipo:'custo', itens:['Comissão Terceiros'] },
+  { key:'MANUTENCAO', label:'CUSTO MANUTENÇÃO (FROTA)', tipo:'custo', itens:['Diesel','Arla','Lubrificante','Peças','Pneu','Higienização Frota'] },
+  { key:'DESPGERAIS', label:'DESPESAS GERAIS', tipo:'custo', itens:['1- Prestadores de Serviço','2- Sistemas','3- Itens de Consumo','4- Aluguel P.A. Motoristas','5- Refeição Motoristas','6- Aluguel Guichê/Garagem','7- Custos Frota','8- Outros'] },
+  { key:'DIRETORIA', label:'DIRETORIA', tipo:'custo', itens:['Diretoria'] },
+  { key:'FINANCEIRA', label:'DESPESA FINANCEIRA', tipo:'custo', itens:['Desp. Financeira'] },
+  { key:'FINANCIAM', label:'FINANCIAMENTOS', tipo:'custo', itens:['Financiamentos'] },
+];
+
+function _diasNoMesOrcamento(ano, mes){ return new Date(Date.UTC(ano, mes, 0)).getUTCDate(); }
+
+// Quebra um período Início/Fim (strings "AAAA-MM-DD") em 1 entrada por mês tocado, com
+// quantos dias do período caem dentro daquele mês -- base do rateio do Programado.
+function _diasTocadosPorMes(dataIniISO, dataFimISO){
+  const ini = new Date(dataIniISO+'T00:00:00Z');
+  const fim = new Date(dataFimISO+'T00:00:00Z');
+  const resultado = [];
+  let cursor = new Date(Date.UTC(ini.getUTCFullYear(), ini.getUTCMonth(), 1));
+  const fimCursor = new Date(Date.UTC(fim.getUTCFullYear(), fim.getUTCMonth(), 1));
+  while(cursor <= fimCursor){
+    const ano = cursor.getUTCFullYear(), mes = cursor.getUTCMonth()+1;
+    const diasNoMes = _diasNoMesOrcamento(ano, mes);
+    const inicioMes = new Date(Date.UTC(ano, mes-1, 1));
+    const fimMes = new Date(Date.UTC(ano, mes-1, diasNoMes));
+    const inicioEfetivo = ini > inicioMes ? ini : inicioMes;
+    const fimEfetivo = fim < fimMes ? fim : fimMes;
+    const diasTocados = Math.round((fimEfetivo - inicioEfetivo)/86400000) + 1;
+    resultado.push({ ano, mes, diasTocados, diasNoMes });
+    cursor = new Date(Date.UTC(ano, mes, 1));
+  }
+  return resultado;
+}
+function _valorProgramadoLinha(chave, meses){
+  const linha = ORCAMENTO_ESTRUTURA[chave];
+  if(!linha) return 0;
+  let total = 0;
+  meses.forEach(m=>{
+    const cenario = MES_SAZONALIDADE_ORCAMENTO[m.mes];
+    const valorMensal = linha[cenario] || 0;
+    total += valorMensal * (m.diasTocados / m.diasNoMes);
+  });
+  return total;
+}
+// Soma, por SUBGRUPO, tudo que caiu no período Início/Fim (dia a dia, mesmo critério de
+// _periodoExportacaoDRE) em DB.bancos + DB.especie -- fonte única do Realizado.
+function _montarRealizadoSubgruposOrcamento(dataIniISO, dataFimISO){
+  const totais = {};
+  const soma = (subgrupo, valor)=>{ totais[subgrupo] = (totais[subgrupo]||0) + Math.abs(valor); };
+  Object.keys(DB.bancos||{}).forEach(dia=>{
+    if(dia < dataIniISO || dia > dataFimISO) return;
+    (DB.bancos[dia]||[]).forEach(t=>{
+      if(t.transferencia) return;
+      const c = _classificacaoTransacao(t);
+      if(c.subgrupo==='DESCONHECIDO') return;
+      soma(c.subgrupo, t.valor);
+    });
+  });
+  Object.values(DB.especie||{}).forEach(t=>{
+    if(!t.data || t.data < dataIniISO || t.data > dataFimISO) return;
+    if(t.subgrupo==='DESCONHECIDO') return;
+    soma(t.subgrupo, t.valor);
+  });
+  return totais;
+}
+function _valorRealizadoLinha(chave, subgruposTotais){
+  const lista = ORCAMENTO_LINHA_SUBGRUPOS[chave];
+  if(!lista) return 0;
+  return lista.reduce((s,sub)=> s + (subgruposTotais[sub]||0), 0);
+}
+
+// Pedido do usuário em 2026-08-27 (mesmo dia da criação da aba): as receitas que não
+// passam pelo banco (recebidas em espécie/direto na agência ou a bordo) NÃO precisam
+// ficar "SEM DADO BANCÁRIO" -- já temos o valor de verdade no painel COMERCIAL, é só
+// buscar de lá. Reaproveita o MESMO mecanismo de sincronização automática ("Opção 3",
+// ver _sincronizarNuvem acima) só que na direção contrária: em vez de mandar a própria
+// base pra nuvem, este painel BUSCA a base do setor "comercial" (GET /api/dados?
+// setor=comercial é público, sem token, mesmo endpoint que financeiro_publico.html já
+// usa pra ler a própria base). Guardado em DB_COMERCIAL, cache de 60s (evita bater na
+// API a cada tecla digitada no filtro Início/Fim) com um "forçar" pra quando o usuário
+// realmente troca de aba ou recarrega tudo.
+//
+// Mapeamento linha do Orçamento -> fonte no Comercial (ver ORCAMENTO_ESTRUTURA.fonteComercial):
+//   'embarcado'            -> DB.embarcado[dia] (relatório "Embarcado Linhas", ex. PI-112),
+//                             soma de e.valorpass -- mesmo campo que alimenta o KPI
+//                             "RECEITA EMBARCADA" da Visão Geral do Comercial.
+//   'encomendas'           -> DB.encomendas[dia] (Base de Despacho), soma de x.valorTotal.
+//   'receitaPadraoEmbarcado' -> DB.receitaPadrao[dia].embarcadaMotoristas (relatório
+//                             "Receita Padrão", já separa Embarcado Motoristas de Fretamento).
+//
+// "Aluguel Garagem", "5- Refeição Motoristas" e "8- Outros" continuam SEM DADO BANCÁRIO
+// de propósito -- não achamos rastro digital delas em NENHUM dos 4 setores (Comercial,
+// Financeiro, Operação, Manutenção); são valores recebidos/pagos em espécie sem
+// relatório nenhum por trás hoje.
+let DB_COMERCIAL = null;
+let _comercialCarregadoEm = 0;
+let _comercialCarregando = false;
+async function _carregarDadosComercial(forcar){
+  if(_comercialCarregando) return;
+  if(!forcar && DB_COMERCIAL && (Date.now()-_comercialCarregadoEm) < 60000) return;
+  _comercialCarregando = true;
+  try{
+    const resp = await fetch(API_BASE + '/api/dados?setor=comercial', {cache:'no-store'});
+    if(resp.ok){
+      const dados = await resp.json();
+      if(dados){ DB_COMERCIAL = dados; _comercialCarregadoEm = Date.now(); }
+    }
+  }catch(e){ console.warn('Orçamento: não foi possível buscar dados do Comercial (Embarcado/Encomendas/Receita Padrão):', e); }
+  finally{ _comercialCarregando = false; }
+}
+// Retorna null enquanto DB_COMERCIAL ainda não chegou nem uma vez (distinto de 0, que é
+// "chegou e o total do período é zero mesmo") -- renderOrcamento trata esse null como
+// "carregando", não como "sem dado bancário" (ver linhaGrupo).
+function _valorRealizadoComercial(fonte, dataIni, dataFim){
+  if(!DB_COMERCIAL) return null;
+  let total = 0;
+  if(fonte === 'embarcado'){
+    Object.keys(DB_COMERCIAL.embarcado||{}).forEach(dia=>{
+      if(dia < dataIni || dia > dataFim) return;
+      (DB_COMERCIAL.embarcado[dia]||[]).forEach(e=>{ total += e.valorpass||0; });
+    });
+  } else if(fonte === 'encomendas'){
+    Object.keys(DB_COMERCIAL.encomendas||{}).forEach(dia=>{
+      if(dia < dataIni || dia > dataFim) return;
+      (DB_COMERCIAL.encomendas[dia]||[]).forEach(x=>{ total += x.valorTotal||0; });
+    });
+  } else if(fonte === 'receitaPadraoEmbarcado'){
+    Object.keys(DB_COMERCIAL.receitaPadrao||{}).forEach(dia=>{
+      if(dia < dataIni || dia > dataFim) return;
+      total += (DB_COMERCIAL.receitaPadrao[dia]||{}).embarcadaMotoristas || 0;
+    });
+  }
+  return total;
+}
+
+// Mesma lista fechada de agências do canal Vendas Embarcada por Agência que recebem
+// comissão automática de 10% no Comercial (ver AGENCIAS_EMBARCADA_COMISSAO_AUTO em
+// "Painel Viação Sete.html" > renderAgencias) -- duplicada aqui porque o Orçamento
+// replica a MESMA fórmula do KPI "COMISSÃO DE AGÊNCIAS" daquele painel (ver
+// _valorRealizadoComissaoTerceiros abaixo). Se a lista mudar lá, precisa mudar aqui
+// também.
+const AGENCIAS_EMBARCADA_COMISSAO_AUTO_ORC = new Set([
+  'EMB CAMPO LARGO', 'EMB HENRIQUE', 'EMB MATIAS', 'EMB MIGUEL ALVES', 'EMB PORTO', 'EMB RICARDO', 'EMB V7',
+]);
+// Pedido do usuário em 2026-08-28: "Comissão de Terceiros precisa ser a soma de todas
+// as comissões" -- confirmado por ele mesmo como 3 partes, vindas de 2 fontes
+// diferentes (nenhuma delas é o extrato bancário puro e simples):
+//
+//   1) COMISSÃO PREFEITURAS -- essa SIM tem lançamento direto no banco (SUBGRUPO já
+//      classificado, ver SUBGRUPO_CENTRO_CUSTO), então vem de subgruposTotais (mesma
+//      fonte "DRE Contábil" que alimenta o resto da aba).
+//   2) COMISSÃO DE AGÊNCIAS + COMISSÃO INTERNET -- pedido explícito "e painel de
+//      Agências do comercial": em vez de depender do valor digitado à mão no Ajuste
+//      Fiscal da DRE - Simplificado (que é só uma aproximação manual do mesmo número,
+//      ver comentário em _montarDRE), calcula ao vivo com a MESMA fórmula do KPI
+//      "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" da aba Agências do Comercial: soma a
+//      coluna Comissão de DB.agencias filtrada por Tipo (PRESTACAO DE SERVICO ->
+//      Agências, INTERNET -> Internet) + 10% automático de DB.vendasEmbarcadaAgencia
+//      pras agências da lista AGENCIAS_EMBARCADA_COMISSAO_AUTO_ORC. Isso não duplica a
+//      COMISSÃO DE AGÊNCIAS do banco: aquele SUBGRUPO cobre só uma minoria de
+//      pagamentos diretos por transferência, enquanto a maioria da comissão de agência
+//      é netada direto na remessa (nunca aparece separada no banco) -- por isso o
+//      painel Comercial é a fonte confiável pra esse pedaço, não o extrato.
+//   3) Comissão de Encomendas -- pedido do usuário em 2026-08-28: sem fonte digital
+//      própria hoje, calculada como 17,5% do Realizado de "Carga e Encomendas" (mesma
+//      taxa da planilha "Comissão de Encomendas Julho 2026" já entregue).
+function _valorRealizadoComissaoTerceiros(dataIni, dataFim, subgruposTotais){
+  const comissaoPrefeituras = subgruposTotais['COMISSÃO PREFEITURAS'] || 0;
+  if(!DB_COMERCIAL) return null; // ainda carregando os dados do Comercial
+  let comissaoAgencias = 0, comissaoInternet = 0;
+  Object.keys(DB_COMERCIAL.agencias||{}).forEach(dia=>{
+    if(dia < dataIni || dia > dataFim) return;
+    (DB_COMERCIAL.agencias[dia]||[]).forEach(x=>{
+      if(x.tipo==='PRESTACAO DE SERVICO') comissaoAgencias += x.comissao||0;
+      else if(x.tipo==='INTERNET') comissaoInternet += x.comissao||0;
+    });
+  });
+  Object.keys(DB_COMERCIAL.vendasEmbarcadaAgencia||{}).forEach(dia=>{
+    if(dia < dataIni || dia > dataFim) return;
+    (DB_COMERCIAL.vendasEmbarcadaAgencia[dia]||[]).forEach(x=>{
+      if(AGENCIAS_EMBARCADA_COMISSAO_AUTO_ORC.has(x.nome)) comissaoAgencias += (x.totgeral||0)*0.10;
+    });
+  });
+  const encomendasRealizado = _valorRealizadoComercial('encomendas', dataIni, dataFim);
+  const comissaoEncomendas = (encomendasRealizado||0) * 0.175;
+  return comissaoPrefeituras + comissaoAgencias + comissaoInternet + comissaoEncomendas;
+}
+
+const _orcExpandido = {};
+function _toggleOrcamentoGrupo(nome){ _orcExpandido[nome] = !_orcExpandido[nome]; renderOrcamento(); }
+
+function renderOrcamento(){
+  const tabela = document.getElementById('orcTabela');
+  if(!tabela) return;
+  const iniEl = document.getElementById('orcDataIni');
+  const fimEl = document.getElementById('orcDataFim');
+  let dataIni = iniEl ? iniEl.value : '';
+  let dataFim = fimEl ? fimEl.value : '';
+  if(!dataIni || !dataFim){
+    const hoje = new Date();
+    const anoAtual = hoje.getFullYear(), mesAtual = hoje.getMonth()+1;
+    dataIni = anoAtual+'-'+String(mesAtual).padStart(2,'0')+'-01';
+    dataFim = anoAtual+'-'+String(mesAtual).padStart(2,'0')+'-'+String(_diasNoMesOrcamento(anoAtual,mesAtual)).padStart(2,'0');
+    if(iniEl) iniEl.value = dataIni;
+    if(fimEl) fimEl.value = dataFim;
+  }
+  const meses = _diasTocadosPorMes(dataIni, dataFim);
+  const subgruposTotais = _montarRealizadoSubgruposOrcamento(dataIni, dataFim);
+
+  const progLinha = {}, realLinha = {}, statusLinha = {};
+  Object.keys(ORCAMENTO_ESTRUTURA).forEach(chave=>{
+    progLinha[chave] = _valorProgramadoLinha(chave, meses);
+    const linha = ORCAMENTO_ESTRUTURA[chave];
+    if(linha.composicaoEspecial === 'comissaoTerceiros'){
+      const v = _valorRealizadoComissaoTerceiros(dataIni, dataFim, subgruposTotais);
+      realLinha[chave] = v;
+      statusLinha[chave] = v===null ? 'carregando' : 'ok';
+    } else if(linha.fonteComercial){
+      const v = _valorRealizadoComercial(linha.fonteComercial, dataIni, dataFim);
+      realLinha[chave] = v;
+      statusLinha[chave] = v===null ? 'carregando' : 'ok';
+    } else if(linha.semDadoBancario){
+      realLinha[chave] = null;
+      statusLinha[chave] = 'sem-dado';
+    } else {
+      realLinha[chave] = _valorRealizadoLinha(chave, subgruposTotais);
+      statusLinha[chave] = 'ok';
+    }
+  });
+
+  const progGrupo = g => g.itens.reduce((s,i)=> s + progLinha[i], 0);
+  const realGrupo = g => {
+    let temSemDado = false, temCarregando = false, soma = 0;
+    g.itens.forEach(i=>{
+      if(statusLinha[i]==='sem-dado') temSemDado = true;
+      else if(statusLinha[i]==='carregando') temCarregando = true;
+      else soma += realLinha[i];
+    });
+    return { soma, parcial: temSemDado || temCarregando, carregando: temCarregando };
+  };
+
+  const gReceita = ORCAMENTO_GRUPOS[0], gImpostos = ORCAMENTO_GRUPOS[1], gPessoal = ORCAMENTO_GRUPOS[2],
+        gComissao = ORCAMENTO_GRUPOS[3], gManutencao = ORCAMENTO_GRUPOS[4], gDespGerais = ORCAMENTO_GRUPOS[5],
+        gDiretoria = ORCAMENTO_GRUPOS[6], gFinanceira = ORCAMENTO_GRUPOS[7], gFinanciam = ORCAMENTO_GRUPOS[8];
+
+  const receitaBrutaProg = progGrupo(gReceita), receitaBrutaReal = realGrupo(gReceita);
+  const impostosProg = progGrupo(gImpostos), impostosReal = realGrupo(gImpostos);
+  const receitaLiquidaProg = receitaBrutaProg - impostosProg;
+  const receitaLiquidaReal = receitaBrutaReal.soma - impostosReal.soma;
+
+  const pessoalProg = progGrupo(gPessoal), pessoalReal = realGrupo(gPessoal);
+  const comissaoProg = progGrupo(gComissao), comissaoReal = realGrupo(gComissao);
+  const manutencaoProg = progGrupo(gManutencao), manutencaoReal = realGrupo(gManutencao);
+  const despGeraisProg = progGrupo(gDespGerais), despGeraisReal = realGrupo(gDespGerais);
+  const diretoriaProg = progGrupo(gDiretoria), diretoriaReal = realGrupo(gDiretoria);
+
+  const totalCustosProg = pessoalProg+comissaoProg+manutencaoProg+despGeraisProg+diretoriaProg;
+  const totalCustosReal = pessoalReal.soma+comissaoReal.soma+manutencaoReal.soma+despGeraisReal.soma+diretoriaReal.soma;
+  const ebitdaProg = receitaLiquidaProg - totalCustosProg;
+  const ebitdaReal = receitaLiquidaReal - totalCustosReal;
+
+  const financeiraProg = progGrupo(gFinanceira), financeiraReal = realGrupo(gFinanceira);
+  const financiamProg = progGrupo(gFinanciam), financiamReal = realGrupo(gFinanciam);
+
+  const resultadoProg = ebitdaProg - financeiraProg - financiamProg;
+  const resultadoReal = ebitdaReal - financeiraReal.soma - financiamReal.soma;
+
+  const kpi = document.getElementById('orcKpiRow');
+  if(kpi){
+    kpi.innerHTML =
+      '<div class="kpi kpi-destaque"><div class="lbl">RECEITA BRUTA — PROGRAMADO</div><div class="val">'+_fmtBRL(receitaBrutaProg)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">RECEITA BRUTA — REALIZADO'+(receitaBrutaReal.parcial?' *':'')+'</div><div class="val" style="color:'+(receitaBrutaReal.soma>=receitaBrutaProg?'var(--green5)':'var(--red)')+';">'+_fmtBRL(receitaBrutaReal.soma)+'</div></div>'+
+      '<div class="kpi"><div class="lbl">EBITDA (PROG. / REAL.)</div><div class="val">'+_fmtBRL(ebitdaProg)+' <span style="color:'+(ebitdaReal>=ebitdaProg?'var(--green5)':'var(--red)')+';font-size:0.65em;">/ '+_fmtBRL(ebitdaReal)+'</span></div></div>'+
+      '<div class="kpi"><div class="lbl">RESULTADO LÍQUIDO (PROG. / REAL.)</div><div class="val">'+_fmtBRL(resultadoProg)+' <span style="color:'+(resultadoReal>=resultadoProg?'var(--blue-ll)':'var(--red)')+';font-size:0.65em;">/ '+_fmtBRL(resultadoReal)+'</span></div></div>';
+  }
+
+  // Rótulo discreto indicando que o Realizado de uma linha não vem do extrato
+  // bancário puro -- reaproveitado tanto no detalhe expandido (item de grupo) quanto
+  // no rótulo do grupo inteiro quando ele tem um único item (ver linhaGrupo abaixo).
+  // Pedido do usuário em 2026-08-27/28: fontes cruzadas (Painel Comercial, composição
+  // de várias comissões) precisam ficar visualmente identificadas, pra não parecer
+  // que vieram do banco.
+  function _origemTagLinha(nome){
+    const linha = ORCAMENTO_ESTRUTURA[nome];
+    if(linha.origemLabel) return ' <span style="color:var(--muted);font-size:0.85em;font-weight:normal;">('+linha.origemLabel+')</span>';
+    if(linha.fonteComercial) return ' <span style="color:var(--muted);font-size:0.85em;font-weight:normal;">(fonte: Painel Comercial)</span>';
+    return '';
+  }
+  function linhaGrupo(g, prog, real){
+    const unico = g.itens.length===1;
+    const aberto = !unico && !!_orcExpandido[g.key];
+    const cor = g.tipo==='custo' ? 'color:var(--red);' : 'color:var(--navy);';
+    const varR = real.soma - prog;
+    const varPct = prog ? (varR/prog*100) : 0;
+    const bom = g.tipo==='receita' ? varR>=0 : varR<=0;
+    const corVar = real.parcial ? 'color:var(--muted);' : (bom ? 'color:var(--green5);' : 'color:var(--red);');
+    const seta = unico ? '' : '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
+    const badge = real.parcial ? ' <span class="info-badge" title="Realizado parcial: uma ou mais linhas deste grupo são recebidas/pagas em espécie sem nenhum relatório digital por trás (SEM DADO), ou ainda estão carregando o valor do painel Comercial (CARREGANDO) -- ver linha(s) em cinza no detalhe.">?</span>' : '';
+    // Grupo com um único item (ex.: Comissão Terceiros) nunca expande, então o
+    // detalhe do item (com a etiqueta de origem) nunca aparece -- mostra a etiqueta
+    // direto no rótulo do grupo nesse caso.
+    const origemTagGrupo = unico ? _origemTagLinha(g.itens[0]) : '';
+    const onclick = unico ? '' : ' onclick="_toggleOrcamentoGrupo(\''+g.key+'\')"';
+    const classe = unico ? '' : ' class="clickable"';
+    let h = '<tr'+classe+onclick+'>'+
+      '<td style="'+cor+'font-weight:bold;">'+seta+g.label+origemTagGrupo+badge+'</td>'+
+      '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(prog)+'</td>'+
+      '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(real.soma)+'</td>'+
+      '<td style="text-align:right;'+corVar+'font-weight:bold;">'+_fmtBRL(varR)+'</td>'+
+      '<td style="text-align:right;'+corVar+'font-weight:bold;">'+varPct.toFixed(1)+'%</td></tr>';
+    if(aberto){
+      g.itens.forEach(nome=>{
+        const p = progLinha[nome], r = realLinha[nome];
+        const status = statusLinha[nome];
+        const semDado = status === 'sem-dado';
+        const carregando = status === 'carregando';
+        const indisponivel = semDado || carregando;
+        const rotuloIndisponivel = carregando ? 'CARREGANDO (COMERCIAL)…' : 'SEM DADO BANCÁRIO';
+        const vr = indisponivel ? null : r-p;
+        const vpct = (indisponivel || !p) ? null : (vr/p*100);
+        const bomItem = indisponivel ? null : (g.tipo==='receita' ? vr>=0 : vr<=0);
+        const corItem = indisponivel ? 'color:var(--muted);font-style:italic;' : (bomItem ? 'color:var(--green5);' : 'color:var(--red);');
+        // Linhas cujo Realizado vem de outro setor ou de uma composição de várias
+        // fontes (ex.: Venda Embarcada PI-112, Comissão Terceiros) ganham uma etiqueta
+        // discreta indicando a origem, pra não parecer que veio direto do banco.
+        const origemTag = _origemTagLinha(nome);
+        h += '<tr>'+
+          '<td style="padding-left:18px;">'+nome+origemTag+'</td>'+
+          '<td style="text-align:right;">'+_fmtBRL(p)+'</td>'+
+          '<td style="text-align:right;'+(indisponivel?'color:var(--muted);font-style:italic;':'')+'">'+(indisponivel?rotuloIndisponivel:_fmtBRL(r))+'</td>'+
+          '<td style="text-align:right;'+corItem+'">'+(indisponivel?'—':_fmtBRL(vr))+'</td>'+
+          '<td style="text-align:right;'+corItem+'">'+(indisponivel?'—':vpct.toFixed(1)+'%')+'</td></tr>';
+      });
+    }
+    return h;
+  }
+  function linhaFechamento(rotulo, prog, real, corFundo){
+    const estiloP = prog < 0 ? 'background:var(--red);' : (corFundo?'background:'+corFundo+';':'');
+    const estiloR = real < 0 ? 'background:var(--red);' : (corFundo?'background:'+corFundo+';':'');
+    const varR = real - prog;
+    const varPct = prog ? (varR/prog*100) : 0;
+    const corVar = varR>=0 ? 'color:var(--green5);' : 'color:var(--red);';
+    return '<tr class="total-row"><td style="'+estiloP+'">'+rotulo+'</td>'+
+      '<td style="text-align:right;'+estiloP+'">'+_fmtBRL(prog)+'</td>'+
+      '<td style="text-align:right;'+estiloR+'">'+_fmtBRL(real)+'</td>'+
+      '<td style="text-align:right;'+corVar+'">'+_fmtBRL(varR)+'</td>'+
+      '<td style="text-align:right;'+corVar+'">'+varPct.toFixed(1)+'%</td></tr>';
+  }
+
+  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">PROGRAMADO</th><th style="text-align:right;">REALIZADO</th><th style="text-align:right;">VARIAÇÃO (R$)</th><th style="text-align:right;">VARIAÇÃO (%)</th></tr></thead><tbody>';
+  html += linhaGrupo(gReceita, receitaBrutaProg, receitaBrutaReal);
+  html += linhaGrupo(gImpostos, impostosProg, impostosReal);
+  html += linhaFechamento('RECEITA LÍQUIDA', receitaLiquidaProg, receitaLiquidaReal);
+  html += linhaGrupo(gPessoal, pessoalProg, pessoalReal);
+  html += linhaGrupo(gComissao, comissaoProg, comissaoReal);
+  html += linhaGrupo(gManutencao, manutencaoProg, manutencaoReal);
+  html += linhaGrupo(gDespGerais, despGeraisProg, despGeraisReal);
+  html += linhaGrupo(gDiretoria, diretoriaProg, diretoriaReal);
+  html += linhaFechamento('EBITDA', ebitdaProg, ebitdaReal, 'var(--green5)');
+  html += linhaGrupo(gFinanceira, financeiraProg, financeiraReal);
+  html += linhaGrupo(gFinanciam, financiamProg, financiamReal);
+  html += linhaFechamento('RESULTADO LÍQUIDO', resultadoProg, resultadoReal, 'var(--blue-ll)');
+  html += '</tbody>';
+  tabela.innerHTML = html;
+
+  const nota = document.getElementById('orcNotaRodape');
+  if(nota){
+    nota.innerHTML = '* "Venda Embarcada PI 112", "Carga e Encomendas" e "Embarcados Motorista" têm Realizado buscado ao vivo do Painel Comercial (relatórios Embarcado Linhas, Base de Despacho e Receita Padrão), não do extrato bancário -- por isso aparecem marcadas "(fonte: Painel Comercial)". "Comissão Terceiros" soma 4 fontes: COMISSÃO PREFEITURAS do extrato bancário + COMISSÃO DE AGÊNCIAS/INTERNET calculadas ao vivo com a mesma fórmula do painel Comercial &gt; Agências + 17,5% do Realizado de Carga e Encomendas. "SEM DADO BANCÁRIO" continua reservado às linhas recebidas/pagas em espécie sem nenhum relatório digital por trás em qualquer setor (Aluguel Garagem, Refeição Motoristas, Outros). Programado rateado proporcionalmente aos dias do período selecionado dentro de cada mês, usando o cenário de sazonalidade da planilha de custo padrão (ALTA: Jan/Jul/Dez · MÉDIA: Jun/Ago/Set/Out/Nov · BAIXA: Fev/Mar/Abr/Mai).';
+  }
+}
+
 function renderVendaFutura(){
   const tabela = document.getElementById('vfTabela');
   if(!tabela) return;
@@ -4205,6 +4702,8 @@ function atualizarTudo(){
   // renderVendaFutura, 2026-08-10) -- chamada em separado aqui, não dentro de
   // renderDRE(), porque não deve reagir à troca do seletor COMPETÊNCIA.
   renderVendaFutura();
+  renderOrcamento();
+  _carregarDadosComercial().then(renderOrcamento);
   _popularSelectLimparBanco();
   _ajustarEspacoRodape();
 }

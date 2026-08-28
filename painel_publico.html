@@ -1736,6 +1736,44 @@ const CONVENIO_STATUS_INVALIDOS = new Set(['CANCELADO','CANCEC. EMERG','CANCELAM
 // de bilheteiro — assim funciona mesmo com o Excel trazendo o bilheteiro original
 // (errado). Usado em parseConvenios().
 const REDIRECIONAMENTOS_BILHETE = {
+  // Pedido do usuário em 2026-08-28: ÚNICA e EXCLUSIVAMENTE estes 17 bilhetes (relatório
+  // "detalhamento_geral_PREFEITURA_DE_URU_U__SA_DE (1) - ASSISTÊNCIA.csv" anexado)
+  // transferidos de PREFEITURA DE URUÇUÍ SAÚDE para PREFEITURA DE URUÇUÍ ASSISTÊNCIA --
+  // transferência pontual, sem alteração de regra de negócio; mantém o bilheteiro
+  // original de venda de cada lançamento. Os demais bilhetes desses mesmos bilheteiros
+  // permanecem em URUÇUÍ SAÚDE normalmente.
+  '137309': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '142934': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC01' },
+  '143742': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '142068': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '142069': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '148949': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '140332': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '146676': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '139082': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '142071': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '145985': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '141852': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '140857': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '148950': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '149508': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '148507': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  '145640': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  // Pedido do usuário em 2026-08-28: ÚNICA e EXCLUSIVAMENTE estes 10 bilhetes (relatório
+  // "detalhamento_geral_PREFEITURA_DE_URUÇUÍ_SAÚDE - WS.csv" anexado) transferidos de
+  // PREFEITURA DE URUÇUÍ SAÚDE para PREFEITURA DE URUÇUÍ WSV -- os demais bilhetes do
+  // bilheteiro PREFUUC02 permanecem em URUÇUÍ SAÚDE normalmente (NÃO é uma mudança de
+  // bilheteiro inteiro, só destes 10 lançamentos específicos).
+  '143751': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '72263': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '72264': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '71509': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '144064': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '144065': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '72178': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '72179': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '144978': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
+  '140720': { convenio: 'PREFEITURA DE URUÇUÍ WSV', bilheteiro: 'PREFUUC02' },
   '119209': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
   '119210': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
   '119211': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
