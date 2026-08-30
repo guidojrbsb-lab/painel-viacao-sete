@@ -351,6 +351,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <nav class="sidebar" id="sidebar">
     <button data-tab="visaogeral" class="active"><span class="ic">&#9635;</span>Visão Geral</button>
     <button data-tab="linhas"><span class="ic">&#8963;</span>Linhas</button>
+    <button data-tab="linhasreal"><span class="ic">&#8963;</span>Linhas - Real</button>
     <button data-tab="agencias"><span class="ic">&#8962;</span>Agências</button>
     <button data-tab="seguro"><span class="ic">&#128737;</span>Seguro</button>
     <button data-tab="convenios"><span class="ic">&#128179;</span>Convênios</button>
@@ -413,7 +414,25 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       </div>
     </section>
 
-    <section id="tab-agencias" class="tab hidden">
+        <!-- LINHAS - REAL: indicador adicional isolado (pedido dos sócios, 2026-08-30) --
+         espelha os mesmos painéis da aba LINHAS acima, mas com a Receita ajustada
+         pelo delta do valor REAL cobrado nos Convênios (ver _deltaLinhasRealPorDiaEPar
+         e renderLinhasReal). NÃO afeta em nada a Visão Geral nem o Resumo Diário --
+         é uma leitura acessória isolada, com estado (sort/grupos) próprio. -->
+    <section id="tab-linhasreal" class="tab hidden">
+      <p class="pct-note">Mesma Receita de Linhas, com o valor dos trechos de Convênio ajustado para o valor REAL da rota (regra de valor cobrado), em vez do valor bruto do relatório de origem. Não altera a aba LINHAS, a Visão Geral nem o Resumo Diário.</p>
+      <div class="kpi-row" id="kpiRow1LinhasReal"></div>
+      <div class="kpi-row" id="kpiRow2LinhasReal"></div>
+      <div class="two-col">
+        <div class="panel"><h2>Análise de Linhas por Órgão Concedente <span class="info-badge">clique no cabeçalho para ordenar</span></h2><div id="orgaoGroupsReal"></div></div>
+        <div class="col-stack">
+          <div class="panel"><h2>Ranking Geral de Linhas <span class="info-badge">clique no cabeçalho para ordenar</span></h2><div class="scroll-box"><table class="data" id="rankingLinhasTableReal"></table></div></div>
+          <div class="panel"><h2>Calendário — R$/Km por dia</h2><div id="calendariosLinhasReal"></div></div>
+        </div>
+      </div>
+    </section>
+
+<section id="tab-agencias" class="tab hidden">
       <div class="panel filtro-box" id="agFiltrosPanel">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid">
@@ -903,6 +922,7 @@ function _normalizarComercial(){
   for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {};
   _reaplicarRedirecionamentosConvenio();
   _reaplicarCorrecoesDataConvenio();
+  _reaplicarCorrecoesTrechoConvenio();
   _reaplicarExclusoesConvenio();
   _reaplicarEscalasManuaisConvenio();
 }
@@ -1102,6 +1122,10 @@ async function migrarBaseAntiga(){
   // _reaplicarCorrecoesDataConvenio) -- corrige e MOVE pro balde do dia certo qualquer
   // bilhete já salvo com data de serviço desatualizada, sem exigir reenvio do relatório.
   if(_reaplicarCorrecoesDataConvenio()) mudou = true;
+  // Idem para CORRECOES_TRECHO_BILHETE (ver comentário completo em
+  // _reaplicarCorrecoesTrechoConvenio) -- corrige a ORIGEM/DESTINO de qualquer bilhete já
+  // salvo que veio do relatório com o trecho errado, sem exigir reenvio do relatório.
+  if(_reaplicarCorrecoesTrechoConvenio()) mudou = true;
   // Idem para EXCLUSOES_BILHETE (ver comentário completo em _reaplicarExclusoesConvenio)
   // -- remove definitivamente do relatório qualquer bilhete já salvo que tenha sido
   // marcado como duplicidade/lançamento errado, sem exigir reenvio do relatório.
@@ -1951,7 +1975,49 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // BARREIRAS): relatório gravou 27/08, mas a viagem foi de fato em 26/08 (confirmado
   // pelo usuário em 2026-08-27).
   '152373': '2026-08-26',
+  // Bilhete LUCAS EDUARDO CASTRO DOS SANTOS, Convênio DPL Construções (BOM JESUS x
+  // MONTE ALEGRE DO PIAUÍ): relatório gravou 29/08, mas a viagem foi de fato em 28/08
+  // (confirmado pelo usuário em 2026-08-29).
+  '153336': '2026-08-28',
 };
+// Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
+// relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
+// escala/conexão como origem quando na verdade o passageiro embarcou em outra. Diferente
+// de REDIRECIONAMENTOS_BILHETE (corrige CONVÊNIO/BILHETEIRO) e de
+// CORRECOES_DATA_SERVICO_BILHETE (corrige a DATA), esta corrige o TRECHO em si -- e como
+// _valorCobradoConvenio/_precificarConvenio recalculam o valor a partir de
+// item.origem/item.destino A CADA RENDER, não gravam no parse (ver comentário em
+// _precificarConvenio), corrigir só o campo origem/destino aqui já basta pra
+// REGRAS_VALOR_CONVENIO encontrar a rota certa e o bilhete parar de aparecer como "sem
+// regra" -- não mexe na regra de negócio do convênio, só neste lançamento pontual que
+// estava com o trecho errado. Mesmos 2 pontos de chamada de _reaplicarCorrecoesDataConvenio
+// (loadDB() modo público e migrarBaseAntiga() modo local, com saveDB depois). Devolve true
+// se algo mudou.
+const CORRECOES_TRECHO_BILHETE = {
+  // Bilhete RENAN SOUSA FEITOSA, Convênio Prefeitura de Uruçuí Saúde: relatório gravou
+  // origem "DEMERVAL LOBAO - PI" por engano -- a viagem foi de fato TERESINA - PI x
+  // URUCUI - PI (confirmado pelo usuário em 2026-08-29).
+  '151709': { origem: 'TERESINA - PI' },
+};
+function _reaplicarCorrecoesTrechoConvenio(){
+  let mudouAlgo = false;
+  for(const d of Object.keys(DB.convenios||{})){
+    (DB.convenios[d]||[]).forEach(item=>{
+      if(!item || !item.bilhete) return;
+      const correcao = CORRECOES_TRECHO_BILHETE[item.bilhete];
+      if(!correcao) return;
+      if(correcao.origem !== undefined && item.origem !== correcao.origem){
+        item.origem = correcao.origem;
+        mudouAlgo = true;
+      }
+      if(correcao.destino !== undefined && item.destino !== correcao.destino){
+        item.destino = correcao.destino;
+        mudouAlgo = true;
+      }
+    });
+  }
+  return mudouAlgo;
+}
 // Bilhetes que devem ser excluídos por inteiro do Relatório de Convênios (lançamento
 // duplicado/marcado errado, não uma correção de data ou de convênio) -- usado em
 // _extrairBrutosConvenio (bloqueia entrada de novos uploads) e
@@ -3208,7 +3274,7 @@ const FILTRO_GRUPOS = {
 };
 function _dispararMudancaFiltro(id){
   const grupo = FILTRO_GRUPOS[id];
-  if(grupo==='visaogeral'){ renderVisaoGeral(); renderLinhas(); }
+  if(grupo==='visaogeral'){ renderVisaoGeral(); renderLinhas(); renderLinhasReal(); }
   else if(grupo==='agencias') renderAgencias();
   else if(grupo==='seguro') renderSeguro();
   else if(grupo==='convenios') renderConvenios();
@@ -3841,6 +3907,22 @@ function _montarGrupoLinha(orgao, linha, itens){
     semClasse: true,
   };
 }
+// Variante de _montarGrupoLinha() usada SÓ pela aba LINHAS - REAL: o grupo (popup) é
+// montado normalmente a partir dos itens brutos de DB.linhas (que não sabem nada de
+// Convênio), e DEPOIS a Receita Total/R$-Km do grupo são ajustadas pelo delta de
+// Convênio já calculado para essa linha (ver renderLinhasReal). Sem isso, a caixa da
+// tabela mostraria o valor ajustado mas o popup (drill-down) mostraria o valor bruto
+// -- os dois ficariam inconsistentes entre si. `ajusteConvenioDelta` fica marcado no
+// grupo só pra abrirModalGrupo() exibir uma linha extra no resumo do popup avisando do
+// ajuste (campo que os grupos de _montarGrupoLinha() normal nunca têm, então não afeta
+// em nada o popup da aba LINHAS original).
+function _montarGrupoLinhaReal(orgao, linha, itens, deltaAplicado){
+  const g = _montarGrupoLinha(orgao, linha, itens);
+  g.receitaTotal += (deltaAplicado||0);
+  g.rkm = g.kmRodado ? g.receitaTotal/g.kmRodado : 0;
+  g.ajusteConvenioDelta = deltaAplicado||0;
+  return g;
+}
 // Ordenação genérica por coluna, igual à usada na aba Detalhes: strings em ordem
 // alfabética (localeCompare), números em ordem crescente/decrescente, conforme dir.
 function _ordenarPorColuna(lista, col, dir){
@@ -3918,6 +4000,283 @@ function ordenarLinhasOrgao(col){
 function ordenarLinhasRanking(col){
   if(linhasRankingSortCol===col) linhasRankingSortDir*=-1; else { linhasRankingSortCol=col; linhasRankingSortDir=-1; }
   renderLinhas();
+}
+
+// =====================================================================
+// LINHAS - REAL — indicador adicional isolado (pedido dos sócios, 2026-08-30):
+// mesma aba LINHAS, mas com a Receita ajustada pelo DELTA entre o valor REAL
+// cobrado no Convênio (regra de rota, ex. R$128,00) e o valor BRUTO que veio no
+// relatório de origem (RLH/Analítico, às vezes só centavos por erro de tarifação
+// no balcão). NÃO mexe em nenhuma regra de negócio existente -- LINHAS, Visão
+// Geral e Resumo Diário continuam usando só o valor bruto. É só uma leitura
+// isolada e acessória (por isso todo o bloco abaixo DUPLICA em vez de CHAMAR
+// renderLinhas()/renderVisaoGeral(), e usa estado próprio: _linhasRealGrupos,
+// linhasRealOrgaoSortCol/Dir, linhasRealRankingSortCol/Dir).
+//
+// O desafio: DB.convenios (bilhete a bilhete) e DB.linhas (pré-agregado por
+// linha+horário+classe+sentido, SEM número de bilhete -- ver comentário grande
+// em recomputeLinhasParaData) não compartilham nenhuma chave em comum bilhete a
+// bilhete. A única chave que aparece em AMBOS é o NOME DA LINHA (campo "Linha" do
+// relatório de Convênio = mesmo trecho físico do RLH/Analítico que alimenta
+// DB.linhas) -- não a Origem/Destino do passageiro (que é só o ponto de embarque/
+// desembarque DENTRO da linha, usado para achar a rota na REGRAS_VALOR_CONVENIO,
+// e pode ser um trecho parcial de uma linha física bem maior: ex. um bilhete
+// Uruçuí->Teresina pode estar registrado na linha física "Timon x Baixa Grande do
+// Ribeiro", que passa por essas duas cidades no meio do trajeto).
+//
+// A comparação usa a CIDADE INICIAL/FINAL do nome da linha (mesma extração de
+// origemDestinoCidade()+_cidadeBase() já usada nos filtros de Origem/Destino),
+// ordenada alfabeticamente, em vez do texto bruto -- isso tolera de graça: (a) o
+// nome da linha vir no sentido invertido em relação ao nome canônico de DB.linhas
+// (a chave ordenada trata "TIMON x REMANSO" e "REMANSO x TIMON" como a mesma
+// linha); (b) o sufixo " VIA <cidade>" que aparece em algumas linhas de DB.linhas
+// (_cidadeBase já para no primeiro "(" ou " - ", então ignora o "VIA ..." sozinho).
+//
+// Limitações aceitas (best-effort, informadas ao usuário):
+// 1) Bilhetes mesclados por ESCALA (item.escala===true, ex. Teresina->Benedito
+//    Leite->Ribeiro Gonçalves) são EXCLUÍDOS do delta -- o trecho combinado não
+//    corresponde a uma única linha física de DB.linhas, então não dá pra atribuir
+//    o delta com segurança.
+// 2) Se, no mesmo dia, mais de UMA linha física distinta de DB.linhas cair na
+//    mesma chave de par de cidades (situação rara), o delta daquele dia/par é
+//    dividido em partes iguais entre as linhas candidatas.
+// 3) Se o dia do Convênio não tiver NENHUMA linha física correspondente já
+//    carregada em DB.linhas (ex. relatório de Linhas daquele dia ainda não
+//    subiu), o delta daquele lançamento fica de fora do total desta aba -- não
+//    tem pra onde ir com segurança.
+function _parLinhaCanonico(nomeLinha){
+  if(!nomeLinha) return '';
+  const od = origemDestinoCidade(String(nomeLinha));
+  const a = _cidadeBase(od.origem), b = _cidadeBase(od.destino);
+  if(!a || !b) return '';
+  return [a,b].sort().join('|');
+}
+// Mesmo pipeline de _receitaConveniosDia() (agrupar por convênio DENTRO do dia --
+// mesmo escopo de mesclagem de escala já usado ali --, mesclar escala, precificar),
+// só que aqui devolve o DELTA (valorCobrado-valorOriginal) por par de cidades da
+// linha, em vez do total de receita. Formato: { 'AAAA-MM-DD': { 'CIDADEA|CIDADEB':
+// {delta, qtd} } }.
+function _deltaLinhasRealPorDiaEPar(){
+  const resultado = {};
+  for(const d of Object.keys(DB.convenios||{})){
+    const itensDia = DB.convenios[d] || [];
+    if(!itensDia.length) continue;
+    const porConvenio = {};
+    itensDia.forEach(it=>{ (porConvenio[it.convenio] = porConvenio[it.convenio]||[]).push(it); });
+    Object.keys(porConvenio).forEach(nome=>{
+      const regra = REGRAS_VALOR_CONVENIO[nome];
+      const mesclado = _mesclarEscalasConvenio(porConvenio[nome], regra);
+      const precificado = _precificarConvenio(mesclado, nome, regra);
+      precificado.forEach(it=>{
+        if(it.escala) return; // limitação 1 (ver comentário acima)
+        const delta = (it.valorCobrado||0) - (it.valorOriginal||0);
+        if(!delta) return;
+        const par = _parLinhaCanonico(it.linha);
+        if(!par) return;
+        resultado[d] = resultado[d] || {};
+        resultado[d][par] = resultado[d][par] || {delta:0, qtd:0};
+        resultado[d][par].delta += delta;
+        resultado[d][par].qtd += 1;
+      });
+    });
+  }
+  return resultado;
+}
+let _linhasRealGrupos = [];
+let linhasRealOrgaoSortCol='r', linhasRealOrgaoSortDir=-1;
+let linhasRealRankingSortCol='r', linhasRealRankingSortDir=-1;
+function renderLinhasReal(){
+  const rows = filtrarLinhas(); // mesmos filtros globais da aba LINHAS (fDataIni/fDataFim, fSentido, fOrgao etc.)
+  const deltaPorDiaEPar = _deltaLinhasRealPorDiaEPar();
+
+  const porRotaOrgao = {};
+  rows.forEach(x=>{
+    const key = x.orgao+'||'+x.linha;
+    porRotaOrgao[key]=porRotaOrgao[key]||{orgao:x.orgao, linha:x.linha, r:0, k:0, itens:[]};
+    porRotaOrgao[key].r += _receitaLinhas(x); porRotaOrgao[key].k += x.kmRodado||0;
+    porRotaOrgao[key].itens.push(x);
+  });
+
+  // dia -> par de cidades -> Set de nomes de linha DISTINTOS presentes em `rows`
+  // naquele dia (candidatos a receber o delta daquele par, ver limitação 2 acima).
+  const diasPresentes = new Set(rows.map(x=>x.data));
+  const linhasPorDiaPar = {};
+  rows.forEach(x=>{
+    const par = _parLinhaCanonico(x.linha);
+    if(!par) return;
+    linhasPorDiaPar[x.data] = linhasPorDiaPar[x.data] || {};
+    linhasPorDiaPar[x.data][par] = linhasPorDiaPar[x.data][par] || new Set();
+    linhasPorDiaPar[x.data][par].add(x.linha);
+  });
+
+  let deltaTotalAplicado = 0;
+  const deltaAplicadoPorDia = {}; // dia -> soma do delta efetivamente aplicado (só pares com linha física correspondente)
+  const deltaPorLinhaGlobal = {}; // nomeLinha -> soma do delta aplicado a ela (todos os dias/órgãos)
+  const deltaAplicadoPorGrupo = {}; // chave orgao||linha -> soma do delta aplicado a ESSE grupo (usado no popup, ver _montarGrupoLinhaReal)
+  Object.keys(deltaPorDiaEPar).forEach(dia=>{
+    if(!diasPresentes.has(dia)) return; // fora do período/filtro atual -- não conta aqui (limitação 3)
+    const candidatosDia = linhasPorDiaPar[dia] || {};
+    Object.keys(deltaPorDiaEPar[dia]).forEach(par=>{
+      const linhasCandidatas = candidatosDia[par];
+      if(!linhasCandidatas || !linhasCandidatas.size) return; // sem linha física correspondente nesse dia (limitação 3)
+      const deltaTotalPar = deltaPorDiaEPar[dia][par].delta;
+      const deltaPorLinha = deltaTotalPar / linhasCandidatas.size;
+      linhasCandidatas.forEach(nomeLinha=>{
+        deltaPorLinhaGlobal[nomeLinha] = (deltaPorLinhaGlobal[nomeLinha]||0) + deltaPorLinha;
+        Object.keys(porRotaOrgao).forEach(key=>{
+          const grp = porRotaOrgao[key];
+          if(grp.linha!==nomeLinha) return;
+          if(!grp.itens.some(it=>it.data===dia)) return;
+          grp.r += deltaPorLinha;
+          deltaAplicadoPorGrupo[key] = (deltaAplicadoPorGrupo[key]||0) + deltaPorLinha;
+        });
+      });
+      deltaTotalAplicado += deltaTotalPar;
+      deltaAplicadoPorDia[dia] = (deltaAplicadoPorDia[dia]||0) + deltaTotalPar;
+    });
+  });
+  Object.values(porRotaOrgao).forEach(v=>{ v.rkm = v.k? v.r/v.k : 0; });
+
+  const grupos = {};
+  Object.values(porRotaOrgao).forEach(v=>{ grupos[v.orgao]=grupos[v.orgao]||[]; grupos[v.orgao].push(v); });
+
+  _linhasRealGrupos = [];
+  const cont = document.getElementById('orgaoGroupsReal'); cont.innerHTML='';
+  const colsOrgao = [
+    {key:'linha', label:'LINHA'}, {key:'r', label:'RECEITA TOTAL', fmt:fmtR$},
+    {key:'k', label:'KM RODADO', fmt:fmtNum}, {key:'rkm', label:'R$/KM', fmt:fmtR$},
+  ];
+  const rankingGeral = [];
+  Object.keys(grupos).sort().forEach(orgao=>{
+    _ordenarPorColuna(grupos[orgao], linhasRealOrgaoSortCol, linhasRealOrgaoSortDir);
+    const lista = grupos[orgao];
+    lista.forEach(l=>rankingGeral.push({orgao, ...l}));
+    const div = document.createElement('div'); div.className='orgao-group';
+    let totalR=0, totalK=0;
+    let html = '<h3>'+orgao+'</h3><table class="data"><tr>'+colsOrgao.map(c=>
+      '<th onclick="ordenarLinhasRealOrgao(\''+c.key+'\')">'+c.label+(linhasRealOrgaoSortCol===c.key?(linhasRealOrgaoSortDir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
+    lista.forEach(l=>{
+      totalR+=l.r; totalK+=l.k;
+      const idx = _linhasRealGrupos.length; _linhasRealGrupos.push(_montarGrupoLinhaReal(orgao, l.linha, l.itens, deltaAplicadoPorGrupo[orgao+'||'+l.linha]));
+      html += '<tr class="clickable" data-idx="'+idx+'"><td>'+l.linha+'</td><td>'+fmtR$(l.r)+'</td><td>'+fmtNum(l.k)+'</td><td>'+fmtR$(l.rkm)+'</td></tr>';
+    });
+    html += '<tr class="total-row"><td>Total</td><td>'+fmtR$(totalR)+'</td><td>'+fmtNum(totalK)+'</td><td>'+fmtR$(totalK?totalR/totalK:0)+'</td></tr></table>';
+    div.innerHTML = html;
+    cont.appendChild(div);
+  });
+
+  const colsRanking = [
+    {key:'linha', label:'LINHA'}, {key:'orgao', label:'ÓRGÃO CONCEDENTE'},
+    {key:'r', label:'RECEITA TOTAL', fmt:fmtR$}, {key:'k', label:'KM RODADO', fmt:fmtNum},
+    {key:'rkm', label:'R$/KM', fmt:fmtR$},
+  ];
+  _ordenarPorColuna(rankingGeral, linhasRealRankingSortCol, linhasRealRankingSortDir);
+  const tbl = document.getElementById('rankingLinhasTableReal');
+  let html = '<tr>'+colsRanking.map(c=>
+    '<th onclick="ordenarLinhasRealRanking(\''+c.key+'\')">'+c.label+(linhasRealRankingSortCol===c.key?(linhasRealRankingSortDir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
+  let totalRRanking=0, totalKRanking=0;
+  rankingGeral.forEach(l=>{
+    totalRRanking+=l.r; totalKRanking+=l.k;
+    const idx = _linhasRealGrupos.length; _linhasRealGrupos.push(_montarGrupoLinhaReal(l.orgao, l.linha, l.itens, deltaAplicadoPorGrupo[l.orgao+'||'+l.linha]));
+    html += '<tr class="clickable" data-idx="'+idx+'"><td>'+l.linha+'</td><td>'+l.orgao+'</td><td>'+fmtR$(l.r)+'</td><td>'+fmtNum(l.k)+'</td><td>'+fmtR$(l.rkm)+'</td></tr>';
+  });
+  html += '<tr class="total-row"><td colspan="2">Total</td><td>'+fmtR$(totalRRanking)+'</td><td>'+fmtNum(totalKRanking)+'</td><td>'+fmtR$(totalKRanking?totalRRanking/totalKRanking:0)+'</td></tr>';
+  tbl.innerHTML = html;
+
+  _renderKpiCalendarioLinhasReal(rows, deltaTotalAplicado, deltaAplicadoPorDia, deltaPorLinhaGlobal);
+}
+function ordenarLinhasRealOrgao(col){
+  if(linhasRealOrgaoSortCol===col) linhasRealOrgaoSortDir*=-1; else { linhasRealOrgaoSortCol=col; linhasRealOrgaoSortDir=-1; }
+  renderLinhasReal();
+}
+function ordenarLinhasRealRanking(col){
+  if(linhasRealRankingSortCol===col) linhasRealRankingSortDir*=-1; else { linhasRealRankingSortCol=col; linhasRealRankingSortDir=-1; }
+  renderLinhasReal();
+}
+// Duplicação INTENCIONAL do bloco de cálculo de KPI/calendário hoje embutido em
+// renderVisaoGeral() -- NÃO é uma chamada a essa função, pra garantir que Visão
+// Geral/Resumo Diário fiquem 100% intocados (exigência explícita do usuário,
+// 2026-08-30). O único ajuste em relação ao bloco original é: a Receita Tarifa
+// (e, por consequência, Receita Total/Líquida/R$-Km/linha extremos) soma o delta
+// de Convênio calculado acima, em vez do valor bruto puro.
+function _renderKpiCalendarioLinhasReal(rows, deltaTotalAplicado, deltaAplicadoPorDia, deltaPorLinhaGlobal){
+  const sum = (arr,f) => arr.reduce((s,x)=>s+(f(x)||0),0);
+  const rowsPadrao = rows.filter(x=>x.canal!=='embarcada');
+  const rowsEmbarcada = rows.filter(x=>x.canal==='embarcada');
+  const di = document.getElementById('fDataIni').value, df = document.getElementById('fDataFim').value;
+  const dentroDoPeriodo = d => (!di || d>=di) && (!df || d<=df);
+
+  let taxaEmbarqueEmbAgencia = 0;
+  if(filtroPassa('fClasse', 'CONVENCIONAL') && filtroPassa('fOrgao', 'SETRANS/PI (LINHAS PI-112)')){
+    for(const d of Object.keys(DB.vendasEmbarcadaAgencia)){
+      if(!dentroDoPeriodo(d)) continue;
+      taxaEmbarqueEmbAgencia += sum(DB.vendasEmbarcadaAgencia[d], x=>x.vltxembarquetot);
+    }
+  }
+  const taxaEmbarque = sum(rows, x=>x.embarque) + taxaEmbarqueEmbAgencia;
+  const receitaEmbarcada = sum(rowsEmbarcada, x=>x.receitaPassagens);
+  // Único ajuste em relação ao bloco original de renderVisaoGeral(): soma o delta
+  // de Convênio (valor REAL - valor bruto) na Receita Tarifa.
+  const receitaTarifa = sum(rowsPadrao, x=>x.receitaPassagens) + deltaTotalAplicado;
+  const receitaTotal = taxaEmbarque + receitaEmbarcada + receitaTarifa;
+  const receitaLiquida = receitaTarifa + receitaEmbarcada;
+  const kmRodado = sum(rows, x=>x.kmRodado);
+  const rKm = kmRodado ? receitaTotal/kmRodado : 0;
+  const pct = v => receitaTotal ? fmtPct(v/receitaTotal*100) : fmtPct(0);
+
+  const row1 = document.getElementById('kpiRow1LinhasReal'); row1.innerHTML='';
+  row1.appendChild(kpiCard('RECEITA TOTAL', fmtR$(receitaTotal), pct(receitaTotal), true, true));
+  row1.appendChild(kpiCard('TAXA DE EMBARQUE', fmtR$(taxaEmbarque), pct(taxaEmbarque), true));
+  row1.appendChild(kpiCard('RECEITA EMBARCADA', fmtR$(receitaEmbarcada), pct(receitaEmbarcada), true));
+  row1.appendChild(kpiCard('RECEITA TARIFA', fmtR$(receitaTarifa), pct(receitaTarifa), true));
+  row1.appendChild(kpiCard('RECEITA LÍQUIDA (TARIFA + EMBARCADA)', fmtR$(receitaLiquida), pct(receitaLiquida), true));
+
+  const row2 = document.getElementById('kpiRow2LinhasReal'); row2.innerHTML='';
+  row2.appendChild(kpiCard('R$ / KM', fmtR$(rKm)));
+  row2.appendChild(kpiCard('KM RODADO', fmtNum(kmRodado)));
+  row2.appendChild(kpiCard('AJUSTE DE CONVÊNIOS (DELTA)', fmtR$(deltaTotalAplicado), 'valor real - valor bruto do relatório'));
+
+  const porLinhaKey = {};
+  rows.forEach(x=>{
+    const key = x.linha;
+    porLinhaKey[key] = porLinhaKey[key] || {r:0, k:0, linha:x.linha};
+    porLinhaKey[key].r += _receitaLinhas(x); porLinhaKey[key].k += x.kmRodado||0;
+  });
+  Object.keys(porLinhaKey).forEach(k=>{
+    if(deltaPorLinhaGlobal[k]) porLinhaKey[k].r += deltaPorLinhaGlobal[k];
+  });
+  let linhaMax=null, linhaMin=null, linhaMaxV=-Infinity, linhaMinV=Infinity;
+  for(const k in porLinhaKey){
+    const info = porLinhaKey[k];
+    if(!info.k) continue;
+    const v = info.r/info.k;
+    if(v>linhaMaxV){ linhaMaxV=v; linhaMax=info.linha; }
+    if(v<linhaMinV){ linhaMinV=v; linhaMin=info.linha; }
+  }
+  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MAIOR R$/KM', linhaMax, linhaMaxV));
+  row2.appendChild(kpiCardLinhaExtremo('LINHA DE MENOR R$/KM', linhaMin, linhaMinV));
+
+  const porDiaBruto = {};
+  rows.forEach(x=>{
+    porDiaBruto[x.data] = porDiaBruto[x.data] || {embarque:0, tarifa:0, km:0};
+    porDiaBruto[x.data].km += x.kmRodado||0;
+    if(x.canal==='embarcada'){ porDiaBruto[x.data].tarifa += x.receitaPassagens||0; }
+    else { porDiaBruto[x.data].embarque += x.embarque||0; porDiaBruto[x.data].tarifa += x.receitaPassagens||0; }
+  });
+  if(filtroPassa('fClasse', 'CONVENCIONAL') && filtroPassa('fOrgao', 'SETRANS/PI (LINHAS PI-112)')){
+    for(const d of Object.keys(DB.vendasEmbarcadaAgencia)){
+      if(!dentroDoPeriodo(d)) continue;
+      porDiaBruto[d] = porDiaBruto[d] || {embarque:0, tarifa:0, km:0};
+      porDiaBruto[d].embarque += sum(DB.vendasEmbarcadaAgencia[d], x=>x.vltxembarquetot);
+    }
+  }
+  Object.keys(deltaAplicadoPorDia).forEach(d=>{
+    porDiaBruto[d] = porDiaBruto[d] || {embarque:0, tarifa:0, km:0};
+    porDiaBruto[d].tarifa += deltaAplicadoPorDia[d];
+  });
+  const porDia = {};
+  for(const d in porDiaBruto){ porDia[d] = { r: porDiaBruto[d].embarque+porDiaBruto[d].tarifa, k: porDiaBruto[d].km }; }
+  renderCalendarios(porDia, 'calendariosLinhasReal');
 }
 
 // =====================================================================
@@ -4189,7 +4548,11 @@ function abrirModalGrupo(g){
     _resumoItem('Receita Total', fmtR$(g.receitaTotal))+
     _resumoItem('Km Rodado', fmtNum(g.kmRodado))+
     _resumoItem('R$/Km', fmtR$(g.rkm))+
-    _resumoItem('Viagens', fmtInt(g.viagens));
+    _resumoItem('Viagens', fmtInt(g.viagens))+
+    // Só a aba LINHAS - REAL marca esse campo (ver _montarGrupoLinhaReal) -- nos
+    // grupos normais da aba LINHAS (e de qualquer outra aba) ele é undefined, então
+    // esta linha extra nunca aparece fora da LINHAS - REAL.
+    (g.ajusteConvenioDelta!==undefined ? _resumoItem('Ajuste de Convênio (Delta)', fmtR$(g.ajusteConvenioDelta)) : '');
   let html;
   if(g.semClasse){
     html = '<tr><th>DATA</th><th>HORÁRIO</th><th>LINHA</th><th>SENTIDO</th><th>RECEITA TOTAL</th><th>KM RODADO</th><th>R$/KM</th></tr>';
@@ -4312,6 +4675,14 @@ function baixarPDFGrupo(){
   win.focus();
   setTimeout(()=>win.print(), 350);
 }
+document.getElementById('orgaoGroupsReal').addEventListener('click', e=>{
+  const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
+  abrirModalGrupo(_linhasRealGrupos[+tr.dataset.idx]);
+});
+document.getElementById('rankingLinhasTableReal').addEventListener('click', e=>{
+  const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
+  abrirModalGrupo(_linhasRealGrupos[+tr.dataset.idx]);
+});
 document.getElementById('orgaoGroups').addEventListener('click', e=>{
   const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
   abrirModalGrupo(_linhasGrupos[+tr.dataset.idx]);
@@ -5569,6 +5940,7 @@ function atualizarTudo(){
   popularFiltros();
   renderVisaoGeral();
   renderLinhas();
+  renderLinhasReal();
   renderAgencias();
   renderSeguro();
   renderConvenios();
@@ -5579,6 +5951,7 @@ function atualizarTudo(){
 const TITULOS_ABA = {
   visaogeral: 'Visão Geral',
   linhas: 'Receita Total de Linhas',
+  linhasreal: 'Receita de Linhas — Valor Real (Convênios)',
   agencias: 'Receita Total de Vendas',
   seguro: 'Receita de Seguro Opcional - Capemisa',
   convenios: 'Receita Total de Convênios – Prefeituras e Correntistas',
@@ -5604,7 +5977,7 @@ document.getElementById('sidebar').addEventListener('click', e=>{
 // Agência, UF, Tipo, Local, Status, Forma) disparam a atualização diretamente pelo próprio
 // componente de checkbox (construirMSF -> _dispararMudancaFiltro). Aqui só faltam as datas.
 ['fDataIni','fDataFim'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', ()=>{ renderVisaoGeral(); renderLinhas(); });
+  document.getElementById(id).addEventListener('change', ()=>{ renderVisaoGeral(); renderLinhas(); renderLinhasReal(); });
 });
 ['agDataIni','agDataFim'].forEach(id=>{
   document.getElementById(id).addEventListener('change', renderAgencias);
