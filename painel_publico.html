@@ -2167,6 +2167,27 @@ const EXCLUSOES_BILHETE = new Set([
   // pelo usuário em 2026-09-02 como marcação errada, exclusão definitiva sem alterar
   // nenhuma regra de negócio.
   '136800',
+  // Bilhete JUAREZ SABINO NETO, Convênio FAZENDA RIBEIRÃO -- confirmado pelo usuário em
+  // 2026-09-02 como marcação errada, exclusão definitiva sem alterar nenhuma regra de
+  // negócio.
+  '137632',
+  // 8 bilhetes do Convênio PREFEITURA DE REDENÇÃO DO GURGUÉIA, todos com Valor Cobrado
+  // R$240,00 (KASSIA PARAGUAI VOGADO, DELMA DUARTE PARAGUAI VOGADO, PEDRO OTAVIO
+  // BARBOSA, MARIA AUGUSTA, GABRIELA GOMES, ALINE LEMOS DE SOUSA, FRANCISCO DAS CHAGAS,
+  // MARCOS ANDRE) -- confirmado pelo usuário em 2026-09-02 como marcações erradas,
+  // exclusão definitiva sem alterar nenhuma regra de negócio. Os bilhetes
+  // 137711/67707 e 137712/67708 já vêm mesclados por escala no relatório de origem;
+  // como EXCLUSOES_BILHETE casa por qualquer uma das partes individuais, basta listar
+  // os números soltos.
+  '3535', '3536', '131036', '137711', '67707', '137712', '67708', '137719', '137720', '138514',
+  // Mais 2 bilhetes do Convênio PREFEITURA DE REDENÇÃO DO GURGUÉIA (JULIANA DA LUZ,
+  // GISELIA DE SOUSA) -- confirmado pelo usuário em 2026-09-02 como marcações erradas,
+  // exclusão definitiva sem alterar nenhuma regra de negócio.
+  '67752', '138515',
+  // Bilhete JOSE TEVES FERREIRA LUSTOSA, Convênio PREFEITURA DE MONTE ALEGRE DO PIAUÍ
+  // -- confirmado pelo usuário em 2026-09-02 como marcação errada, exclusão definitiva
+  // sem alterar nenhuma regra de negócio.
+  '138119',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -5414,10 +5435,14 @@ document.getElementById('sgRankingVendedorTable').addEventListener('click', e=>{
 // direto na Receita Total do convênio -- mesmo espírito do Ajuste Fiscal de Comissão do
 // financeiro.html (painelAjusteComissao/DB.comissaoGrossUp), só que por convênio em vez
 // de por competência.
-// ESCOPO DELIBERADAMENTE LIMITADO: só entra em renderConvenios() (KPI/ranking/popup da
-// aba CONVÊNIOS). NÃO entra em _receitaConveniosDia() (usada por Resumo
-// Diário/Indicadores) nem em renderLinhasReal() -- essas duas continuam vendo só bilhete
-// real, exatamente como já garantido antes pro caso LINHAS-REAL.
+// ESCOPO: entra em renderConvenios() (KPI/ranking/popup da aba CONVÊNIOS) e também em
+// _receitaConveniosDia() (usada por Resumo Diário/Indicadores) -- pedido do usuário em
+// 2026-09-02: o ajuste lançado num dia precisa refletir no movimento daquele dia no
+// Resumo Diário, pra que o Total do Mês bata com o Total do Convênio. Cada ajuste soma
+// no dia exato do campo "data" que o usuário escolheu no lançamento (ver
+// _receitaConveniosDia). NÃO entra em renderLinhasReal() -- o delta real x bruto ali é
+// por par de cidades/trecho, e o ajuste não tem trecho associado, então não haveria
+// como atribuí-lo a nenhum par.
 function _ajustesSaldoFiltrados(){
   const di = document.getElementById('cvDataIni').value, df = document.getElementById('cvDataFim').value;
   return (DB.ajustesSaldoConvenio||[]).filter(a=>{
@@ -5744,14 +5769,71 @@ const ORGAOS_GESTOR_LABEL = {
   'SETRANS/PI (LINHAS PI-112)':'RECEITA DE LINHAS - SETRANS / PI (PI - 112)',
   'MOB/MA':'RECEITA DE LINHAS - MOB / MA',
 };
-// Receita de Convênios de UM dia: mesmo pipeline de renderConvenios() (agrupar
-// por convênio, mesclar escalas, precificar), só que já escopado a um único
-// dia -- DB.convenios já vem separado por data, então não precisa refiltrar.
+// Receita de Convênios por dia, pro Resumo Diário/Indicadores -- pedido do usuário em
+// 2026-09-02: "o que estiver na aba Convênios também estará no Resumo Diário", sem
+// regra própria. NÃO dá pra rodar o pipeline de mesclagem de escala (agrupar,
+// _mesclarEscalasConvenio, _precificarConvenio) day a dia, isoladamente: um par de
+// escala pode ter as duas pernas em DIAS DIFERENTES (viagem que vira a noite -- ver
+// guarda-chuva "diffDias > 1" dentro de _mesclarEscalasConvenio). Rodando dia a dia,
+// a perna do dia 30 nunca encontraria a perna do dia 31 pra mesclar, e cada uma seria
+// precificada avulsa -- valor diferente do bilhete mesclado que a aba CONVÊNIOS
+// mostra (causa raiz da divergência de R$ entre as duas abas, encontrada em
+// 2026-09-02). A correção: roda o MESMO pipeline de _mesclarEscalasConvenio uma única
+// vez pro PERÍODO INTEIRO (exatamente como renderConvenios()/filtrarConvenios() já
+// fazem), aplicando os mesmos filtros cvConvenio/cvAgencia, e depois atribui cada
+// bilhete final (mesclado ou não) ao dia do seu campo "dataVenda" -- que, num bilhete
+// mesclado, já é a perna MAIS CEDO (ver _mesclarEscalasConvenio, tanto no passe manual
+// quanto no automático: o Object.assign mantém o dataVenda do "primeiro"/"a"). Assim,
+// a soma dia a dia bate exatamente com o Total da aba CONVÊNIOS, por construção.
+let _conveniosPorDiaCache = null; // {chave:'dataIni|dataFim', mapa:{dia:valorTotal}}
+function _prepararConveniosPorDia(dataIni, dataFim){
+  const chave = dataIni+'|'+dataFim;
+  if(_conveniosPorDiaCache && _conveniosPorDiaCache.chave===chave) return;
+  const mapa = {};
+  const rows = [];
+  for(const d of Object.keys(DB.convenios||{})){
+    if(dataIni && d<dataIni) continue; if(dataFim && d>dataFim) continue;
+    (DB.convenios[d]||[]).forEach(r=>{
+      if(!filtroPassa('cvConvenio', r.convenio)) return;
+      if(!filtroPassa('cvAgencia', r.agencia)) return;
+      rows.push(Object.assign({data:d}, r));
+    });
+  }
+  const porConvenioRaw = {};
+  rows.forEach(x=>{ (porConvenioRaw[x.convenio] = porConvenioRaw[x.convenio]||[]).push(x); });
+  Object.entries(porConvenioRaw).forEach(([nome, itensRaw])=>{
+    const regra = REGRAS_VALOR_CONVENIO[nome];
+    const mesclado = _mesclarEscalasConvenio(itensRaw, regra);
+    const precificado = _precificarConvenio(mesclado, nome, regra);
+    precificado.forEach(it=>{
+      const dia = it.dataVenda || it.data;
+      mapa[dia] = (mapa[dia]||0) + (it.valorCobrado||0);
+    });
+  });
+  // Ajustes de Saldo (lançamento manual por convênio, ver seção "AJUSTE DE SALDO POR
+  // CONVÊNIO" acima) -- mesmo filtro cvConvenio aplicado em _ajustesSaldoFiltrados()
+  // (ajuste não tem agência, então cvAgencia não se aplica aqui).
+  (DB.ajustesSaldoConvenio||[]).forEach(a=>{
+    if(dataIni && a.data<dataIni) return; if(dataFim && a.data>dataFim) return;
+    if(!filtroPassa('cvConvenio', a.convenio)) return;
+    mapa[a.data] = (mapa[a.data]||0) + (a.valor||0);
+  });
+  _conveniosPorDiaCache = { chave, mapa };
+}
 function _receitaConveniosDia(d){
+  if(_conveniosPorDiaCache) return _conveniosPorDiaCache.mapa[d] || 0;
+  // Rede de segurança: se chamada fora do fluxo normal de renderIndicadores() (sem
+  // _prepararConveniosPorDia ter rodado antes), cai pro cálculo isolado por dia -- não
+  // trata corretamente escala que atravessa a meia-noite (ver comentário acima), mas
+  // evita erro/tela em branco.
   const itensDia = (DB.convenios||{})[d] || [];
   if(!itensDia.length) return 0;
   const porConvenio = {};
-  itensDia.forEach(it=>{ (porConvenio[it.convenio] = porConvenio[it.convenio]||[]).push(it); });
+  itensDia.forEach(it=>{
+    if(!filtroPassa('cvConvenio', it.convenio)) return;
+    if(!filtroPassa('cvAgencia', it.agencia)) return;
+    (porConvenio[it.convenio] = porConvenio[it.convenio]||[]).push(it);
+  });
   let total = 0;
   Object.keys(porConvenio).forEach(nome=>{
     const regra = REGRAS_VALOR_CONVENIO[nome];
@@ -5948,6 +6030,11 @@ function renderIndicadores(){
   // (ex.: dia "05" de julho e de agosto na mesma tabela).
   const _mesmoMes = dias.length ? dias.every(d=>d.slice(0,7)===dias[0].slice(0,7)) : true;
 
+  // Precomputa "Convênios por dia" pro período INTEIRO de uma vez (ver comentário
+  // completo em _prepararConveniosPorDia) -- precisa rodar antes do loop dia a dia
+  // pra _receitaConveniosDia(d), chamada dentro de _indicadoresDiaBase, já usar o
+  // resultado certo, com escala que atravessa a meia-noite corretamente atribuída.
+  _prepararConveniosPorDia(dataIni, dataFim);
   const baseDia = {}; dias.forEach(d=>{ baseDia[d] = _indicadoresDiaBase(d); });
   const porDia = {}; dias.forEach(d=>{ porDia[d] = _indicadoresDerivados(baseDia[d]); });
 
