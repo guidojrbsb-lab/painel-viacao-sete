@@ -170,6 +170,7 @@ table.data tr.clickable:hover td{background:var(--navy-soft) !important;}
    análise manual toda vez que carrega uma base nova. */
 #cvRankingTable td.cv-sem-regra{color:var(--red);font-weight:800;}
 #modalTabela tr.cv-linha-sem-regra td{color:var(--red);font-weight:700;}
+#modalTabela tr.cv-linha-ajuste-saldo td{color:#1a5fb4;font-weight:700;background:#eaf2fc;}
 .info-badge.cv-legenda-alerta{background:#fdecec;color:var(--red-dark);font-weight:700;}
 /* Colunas de Bilhetes (Vendidos/Anulados/Devolvidos) centralizadas, e a coluna AGÊNCIA
    sem quebra de linha — o nome fica inteiro numa linha só, e a tabela rola na
@@ -489,7 +490,9 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
         </div>
       </div>
       <div class="panel">
-        <h2>Receita Total de Convênios – Prefeituras e Correntistas</h2>
+        <h2>Receita Total de Convênios – Prefeituras e Correntistas
+          <button id="btnAjusteSaldo" style="float:right;background:var(--navy);color:#fff;border:none;padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;" onclick="abrirModalAjusteSaldo()">+ Ajuste de Saldo</button>
+        </h2>
         <div class="kpi-row" id="cvKpiRow"></div>
       </div>
       <div class="panel"><h2>Ranking de Convênios <span class="info-badge">clique no cabeçalho para ordenar · clique na linha para detalhar</span> <span class="info-badge cv-legenda-alerta">nome em vermelho = tem trecho sem regra de valor cadastrada</span></h2><div class="scroll-box"><table class="data" id="cvRankingTable"></table></div></div>
@@ -556,6 +559,33 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       <button class="pdf" onclick="baixarPDFGrupo()">Baixar PDF</button>
     </div>
     <div class="scroll-box"><table class="data" id="modalTabela"></table></div>
+  </div>
+</div>
+
+<!-- Ajuste de Saldo por Convênio: lançamento manual (SEM bilhete associado) pra cobrir
+     serviços prestados ao órgão gestor fora do fluxo normal de passagem, mas já
+     previstos em contrato e faturados de forma resumida (pedido do usuário em
+     2026-08-31) -- mesmo espírito do Ajuste Fiscal de Comissão do financeiro.html
+     (painelAjusteComissao/salvarAjusteComissao/DB.comissaoGrossUp), só que por
+     convênio em vez de por competência. Entra SOMENTE na aba CONVÊNIOS (KPI, ranking,
+     popup) -- nunca em Visão Geral/Resumo Diário/LINHAS-REAL (ver
+     _somaAjustesSaldoConvenio, chamada só dentro de renderConvenios). -->
+<div class="modal-overlay hidden" id="ajusteSaldoOverlay">
+  <div class="modal-box" id="ajusteSaldoBox" style="max-width:640px;">
+    <button class="modal-close" onclick="fecharModalAjusteSaldo()">&times;</button>
+    <h3>Ajuste de Saldo por Convênio</h3>
+    <p class="pct-note">Lançamento manual, sem bilhete associado -- soma direto na Receita Total do convênio escolhido, só na aba Convênios. Use para serviços já previstos em contrato mas fora do fluxo normal de passagem.</p>
+    <div class="filters-grid" style="margin-bottom:12px;">
+      <div><label>PREFEITURA / CONVÊNIO</label><select id="ajusteSaldoConvenio"></select></div>
+      <div><label>DATA</label><input type="date" id="ajusteSaldoData"></div>
+      <div><label>VALOR (R$)</label><input type="text" id="ajusteSaldoValor" placeholder="0,00"></div>
+      <div><label>OBSERVAÇÃO (opcional)</label><input type="text" id="ajusteSaldoObs" placeholder="Ex.: serviço adicional previsto em contrato"></div>
+    </div>
+    <div class="modal-actions">
+      <button onclick="salvarAjusteSaldoConvenio()">Salvar Ajuste</button>
+    </div>
+    <h3 style="margin-top:18px;">Ajustes lançados</h3>
+    <div class="scroll-box"><table class="data" id="ajusteSaldoTabela"></table></div>
   </div>
 </div>
 
@@ -711,7 +741,7 @@ function origemDestinoCidade(linhaBase){
 // DATA STORE (localStorage-backed, keyed by tipo -> data(YYYY-MM-DD) -> rows[])
 // =====================================================================
 const STORE_KEY = 'viacaosete_painel_v1';
-let DB = { rlh:{}, analitico:{}, linhas:{}, agencias:{}, seguro:{}, encomendas:{}, embarcado:{}, vendasEmbarcadaAgencia:{}, convenios:{}, vendasResumo:{}, formaPagamento:{}, receitaPadrao:{} };
+let DB = { rlh:{}, analitico:{}, linhas:{}, agencias:{}, seguro:{}, encomendas:{}, embarcado:{}, vendasEmbarcadaAgencia:{}, convenios:{}, vendasResumo:{}, formaPagamento:{}, receitaPadrao:{}, ajustesSaldoConvenio:[] };
 // Versão "pública" (para compartilhar um link somente-leitura, ex.: Vercel): quando
 // EMBEDDED_DB vem preenchido (embutido direto no HTML, gerado a partir de um export
 // feito na base local de alguém), o painel carrega esses dados para todo mundo que
@@ -920,6 +950,7 @@ function _reaplicarEscalasManuaisConvenio(){
 }
 function _normalizarComercial(){
   for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {};
+  DB.ajustesSaldoConvenio = DB.ajustesSaldoConvenio || [];
   _reaplicarRedirecionamentosConvenio();
   _reaplicarCorrecoesDataConvenio();
   _reaplicarCorrecoesTrechoConvenio();
@@ -982,6 +1013,10 @@ function toggleControlesModoPublico(){
       if(logoOrigem && logoDestino) logoDestino.src = logoOrigem.src;
     }
   }
+  // Botão de Ajuste de Saldo (lançamento manual por convênio) é ação de edição --
+  // esconde no modo público mesmo que "uploadControlesEdicao" não exista nesta tela.
+  const btnAjuste = document.getElementById('btnAjusteSaldo');
+  if(MODO_PUBLICO && btnAjuste) btnAjuste.style.display = 'none';
   const controles = document.getElementById('uploadControlesEdicao');
   const status = document.getElementById('uploadStatus');
   if(!MODO_PUBLICO || !controles) return;
@@ -1766,23 +1801,39 @@ const REDIRECIONAMENTOS_BILHETE = {
   // transferência pontual, sem alteração de regra de negócio; mantém o bilheteiro
   // original de venda de cada lançamento. Os demais bilhetes desses mesmos bilheteiros
   // permanecem em URUÇUÍ SAÚDE normalmente.
-  '137309': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '142934': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC01' },
-  '143742': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '142068': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '142069': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
   '148949': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '140332': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '146676': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '139082': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
   '142071': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
   '145985': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '141852': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '140857': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
   '148950': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
   '149508': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '148507': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
-  '145640': { convenio: 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA', bilheteiro: 'PREFUUC02' },
+  // Pedido do usuário em 2026-08-31: ÚNICA e EXCLUSIVAMENTE estes 20 bilhetes (lista
+  // anexada) transferidos de PREFEITURA DE URUÇUÍ ASSISTÊNCIA para PREFEITURA DE
+  // URUÇUÍ ADMINISTRAÇÃO -- transferência pontual, sem alteração de regra de negócio.
+  // 12 deles já estavam redirecionados aqui em cima (de Uruçuí Saúde); mantém o mesmo
+  // bilheteiro original de venda (PREFUUC01/02), só troca o convênio. Os outros 8
+  // (135932, 136788, 143985, 143986, 147887, 147888, 148062, 148063) ainda não tinham
+  // redirecionamento -- usuário confirmou usar o código próprio PREFUUC04 (Uruçuí
+  // Administração) pra eles.
+  '137309': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '142934': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC01' },
+  '143742': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '142068': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '142069': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '140332': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '146676': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '139082': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '141852': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '140857': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '148507': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '145640': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC02' },
+  '135932': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '136788': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '143985': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '143986': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '147887': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '147888': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '148062': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
+  '148063': { convenio: 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO', bilheteiro: 'PREFUUC04' },
   // Pedido do usuário em 2026-08-28: ÚNICA e EXCLUSIVAMENTE estes 10 bilhetes (relatório
   // "detalhamento_geral_PREFEITURA_DE_URUÇUÍ_SAÚDE - WS.csv" anexado) transferidos de
   // PREFEITURA DE URUÇUÍ SAÚDE para PREFEITURA DE URUÇUÍ WSV -- os demais bilhetes do
@@ -1908,6 +1959,36 @@ const REDIRECIONAMENTOS_BILHETE = {
   // aparecia vermelho no popup) — pertence ao contrato de São Raimundo Nonato (confirmado
   // pelo usuário em 2026-08-27).
   '73338': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  // 4 bilhetes de LOIDE SOUSA DA SILVA e NAGILA CRISTINA BARBOSA PEREIRA (escala
+  // Benedito Leite <-> Sebastião Leal, 29/08/2026), gravados sob PREFEITURA DE
+  // BENEDITO LEITE (sem regra de valor pra esse par de cidades nesse contrato, por
+  // isso apareciam vermelhos no popup) — confirmado pelo usuário em 2026-08-30 como
+  // sendo da FAZENDA RIBEIRÃO.
+  '73987': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '73988': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '152916': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '152917': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  // Bilhete BARBARA RAIELY FERREIRA (Uruçuí x Ribeiro Gonçalves, 31/08/2026), vendido sob
+  // PREFEITURA DE URUÇUÍ SAÚDE por engano (por isso aparecia vermelho/sem regra no popup
+  // desse contrato) — pertence à PREFEITURA DE RIBEIRO GONÇALVES, contrato que já tem
+  // rota registrada Ribeiro Gonçalves x Uruçuí a R$56,00 (confirmado pelo usuário em
+  // 2026-08-31).
+  '74530': { convenio: 'PREFEITURA DE RIBEIRO GONÇALVES', bilheteiro: 'PREFRBG01' },
+  // 2ª escala LOIDE SOUSA DA SILVA / NAGILA CRISTINA BARBOSA PEREIRA (Sebastião Leal x
+  // Benedito Leite x Baixa Grande do Ribeiro, 30/08/2026 -- mesmo par de passageiros e
+  // rota do caso 73987/73988/152916/152917 acima), gravada sob PREFEITURA DE BENEDITO
+  // LEITE por engano (sem regra de valor pra esse par de cidades nesse contrato) —
+  // confirmado pelo usuário em 2026-08-31 como sendo também da FAZENDA RIBEIRÃO.
+  '73991': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '152926': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '73992': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  '152927': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'PREFBED01' },
+  // 3 bilhetes transferidos de PREFEITURA DE URUÇUÍ ASSISTÊNCIA para PREFEITURA DE
+  // URUÇUÍ SAÚDE (confirmado pelo usuário em 2026-08-31) -- pura transferência de
+  // convênio, sem alteração de nenhuma regra de valor.
+  '73510': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  '151781': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  '151767': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -1979,6 +2060,42 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // MONTE ALEGRE DO PIAUÍ): relatório gravou 29/08, mas a viagem foi de fato em 28/08
   // (confirmado pelo usuário em 2026-08-29).
   '153336': '2026-08-28',
+  // Escala CLEINA CARVALHO BORGES, Convênio Fazenda Ribeirão (SEBASTIAO LEAL x
+  // BENEDITO LEITE x BAIXA GRANDE DO RIBEIRO, mesclada automaticamente por regra de
+  // rota como bilhete "152994/74013"): relatório gravou 31/08, mas a viagem foi de
+  // fato em 30/08 (confirmado pelo usuário em 2026-08-31). Precisa corrigir OS DOIS
+  // trechos (152994 e 74013), não só o que fornece a Data do Serviço exibida --
+  // senão os dois ficam em baldes de dia diferentes (um migra pra 30/08, o outro
+  // fica em 31/08) e a mesclagem de escala para de funcionar, já que ela só junta
+  // itens dentro do MESMO dia (ver _receitaConveniosDia/_mesclarEscalasConvenio). A
+  // chave combinada cobre a migração retroativa caso o item já tenha sido salvo
+  // mesclado (mesmo raciocínio do caso 145026/70767 acima).
+  '152994': '2026-08-30',
+  '74013': '2026-08-30',
+  '152994/74013': '2026-08-30',
+  // Bilhete GERIVALDO FERREIRA DE LIMA, Convênio DPL Construções (ELISEU MARTINS x
+  // BOM JESUS): relatório gravou 31/08, mas a viagem foi de fato em 30/08 (confirmado
+  // pelo usuário em 2026-08-31).
+  '154308': '2026-08-30',
+  // Bilhete BARBARA RAIELY FERREIRA, Convênio Prefeitura de Ribeiro Gonçalves (URUCUI x
+  // RIBEIRO GONÇALVES): relatório gravou 31/08, mas a viagem foi de fato em 30/08
+  // (confirmado pelo usuário em 2026-08-31).
+  '74530': '2026-08-30',
+  // 2ª escala LOIDE SOUSA DA SILVA / NAGILA CRISTINA BARBOSA PEREIRA (Sebastião Leal x
+  // Benedito Leite x Baixa Grande do Ribeiro, gravada sob PREFEITURA DE BENEDITO LEITE
+  // -- mesmo padrão da escala 73987/73988/152916/152917 já corrigida para FAZENDA
+  // RIBEIRÃO): relatório gravou 31/08, mas a viagem foi de fato em 30/08 (confirmado
+  // pelo usuário em 2026-08-31). As chaves combinadas ("152926/73991" e "152927/73992")
+  // cobrem a migração retroativa caso o item já tenha sido salvo mesclado -- mesmo
+  // raciocínio do caso 152994/74013 acima. Ordem de mesclagem confirmada por harness
+  // Node antes de gravar (a.destino conecta com b.origem em Benedito Leite: 152926 é a
+  // 1ª perna, 73991 a 2ª; idem 152927/73992).
+  '73991': '2026-08-30',
+  '152926': '2026-08-30',
+  '152926/73991': '2026-08-30',
+  '73992': '2026-08-30',
+  '152927': '2026-08-30',
+  '152927/73992': '2026-08-30',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2032,7 +2149,43 @@ const EXCLUSOES_BILHETE = new Set([
   // Bilhete JACKSON DE FRANCA SANTOS, Convênio DPL Construções (BOM JESUS x GILBUÉS) --
   // confirmado pelo usuário em 2026-08-26 como lançamento duplicado pelo atendente.
   '144837',
+  // 5 bilhetes do Convênio PREFEITURA DE URUÇUÍ ASSISTÊNCIA (MARIO LUCIO FERREIRA DE
+  // SOUSA, REGINALDO MARTINS REIS, HELEN CRISTINA GOMES, JULIA VITORIA OLIVEIRA, LARISA
+  // BRITO DE OLIVEIRA) -- pedido do usuário em 2026-09-01 pra exclusão definitiva, sem
+  // alterar nenhuma regra de negócio.
+  '136248', '134761', '136789', '136798', '136799',
+  // 4 bilhetes do Convênio PREFEITURA DE CORRENTE (YAN LUCCA ILARIO, ODORICO ILARIO DA
+  // SILVA, FERNANDO TAVARES PEREIRA, SANDRA MARTINS DOS SANTOS) -- confirmado pelo
+  // usuário em 2026-09-02 como marcações erradas, exclusão definitiva sem alterar
+  // nenhuma regra de negócio.
+  '136891', '136892', '137172', '3693',
+  // Bilhete FELICIANA BALBINA DA COSTA, Convênio PREFEITURA DE BAIXA GRANDE DO RIBEIRO
+  // -- confirmado pelo usuário em 2026-09-02 como marcação errada, exclusão definitiva
+  // sem alterar nenhuma regra de negócio.
+  '139816',
+  // Bilhete LUCILENE PEREIRA, Convênio PREFEITURA DE URUÇUÍ ASSISTÊNCIA -- confirmado
+  // pelo usuário em 2026-09-02 como marcação errada, exclusão definitiva sem alterar
+  // nenhuma regra de negócio.
+  '136800',
 ]);
+// Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
+// lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
+// REGRAS_VALOR_CONVENIO (que continua valendo normalmente pra todos os outros bilhetes
+// do mesmo convênio/rota); serve só pra ajustar o valor de UM lançamento isolado (ex.:
+// tarifa levemente diferente nesse caso específico). Chave = número do bilhete (mesmo
+// padrão de CORRECOES_DATA_SERVICO_BILHETE). Usado em _precificarConvenio, com
+// prioridade sobre a busca em REGRAS_VALOR_CONVENIO (mesma lógica de
+// ESCALAS_MANUAIS_BILHETE/valorCobradoManual, mas pra bilhete avulso).
+const CORRECOES_VALOR_BILHETE = {
+  // Bilhete SELMA CARLA DE JESUS (Uruçuí x Teresina), Convênio Prefeitura de Uruçuí
+  // Saúde: relatório gravou R$128,00, mas o valor correto é R$141,00 (confirmado pelo
+  // usuário em 2026-08-31).
+  '136055': 141.00,
+  // Bilhete MARILIA SILVA GALVAO (Floriano x Uruçuí), Convênio Prefeitura de Uruçuí
+  // WSV: relatório gravou R$81,00, mas o valor correto é R$115,00 (confirmado pelo
+  // usuário em 2026-08-31).
+  '138511': 115.00,
+};
 // Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
 // usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
 // valor cobrado próprio, mas NÃO quer cadastrar uma rota nova em REGRAS_VALOR_CONVENIO
@@ -2614,6 +2767,12 @@ function _aplicarSinonimosExibicao(itens, regra){
 // troca de nomenclatura de exibição (pra casar a cidade certa nos sinônimos).
 function _precificarConvenio(itens, convenio, regra){
   return itens.map(it=>{
+    // Correção pontual de valor pra um bilhete avulso (ver CORRECOES_VALOR_BILHETE) --
+    // maior prioridade, nem passa pela busca em REGRAS_VALOR_CONVENIO. Não confundir com
+    // valorCobradoManual (escala mesclada manualmente) logo abaixo.
+    if(CORRECOES_VALOR_BILHETE[it.bilhete]!==undefined){
+      return Object.assign({}, it, { valorCobrado: CORRECOES_VALOR_BILHETE[it.bilhete], semRegra: false });
+    }
     // Escala mesclada manualmente (ver ESCALAS_MANUAIS_BILHETE/_mesclarEscalasConvenio):
     // usa o valor já confirmado pelo usuário pro par, sem passar pela busca em
     // REGRAS_VALOR_CONVENIO (que marcaria "sem regra" por essas cidades não serem uma
@@ -4390,8 +4549,10 @@ function _renderModalConvenioTabela(g){
     return '<th><input type="text" class="modal-col-filtro" data-col="'+c.key+'" value="'+v+'" placeholder="Filtrar..."></th>';
   }).join('')+'</tr>';
   ordenados.forEach(it=>{
-    const classeAlerta = it.semRegra ? ' class="cv-linha-sem-regra"' : '';
-    const titulo = it.semRegra ? ' title="Trecho sem regra de valor cadastrada -- receita mostrada é o valor original do relatório"' : '';
+    const classeAlerta = it.ajusteSaldo ? ' class="cv-linha-ajuste-saldo"' : (it.semRegra ? ' class="cv-linha-sem-regra"' : '');
+    const titulo = it.ajusteSaldo
+      ? ' title="Ajuste de Saldo -- lançamento manual, sem bilhete associado'+(it.observacaoAjuste?(': '+it.observacaoAjuste):'')+'"'
+      : (it.semRegra ? ' title="Trecho sem regra de valor cadastrada -- receita mostrada é o valor original do relatório"' : '');
     html += '<tr'+classeAlerta+titulo+'>'+MODAL_CONVENIO_COLS.map(c=>'<td>'+_modalConvenioValorExibido(it, c.key)+'</td>').join('')+'</tr>';
   });
   tbl.innerHTML = html;
@@ -5243,6 +5404,90 @@ document.getElementById('sgRankingVendedorTable').addEventListener('click', e=>{
 });
 
 // =====================================================================
+// AJUSTE DE SALDO POR CONVÊNIO (lançamento manual, sem bilhete associado)
+// =====================================================================
+// Pedido do usuário em 2026-08-31: alguns convênios prestam serviços ao órgão gestor
+// além das passagens em si, mas isso está previsto em contrato e é faturado junto,
+// transformado em "bilhete de passagem" pra fins de prestação de contas. Em vez de
+// inventar bilhetes fictícios (o que a gente rejeitou -- ver conversa), a correção
+// correta é um lançamento manual TRANSPARENTE, sem bilhete/passageiro/trecho, que soma
+// direto na Receita Total do convênio -- mesmo espírito do Ajuste Fiscal de Comissão do
+// financeiro.html (painelAjusteComissao/DB.comissaoGrossUp), só que por convênio em vez
+// de por competência.
+// ESCOPO DELIBERADAMENTE LIMITADO: só entra em renderConvenios() (KPI/ranking/popup da
+// aba CONVÊNIOS). NÃO entra em _receitaConveniosDia() (usada por Resumo
+// Diário/Indicadores) nem em renderLinhasReal() -- essas duas continuam vendo só bilhete
+// real, exatamente como já garantido antes pro caso LINHAS-REAL.
+function _ajustesSaldoFiltrados(){
+  const di = document.getElementById('cvDataIni').value, df = document.getElementById('cvDataFim').value;
+  return (DB.ajustesSaldoConvenio||[]).filter(a=>{
+    if(di && a.data<di) return false; if(df && a.data>df) return false;
+    if(!filtroPassa('cvConvenio', a.convenio)) return false;
+    return true;
+  });
+}
+function _listaConveniosConhecidos(){
+  return Object.keys(CONVENIOS_BILHETEIROS).sort((a,b)=>a.localeCompare(b));
+}
+function abrirModalAjusteSaldo(){
+  if(MODO_PUBLICO) return;
+  const sel = document.getElementById('ajusteSaldoConvenio');
+  sel.innerHTML = _listaConveniosConhecidos().map(c=>'<option value="'+c.replace(/"/g,'&quot;')+'">'+c+'</option>').join('');
+  document.getElementById('ajusteSaldoData').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ajusteSaldoValor').value = '';
+  document.getElementById('ajusteSaldoObs').value = '';
+  _renderListaAjustesSaldoConvenio();
+  document.getElementById('ajusteSaldoOverlay').classList.remove('hidden');
+}
+function fecharModalAjusteSaldo(){
+  document.getElementById('ajusteSaldoOverlay').classList.add('hidden');
+}
+async function salvarAjusteSaldoConvenio(){
+  if(MODO_PUBLICO) return;
+  const convenio = document.getElementById('ajusteSaldoConvenio').value;
+  const data = document.getElementById('ajusteSaldoData').value;
+  const valor = cellNum(document.getElementById('ajusteSaldoValor').value);
+  const obs = document.getElementById('ajusteSaldoObs').value.trim();
+  if(!convenio || !data || !valor){
+    alert('Preencha convênio, data e valor (diferente de zero) antes de salvar.');
+    return;
+  }
+  DB.ajustesSaldoConvenio = DB.ajustesSaldoConvenio || [];
+  DB.ajustesSaldoConvenio.push({
+    id: 'ajs_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+    convenio, data, valor, observacao: obs,
+  });
+  await saveDB();
+  document.getElementById('ajusteSaldoValor').value = '';
+  document.getElementById('ajusteSaldoObs').value = '';
+  _renderListaAjustesSaldoConvenio();
+  atualizarTudo();
+}
+async function removerAjusteSaldoConvenio(id){
+  if(MODO_PUBLICO) return;
+  DB.ajustesSaldoConvenio = (DB.ajustesSaldoConvenio||[]).filter(a=>a.id!==id);
+  await saveDB();
+  _renderListaAjustesSaldoConvenio();
+  atualizarTudo();
+}
+function _renderListaAjustesSaldoConvenio(){
+  const tbl = document.getElementById('ajusteSaldoTabela');
+  const lista = (DB.ajustesSaldoConvenio||[]).slice().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  let html = '<tr><th>DATA</th><th>CONVÊNIO</th><th>VALOR</th><th>OBSERVAÇÃO</th><th></th></tr>';
+  if(!lista.length){
+    html += '<tr><td colspan="5" style="text-align:center;color:var(--muted);">Nenhum ajuste lançado ainda.</td></tr>';
+  }
+  lista.forEach(a=>{
+    html += '<tr><td>'+formatarDataBR(a.data)+'</td><td>'+a.convenio+'</td><td>'+fmtR$(a.valor)+'</td><td>'+(a.observacao||'-')+'</td>'
+      +'<td><button onclick="removerAjusteSaldoConvenio(\''+a.id+'\')" style="background:var(--red);color:#fff;border:none;padding:4px 10px;border-radius:var(--radius-sm);font-size:11px;cursor:pointer;">Excluir</button></td></tr>';
+  });
+  tbl.innerHTML = html;
+}
+document.getElementById('ajusteSaldoOverlay').addEventListener('click', e=>{
+  if(e.target.id==='ajusteSaldoOverlay') fecharModalAjusteSaldo();
+});
+
+// =====================================================================
 // RENDER: CONVÊNIOS
 // =====================================================================
 let _cvGrupos = [];
@@ -5281,6 +5526,24 @@ function renderConvenios(){
     // bilhetes um a um em vez de um agregado).
     g.ticketMedio = g.qtdBilhetes ? g.receitaTotal/g.qtdBilhetes : 0;
     porConvenio[nomeConv] = g;
+  });
+  // Soma os Ajustes de Saldo (lançamento manual, ver seção acima) na Receita Total do
+  // convênio correspondente -- entra como uma linha própria e transparente no popup
+  // (ajusteSaldo:true), mas NÃO conta como "Bilhete Emitido" nem entra no cálculo do
+  // Ticket Médio, já que não é um bilhete de verdade.
+  _ajustesSaldoFiltrados().forEach(a=>{
+    if(!porConvenio[a.convenio]){
+      porConvenio[a.convenio] = {nome:a.convenio, receitaTotal:0, qtdBilhetes:0, qtdSemRegra:0, semRegra:false, ticketMedio:0, itens:[]};
+    }
+    const g = porConvenio[a.convenio];
+    g.receitaTotal += a.valor||0;
+    g.itens.push({
+      dataVenda: a.data, convenio: a.convenio, origem:'-', destino:'-',
+      passageiro:'AJUSTE DE SALDO', bilhete:'-', valorCobrado:a.valor||0,
+      linha:'-', agencia:'-', bilheteiro:'-', status:'AJUSTE DE SALDO',
+      ajusteSaldo:true, observacaoAjuste:a.observacao||'',
+    });
+    g.ticketMedio = g.qtdBilhetes ? g.receitaTotal/g.qtdBilhetes : 0;
   });
   const lista = Object.values(porConvenio);
 
