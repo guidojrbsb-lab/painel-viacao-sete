@@ -2096,6 +2096,14 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '73992': '2026-08-30',
   '152927': '2026-08-30',
   '152927/73992': '2026-08-30',
+  // Bilhetes LUCAS EDUAEDO CASTRO (DPL Construções, BOM JESUS x MONTE ALEGRE DO PIAUÍ),
+  // FAUSTIANO ALVES DE SOUSA (DPL Construções, BOM JESUS x CORRENTE) e JARDEL DA SILVA
+  // BARROSA (Fazenda Progresso, FAZENDA PROGRESSO x RIBEIRO GONÇALVES): relatório
+  // gravou 04/09, mas as viagens foram de fato em 03/09 (confirmado pelo usuário em
+  // 2026-09-04).
+  '156803': '2026-09-03',
+  '156983': '2026-09-03',
+  '156889': '2026-09-03',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2188,6 +2196,10 @@ const EXCLUSOES_BILHETE = new Set([
   // -- confirmado pelo usuário em 2026-09-02 como marcação errada, exclusão definitiva
   // sem alterar nenhuma regra de negócio.
   '138119',
+  // 2 bilhetes do Convênio PREFEITURA DE SEBASTIÃO LEAL (JOANA LUCIA, BIANCA MARIA) --
+  // confirmado pelo usuário em 2026-09-03 como marcações erradas, exclusão definitiva
+  // sem alterar nenhuma regra de negócio.
+  '139035', '139036',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2572,6 +2584,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['BOM JESUS', 'GILBUES'], valor: 60.00 },
       // Confirmado pelo usuário em 2026-08-17 (ida e volta, R$160,00).
       { cidades: ['TERESINA', 'URUCUI'], valor: 160.00 },
+      // Confirmado pelo usuário em 2026-09-03 (bilhete 155100, GILVALTER RIBEIRO DA
+      // SILVA, ida e volta).
+      { cidades: ['JERUMENHA', 'SEBASTIAO LEAL'], valor: 50.00 },
     ],
   },
   // Tabela de trechos enviada pelo usuário (planilha "FAZENDA PROGRESSO 2026.xlsx").
