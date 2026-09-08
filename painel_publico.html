@@ -2104,6 +2104,21 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '156803': '2026-09-03',
   '156983': '2026-09-03',
   '156889': '2026-09-03',
+  // Bilhetes DIEMERSON C DE SOUSA, JOSE ALVES DA SILVA FILHO, MARCOS ANTONIO GOMES DA
+  // COSTA (Fazenda Ribeirão, URUCUI x BAIXA GRANDE DO RIBEIRO) e KLEBERSON DE CARVALHO
+  // (DPL Construções, CRISTINO CASTRO x CURIMATÁ): relatório gravou 08/09, mas as
+  // viagens foram de fato em 07/09 (confirmado pelo usuário em 2026-09-08).
+  '75366': '2026-09-07',
+  '75489': '2026-09-07',
+  '75490': '2026-09-07',
+  '158952': '2026-09-07',
+  // Bilhetes RENATO FERREIRA GUIMARAES (ELISEU MARTINS x BOM JESUS), ROMULO LACERDA
+  // GOMES (CANTO DO BURITI x SÃO RAIMUNDO NONATO) e GERIVAL FERREIRA DE LIMA (ELISEU
+  // MARTINS x BOM JESUS), todos Convênio DPL Construções: relatório gravou 08/09, mas
+  // as viagens foram de fato em 07/09 (confirmado pelo usuário em 2026-09-08).
+  '157222': '2026-09-07',
+  '159015': '2026-09-07',
+  '159165': '2026-09-07',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2123,6 +2138,11 @@ const CORRECOES_TRECHO_BILHETE = {
   // origem "DEMERVAL LOBAO - PI" por engano -- a viagem foi de fato TERESINA - PI x
   // URUCUI - PI (confirmado pelo usuário em 2026-08-29).
   '151709': { origem: 'TERESINA - PI' },
+  // Bilhete JOSELIA DOS SANTOS, Convênio Prefeitura de Corrente: relatório gravou origem
+  // "MONSENHOR GIL - PI" -- confirmado pelo usuário em 2026-09-07 que a viagem foi de
+  // fato TERESINA - PI x CORRENTE - PI, aplicando a regra de valor já cadastrada pra essa
+  // rota (não altera a regra de negócio do convênio, só este lançamento pontual).
+  '75974': { origem: 'TERESINA - PI' },
 };
 function _reaplicarCorrecoesTrechoConvenio(){
   let mudouAlgo = false;
@@ -2218,6 +2238,10 @@ const CORRECOES_VALOR_BILHETE = {
   // WSV: relatório gravou R$81,00, mas o valor correto é R$115,00 (confirmado pelo
   // usuário em 2026-08-31).
   '138511': 115.00,
+  // Bilhete AURENITA DA SILVA RIBEIRO (Corrente x Brasília), Convênio Prefeitura de
+  // Corrente: relatório gravou R$267,00, mas o valor correto é R$180,00 (confirmado
+  // pelo usuário em 2026-09-04).
+  '151512': 180.00,
 };
 // Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
 // usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
@@ -2587,6 +2611,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-09-03 (bilhete 155100, GILVALTER RIBEIRO DA
       // SILVA, ida e volta).
       { cidades: ['JERUMENHA', 'SEBASTIAO LEAL'], valor: 50.00 },
+      // Confirmado pelo usuário em 2026-09-08 (bilhete 158952, KLEBERSON DE CARVALHO,
+      // ida e volta).
+      { cidades: ['CRISTINO CASTRO', 'CURIMATA'], valor: 100.00 },
     ],
   },
   // Tabela de trechos enviada pelo usuário (planilha "FAZENDA PROGRESSO 2026.xlsx").
