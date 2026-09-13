@@ -2119,6 +2119,10 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '157222': '2026-09-07',
   '159015': '2026-09-07',
   '159165': '2026-09-07',
+  // Bilhete DANYLLO SOUSA SILVA, Convênio Fazenda Progresso (ANTONIO ALMEIDA x URUCUI via
+  // MARCOS PARENTE): relatório gravou 10/09, mas a viagem foi de fato em 09/09
+  // (confirmado pelo usuário em 2026-09-10).
+  '160092': '2026-09-09',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2143,6 +2147,14 @@ const CORRECOES_TRECHO_BILHETE = {
   // fato TERESINA - PI x CORRENTE - PI, aplicando a regra de valor já cadastrada pra essa
   // rota (não altera a regra de negócio do convênio, só este lançamento pontual).
   '75974': { origem: 'TERESINA - PI' },
+  // Bilhetes ENZO RAFAEL OLIVEIRA, ROBSON BORGES MOURA e RAFAELA DA SILVA OLIVEIRA,
+  // Convênio Prefeitura de Uruçuí Administração: relatório gravou destino "ANGICAL DO
+  // PIAUÍ - PI" -- confirmado pelo usuário em 2026-09-12 que a viagem foi de fato
+  // URUCUI - PI x TERESINA - PI, aplicando a regra de valor já cadastrada pra essa rota
+  // (não altera a regra de negócio do convênio, só estes lançamentos pontuais).
+  '160467': { destino: 'TERESINA - PI' },
+  '160468': { destino: 'TERESINA - PI' },
+  '160469': { destino: 'TERESINA - PI' },
 };
 function _reaplicarCorrecoesTrechoConvenio(){
   let mudouAlgo = false;
@@ -2220,6 +2232,10 @@ const EXCLUSOES_BILHETE = new Set([
   // confirmado pelo usuário em 2026-09-03 como marcações erradas, exclusão definitiva
   // sem alterar nenhuma regra de negócio.
   '139035', '139036',
+  // Bilhete ERICA GOMES, Convênio PREFEITURA DE URUÇUÍ ASSISTÊNCIA (URUCUI x LANDRI SALES,
+  // TERESINA-URUCUI VIA MARCOS PARENTE) -- confirmado pelo usuário em 2026-09-09 como
+  // marcação errada, exclusão definitiva sem alterar nenhuma regra de negócio.
+  '156200',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2261,6 +2277,19 @@ const ESCALAS_MANUAIS_BILHETE = {
   // confirmada pelo usuário em 2026-08-26, valor R$95,00 -- caso único, não é rota
   // recorrente do contrato.
   '146939|146949': 95.00,
+  // Bilhetes ELIZIA MARIANO DA GAMA (159450, TERESINA - PI x BARÃO DE GRAJAÚ - MA) e
+  // (76646, BARÃO DE GRAJAÚ - MA x BOM JESUS - PI), Convênio Prefeitura de Corrente:
+  // escala confirmada pelo usuário em 2026-09-12 como equivalente a TERESINA x CORRENTE,
+  // aplicando o valor já contratado dessa rota (R$253,07) -- caso único, não é rota nova
+  // do contrato (Bom Jesus não vira sinônimo de Corrente pra nenhum outro bilhete).
+  '159450|76646': 253.07,
+  // Bilhetes GISELIA DE SOUSA FILHO (161673, TERESINA - PI x BARÃO DE GRAJAÚ - MA) e
+  // (77535, BARÃO DE GRAJAÚ - MA x MONTE ALEGRE DO PIAUÍ - PI), Convênio Prefeitura de
+  // Redenção do Gurgueia: confirmado pelo usuário em 2026-09-12 que o destino real do 2º
+  // trecho é REDENÇÃO DO GURGUEIA, não Monte Alegre do Piauí (marcação errada) -- os dois
+  // bilhetes formam a escala TERESINA x REDENÇÃO DO GURGUEIA, valor já contratado dessa
+  // rota (R$240,00).
+  '161673|77535': 240.00,
 };
 
 // "Data MD" às vezes chega como número serial do Excel (dias desde 1899-12-30, com
@@ -2529,6 +2558,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['TERESINA','URUCUI'], valor: 160.00 },
       // Confirmado pelo usuário em 2026-08-19.
       { cidades: ['URUCUI','FLORIANO'], valor: 90.00 },
+      // Bilhete FABRICIO BARBOSA LOPES (162033), confirmado pelo usuário em 2026-09-13.
+      { cidades: ['BAIXA GRANDE DO RIBEIRO','RIBEIRO GONCALVES'], valor: 25.00 },
     ],
   },
   'PREFEITURA DE BENEDITO LEITE': {
@@ -2614,6 +2645,8 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-09-08 (bilhete 158952, KLEBERSON DE CARVALHO,
       // ida e volta).
       { cidades: ['CRISTINO CASTRO', 'CURIMATA'], valor: 100.00 },
+      // Bilhete IRLAN DE SOUSA ROCHA (161513), confirmado pelo usuário em 2026-09-13.
+      { cidades: ['BAIXA GRANDE DO RIBEIRO', 'ESTACA ZERO'], valor: 160.00 },
     ],
   },
   // Tabela de trechos enviada pelo usuário (planilha "FAZENDA PROGRESSO 2026.xlsx").
