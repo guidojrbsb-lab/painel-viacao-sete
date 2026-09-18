@@ -1989,6 +1989,12 @@ const REDIRECIONAMENTOS_BILHETE = {
   '73510': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
   '151781': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
   '151767': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFUUC01' },
+  // Bilhetes ANNA ALZIRA DA SILVA (163193) e DAVI LUCAS SANTOS (163194), Convênio
+  // PREFEITURA DE SÃO RAIMUNDO NONATO (marcação errada no balcão) -- confirmado pelo
+  // usuário em 2026-09-18 como pertencentes de fato à PREFEITURA DE URUÇUÍ SAÚDE;
+  // mantém o bilheteiro original de venda (PREFSRN01).
+  '163193': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFSRN01' },
+  '163194': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFSRN01' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -2131,6 +2137,14 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '77941': '2026-09-13',
   '77807': '2026-09-13',
   '162035': '2026-09-13',
+  // Bilhete RENATO FERREIRA GUIMARAES, Convênio DPL Construções (ELISEU MARTINS x BOM
+  // JESUS): relatório gravou 15/09, mas a viagem foi de fato em 14/09 (confirmado pelo
+  // usuário em 2026-09-15).
+  '163486': '2026-09-14',
+  // Bilhete DANYLLO DE SOUSA SILVA, Convênio Fazenda Progresso (ANTONIO ALMEIDA x
+  // URUCUI): relatório gravou 18/09, mas a viagem foi de fato em 17/09 (confirmado pelo
+  // usuário em 2026-09-18).
+  '164954': '2026-09-17',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2244,6 +2258,13 @@ const EXCLUSOES_BILHETE = new Set([
   // TERESINA-URUCUI VIA MARCOS PARENTE) -- confirmado pelo usuário em 2026-09-09 como
   // marcação errada, exclusão definitiva sem alterar nenhuma regra de negócio.
   '156200',
+  // Bilhete MARIA DAS DORES NUNES, Convênio PREFEITURA DE URUÇUÍ SAÚDE (TERESINA x
+  // URUCUI) -- confirmado pelo usuário em 2026-09-15 pra exclusão definitiva.
+  '157478',
+  // 5 bilhetes do Convênio PREFEITURA DE URUÇUÍ SAÚDE (RAIMUNDO JOSE O MOTA, CRISTIANE
+  // VALE PEREIRA, FRANCISCA VALE N PEREIRA, FFERNANDA MARIA S COSTA, ROSANGELA DIAS DA
+  // CAMARA) -- confirmado pelo usuário em 2026-09-16 pra exclusão definitiva.
+  '157815', '161742', '161740', '158605', '159095',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2266,6 +2287,10 @@ const CORRECOES_VALOR_BILHETE = {
   // Corrente: relatório gravou R$267,00, mas o valor correto é R$180,00 (confirmado
   // pelo usuário em 2026-09-04).
   '151512': 180.00,
+  // Bilhete MARIA FERNANDA PAES RIBEIRO (Floriano x Dirceu Arcoverde), Convênio
+  // Prefeitura de São Raimundo Nonato: confirmado pelo usuário em 2026-09-18, R$135,17
+  // -- ajuste pontual só deste bilhete, sem alterar a regra geral do convênio.
+  '78840': 135.17,
 };
 // Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
 // usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
@@ -2364,6 +2389,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['TERESINA','BOM JESUS'], valor: 175.00 },
       // Confirmado pelo usuário em 2026-08-19.
       { cidades: ['TERESINA','BENEDITO LEITE'], valor: 128.00 },
+      // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
+      // convênios de Uruçuí).
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
     ],
   },
   // Mesma regra de valor da Uruçuí Saúde, replicada para os demais contratos de
@@ -2379,6 +2407,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Bilhetes RICHARDSON RIBEIRO DUARTE (161464) e CAIO EXPEDITO DA COSTA SARAIVA
       // (161465), confirmado pelo usuário em 2026-09-14.
       { cidades: ['SAO PEDRO DO PIAUI','URUCUI'], valor: 128.00 },
+      // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
+      // convênios de Uruçuí).
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
     ],
   },
   'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO': {
@@ -2392,6 +2423,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Bilhetes ENZO RAFAEL OLIVEIRA (160471), ROBSON BORGES MOURA (160472) e
       // RAFAELA DA SILVA (160473), confirmado pelo usuário em 2026-09-14.
       { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 128.00 },
+      // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
+      // convênios de Uruçuí).
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
     ],
   },
   'PREFEITURA DE URUÇUÍ WSV': {
@@ -2400,6 +2434,9 @@ const REGRAS_VALOR_CONVENIO = {
     rotas: [
       { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
       { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
+      // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
+      // convênios de Uruçuí).
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
     ],
   },
   'PREFEITURA DE SÃO RAIMUNDO NONATO': {
@@ -2668,6 +2705,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['BAIXA GRANDE DO RIBEIRO', 'ESTACA ZERO'], valor: 160.00 },
       // Bilhete GILBEAN PINHEIRO DE MORAES (161981), confirmado pelo usuário em 2026-09-14.
       { cidades: ['MONTE ALEGRE DO PIAUI', 'FLORIANO'], valor: 130.00 },
+      // Bilhete MICAEL DIAS GOMES (164915), confirmado pelo usuário em 2026-09-18 (ida
+      // e volta, R$80,00).
+      { cidades: ['CORRENTE', 'CRISTINO CASTRO'], valor: 80.00 },
     ],
   },
   // Tabela de trechos enviada pelo usuário (planilha "FAZENDA PROGRESSO 2026.xlsx").
