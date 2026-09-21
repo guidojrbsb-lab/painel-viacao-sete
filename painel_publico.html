@@ -1629,32 +1629,65 @@ function parseVendasResumo(aoa, data){
   DB['vendasResumo'][data] = rows;
 }
 
+// Correção 2026-09-21 (pedido do usuário -- valores de Seguro da agência BARREIRAS
+// (EVANDRO) muito acima do que o relatório mostrava): esta função concatenava toda
+// linha lida direto em DB.seguro[dia], sem nenhuma checagem de duplicidade -- ao
+// contrário de OCD/Convênios, que já deduplicam por chave única (Localizador/Bilhete).
+// Como o relatório de Seguro é normalmente enviado em lotes que cobrem um período (ex.:
+// "01 a 20/09"), reenviar um arquivo cujo período tem sobreposição com um upload
+// anterior (ex.: um novo lote que também cobre 03 e 04/09, dias com bastante movimento
+// de Barreiras) duplicava cada linha repetida, inflando o total daqueles dias
+// especificamente. Agora extrai Contrato+Certificado (chave da apólice no CAPEMISA) e
+// mescla por Contrato+Certificado+Status dentro do dia -- reenviar um período
+// sobreposto não duplica mais nada, e Venda/Cancelamento da mesma apólice (que
+// legitimamente compartilham o mesmo Certificado) continuam contando os dois, pois o
+// Status entra na chave.
 function parseSeguroCSV(text, fname){
   const lines = text.split(/\r?\n/).filter(l=>l.trim().length);
   if(!lines.length) return;
   const header = lines[0].split(';').map(h=>h.trim());
   const idx = name => header.findIndex(h=>h.toLowerCase().includes(name.toLowerCase()));
-  const iStatus=idx('Status'), iValor=idx('Valor Seguro'), iVenda=idx('Data/Hora Venda'), iOrigem=idx('Origem'),
+  const iStatus=idx('Status'), iValor=idx('Valor Seguro'), iVenda=idx('Data/Hora Venda'), iReferencia=idx('Data Referência'), iOrigem=idx('Origem'),
         iDestino=idx('Destino'), iLinha=idx('Linha'), iAgencia=idx('Nome Agência'), iEmpresa=idx('Empresa'),
-        iVendedor=idx('Agenciador');
+        iVendedor=idx('Agenciador'), iContrato=idx('Contrato'), iCertificado=idx('Certificado');
   const byDate = {};
   for(let i=1;i<lines.length;i++){
     const cols = lines[i].split(';');
     if(cols.length<2) continue;
-    const dataVendaRaw = cols[iVenda] || '';
-    const m = dataVendaRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    // Corrigido em 2026-09-21: usa "Data Referência" (data do próprio evento da linha --
+    // venda numa linha de Venda, cancelamento numa linha de Cancelamento) em vez de
+    // "Data/Hora Venda", que sempre guarda a data da venda ORIGINAL da apólice mesmo numa
+    // linha de Cancelamento de período anterior -- isso fazia um cancelamento ocorrido
+    // neste mês, de uma apólice vendida no mês passado, cair no balde de data errado.
+    // Fallback pra Data/Hora Venda em relatórios antigos sem a coluna Data Referência.
+    const dataRaw = (iReferencia>=0 ? cols[iReferencia] : '') || cols[iVenda] || '';
+    const m = dataRaw.match(/(\d{2})\/(\d{2})\/(\d{4})/);
     const dataKey = m ? (m[3]+'-'+m[2]+'-'+m[1]) : new Date().toISOString().slice(0,10);
-    byDate[dataKey] = byDate[dataKey] || [];
-    byDate[dataKey].push({
-      status: (cols[iStatus]||'').trim(),
+    const status = (cols[iStatus]||'').trim();
+    const contrato = iContrato>=0 ? (cols[iContrato]||'').trim() : '';
+    const certificado = iCertificado>=0 ? (cols[iCertificado]||'').trim() : '';
+    byDate[dataKey] = byDate[dataKey] || {};
+    // Chave única por lançamento -- se Contrato/Certificado não existirem no arquivo
+    // (relatório antigo/formato diferente), cai de volta pro índice da linha, que ao
+    // menos não duplica dentro do mesmo arquivo (a proteção contra sobreposição entre
+    // arquivos depende de Contrato+Certificado estarem presentes).
+    const chave = (contrato || certificado) ? (contrato+'|'+certificado+'|'+status) : ('linha'+i);
+    byDate[dataKey][chave] = {
+      status,
       valorSeguro: parseFloat((cols[iValor]||'0').replace(',','.')) || 0,
       origem:(cols[iOrigem]||'').trim(), destino:(cols[iDestino]||'').trim(),
       linha:(cols[iLinha]||'').trim(), agencia:(cols[iAgencia]||'').trim(), empresa:(cols[iEmpresa]||'').trim(),
-      vendedor:(cols[iVendedor]||'').trim(),
-    });
+      vendedor:(cols[iVendedor]||'').trim(), contrato, certificado,
+    };
   }
   for(const d in byDate){
-    DB.seguro[d] = (DB.seguro[d]||[]).concat(byDate[d]);
+    const merged = {};
+    (DB.seguro[d]||[]).forEach((x,i)=>{
+      const chave = (x.contrato || x.certificado) ? (x.contrato+'|'+x.certificado+'|'+x.status) : ('antigo'+i);
+      merged[chave] = x;
+    });
+    Object.entries(byDate[d]).forEach(([chave,x])=>{ merged[chave]=x; });
+    DB.seguro[d] = Object.values(merged);
   }
 }
 
@@ -2145,6 +2178,15 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // URUCUI): relatório gravou 18/09, mas a viagem foi de fato em 17/09 (confirmado pelo
   // usuário em 2026-09-18).
   '164954': '2026-09-17',
+  // Bilhetes JOSE ALVES DA SILVA (78545) e DIERMESON CDR SOUSA CARVALHO (78808),
+  // Convênio Fazenda Ribeirão; ARMANDO LAURO MEINERTZ (79481), Convênio Fazenda
+  // Progresso; BARBARA RAIELY FERREIRA (79475), Convênio Prefeitura de Ribeiro
+  // Gonçalves: relatório gravou 21/09, mas as viagens foram de fato em 20/09
+  // (confirmado pelo usuário em 2026-09-21).
+  '78545': '2026-09-20',
+  '78808': '2026-09-20',
+  '79481': '2026-09-20',
+  '79475': '2026-09-20',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2603,6 +2645,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['BOM JESUS','FLORIANO'], valor: 120.00 },
       // Confirmado pelo usuário em 2026-08-27.
       { cidades: ['CRISTINO CASTRO','TERESINA'], valor: 170.00 },
+      // Bilhete FABRICIO LOPES BARJUD (79608), confirmado pelo usuário em 2026-09-21.
+      { cidades: ['BARAO DE GRAJAU','BOM JESUS'], valor: 120.00 },
     ],
   },
   'FAZENDA RIBEIRÃO': {
@@ -2742,6 +2786,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-08-17.
       { cidades: ['URUCUI', 'FLORIANO'], valor: 90.00 },
       { cidades: ['BENEDITO LEITE', 'RIBEIRO GONCALVES'], valor: 50.00 },
+      // Bilhetes DANIEL DE OLIVEIRA VIEIRA (164884) e ADRIANO DE SOUSA BRITO (164959),
+      // confirmado pelo usuário em 2026-09-21.
+      { cidades: ['SEBASTIAO LEAL', 'TERESINA'], valor: 145.00 },
     ],
   },
 };
@@ -5155,10 +5202,16 @@ function _filtrarOCDGeracao(di, df){
 // Seguro Opcional Líquido (Vendido - Cancelado) — mesma regra de negócio da aba Seguro
 // ("LÍQUIDO") — a partir de uma lista de registros já filtrada (ver _seguroFiltradoAgencias).
 function _seguroLiquido(seguroRows){
+  // Fórmula corrigida em 2026-09-21 (confirmado pelo usuário): VENDIDO é a venda bruta --
+  // soma do Valor Seguro de TODAS as linhas do relatório, Venda e Cancelamento -- e
+  // CANCELADO é só a soma das linhas com status Cancelamento; LÍQUIDO = VENDIDO -
+  // CANCELADO. Equivale a somar só as linhas de Venda (o valor cancelado entra nos dois
+  // lados e se anula), mas o cálculo é feito explicitamente assim pra bater com a
+  // metodologia do relatório da CAPEMISA.
   let vendido=0, cancelado=0;
   seguroRows.forEach(r=>{
-    if(r.status==='Venda') vendido += r.valorSeguro||0;
-    else if(r.status==='Cancelamento') cancelado += r.valorSeguro||0;
+    vendido += r.valorSeguro||0;
+    if(r.status==='Cancelamento') cancelado += r.valorSeguro||0;
   });
   return vendido - cancelado;
 }
@@ -5436,7 +5489,11 @@ function _agruparSeguroPor(rows, campo){
     const chave = valorCampo || 'NÃO CLASSIFICADO';
     grupos[chave] = grupos[chave] || {nome:chave, apolices:0, vendido:0, cancelado:0, temLocal:incluirLocal, _porDiaStatus:{}};
     const g = grupos[chave];
-    if(x.status==='Venda') { g.apolices++; g.vendido+=x.valorSeguro||0; }
+    // Fórmula corrigida em 2026-09-21 (confirmado pelo usuário): VENDIDO é a venda bruta
+    // -- soma do Valor Seguro de TODAS as linhas (Venda + Cancelamento) --, CANCELADO é só
+    // a soma das linhas de Cancelamento, e LÍQUIDO = VENDIDO - CANCELADO.
+    if(x.status==='Venda' || x.status==='Cancelamento') g.vendido += x.valorSeguro||0;
+    if(x.status==='Venda') { g.apolices++; }
     else if(x.status==='Cancelamento') { g.cancelado+=x.valorSeguro||0; }
     if(x.status==='Venda' || x.status==='Cancelamento'){
       const localVenda = incluirLocal ? (_resolverNomeAgencia((x.agencia||'').trim()) || 'NÃO CLASSIFICADO') : null;
@@ -5447,14 +5504,15 @@ function _agruparSeguroPor(rows, campo){
   });
   return Object.values(grupos).map(g=>{
     g.liquido = g.vendido - g.cancelado;
-    // Mantém as colunas originais (VENDIDO/CANCELADO/LÍQUIDO) em cada linha, além do
-    // STATUS: numa linha de Venda, VENDIDO=valor e CANCELADO=0 (e vice-versa), então
-    // LÍQUIDO fica positivo numa linha de Venda e negativo numa de Cancelamento.
+    // Mesma fórmula por linha do popup: VENDIDO=valor bruto da linha (entra numa linha de
+    // Venda ou de Cancelamento), CANCELADO=valor só se a linha for Cancelamento, LÍQUIDO=
+    // VENDIDO-CANCELADO (fica igual ao valor numa linha de Venda, e zero numa linha de
+    // Cancelamento, já que o cancelado anula o próprio bruto daquela linha).
     g.itensPorDiaStatus = Object.values(g._porDiaStatus).map(d=>({
       data:d.data, status:d.status, agencia:d.agencia, apolices:d.apolices,
-      vendido: d.status==='Venda' ? d.valor : 0,
+      vendido: d.valor,
       cancelado: d.status==='Cancelamento' ? d.valor : 0,
-      liquido: d.status==='Venda' ? d.valor : -d.valor,
+      liquido: d.status==='Cancelamento' ? 0 : d.valor,
     })).sort((a,b)=>(a.data||'').localeCompare(b.data||'') || a.status.localeCompare(b.status) || (a.agencia||'').localeCompare(b.agencia||''));
     return g;
   });
@@ -5511,8 +5569,12 @@ function filtrarSeguro(){
 }
 function renderSeguro(){
   const rows = filtrarSeguro();
-  const vendido = rows.filter(x=>x.status==='Venda').reduce((s,x)=>s+x.valorSeguro,0);
-  const cancelado = rows.filter(x=>x.status==='Cancelamento').reduce((s,x)=>s+x.valorSeguro,0);
+  // Fórmula corrigida em 2026-09-21 (confirmado pelo usuário): VENDIDO é a venda bruta --
+  // soma do Valor Seguro de TODAS as linhas do relatório (Venda + Cancelamento) --,
+  // CANCELADO é só a soma das linhas com status Cancelamento, e LÍQUIDO = VENDIDO -
+  // CANCELADO (esse é o valor que segue pro Resumo Diário via _seguroLiquido).
+  const vendido = rows.reduce((s,x)=>s+(x.valorSeguro||0),0);
+  const cancelado = rows.filter(x=>x.status==='Cancelamento').reduce((s,x)=>s+(x.valorSeguro||0),0);
   const liquido = vendido - cancelado;
   const apolices = rows.filter(x=>x.status==='Venda').length;
   const ticketMedio = apolices ? liquido/apolices : 0;
@@ -5527,7 +5589,11 @@ function renderSeguro(){
   const porDia = {};
   const porDiaItens = {};
   rows.forEach(x=>{
-    porDia[x.data]=(porDia[x.data]||0)+ (x.status==='Venda'? x.valorSeguro : -x.valorSeguro);
+    // LÍQUIDO por dia = VENDIDO(bruto do dia) - CANCELADO(do dia) = só a soma das linhas
+    // de Venda do dia (o valor cancelado entra nos dois lados e se anula) -- mesma fórmula
+    // corrigida em 2026-09-21 usada nos KPIs acima.
+    porDia[x.data] = porDia[x.data]||0;
+    if(x.status==='Venda') porDia[x.data] += x.valorSeguro||0;
     (porDiaItens[x.data] = porDiaItens[x.data]||[]).push(x);
   });
   const dias = Object.keys(porDia).sort();
