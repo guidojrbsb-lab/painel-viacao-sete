@@ -364,20 +364,41 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 #tab-bancos table.data th{padding:6px 8px;}
 #tab-bancos table.data td{padding:5px 8px;}
 #tab-bancos .vg-topico-titulo{margin-top:20px;}
-/* Tabela do DRE - CONTÁBIL mais compacta -- pedido do usuário em 2026-08-18, ajustado
-   no mesmo dia pra só mexer nesta tabela (não na DRE - Simplificado) e usar exatamente
-   o mesmo tamanho da tabela da aba Bancos (#tab-bancos table.data, valores copiados
-   abaixo -- font-size 11px, padding th 6px 8px / td 5px 8px). Ajustado de novo no mesmo
-   dia: o pedido original era reduzir a LARGURA da tabela (colunas mais próximas), não
-   só a altura das linhas -- agora fica lado a lado com a coluna de KPIs extras
-   (#dreContabilKpiLateral) dentro de um flex container (.dre-contabil-layout).
-   min-width evita a tabela espremer demais em telas menores que ~900px. */
-.dre-contabil-layout{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
-#dreContabilTabela{font-size:11px;flex:0 0 50%;max-width:50%;min-width:460px;}
-#dreContabilTabela th{padding:6px 8px;}
-#dreContabilTabela td{padding:5px 8px;}
-#dreContabilKpiLateral{flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px;}
-#dreContabilKpiLateral .kpi{width:100%;box-sizing:border-box;}
+/* Layout mês a mês do DRE - CONTÁBIL (2026-09-22, pedido dos acionistas): em vez de 1
+   mês por vez (seletor de COMPETÊNCIA + filtro DATA INÍCIO/FIM, removidos), a tabela
+   agora mostra TODOS os meses da base lado a lado, crescendo pra direita conforme
+   entram novos meses -- mesmo padrão visual/técnico da tabela "Resumo Diário" do Painel
+   Comercial (table.ind-table): 1ª coluna (DISCRIMINAÇÃO) e cabeçalho fixos via
+   position:sticky (não pode usar a classe genérica "data", cujo overflow:hidden quebra
+   sticky -- por isso o wrap próprio .dre-mes-wrap, sem a classe "data" na tabela). Cada
+   mês ocupa 2 colunas estreitas (R$ e %/R$, ver _linhaDREC/_linhaTotalDREC). */
+.dre-mes-wrap{max-height:72vh;overflow:auto;border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:18px;background:#fff;}
+#dreContabilTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
+#dreContabilTabela th,#dreContabilTabela td{padding:6px 10px;border-bottom:1px solid var(--border);border-right:1px solid #eef0f4;}
+#dreContabilTabela thead th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;font-size:10.5px;text-align:center;z-index:2;border-right:1px solid rgba(255,255,255,.15);border-bottom:none;}
+/* Cantos arredondados do cabeçalho (2026-09-22, pedido do usuário): como o wrap usa
+   overflow:auto (não hidden -- overflow:hidden quebraria o position:sticky, ver
+   comentário grande acima), o arredondado não vem de clip automático -- é aplicado
+   direto nas células de ponta da 1ª linha do thead, mesma técnica já usada no
+   cabeçalho congelado dos popups (ver #bcModalTabela mais abaixo). */
+#dreContabilTabela thead tr:first-child th:first-child{border-top-left-radius:var(--radius-md);}
+#dreContabilTabela thead tr:first-child th:last-child{border-top-right-radius:var(--radius-md);}
+#dreContabilTabela td:first-child,#dreContabilTabela th:first-child{position:sticky;left:0;z-index:3;background:#fff;text-align:left;min-width:220px;max-width:220px;white-space:normal;font-weight:600;}
+#dreContabilTabela thead th:first-child{z-index:4;background:var(--navy);color:#fff;}
+#dreContabilTabela td{text-align:right;color:var(--ink);}
+#dreContabilTabela td.dre-mes-pct{color:var(--muted);min-width:56px;}
+#dreContabilTabela td.dre-mes-r{min-width:80px;}
+/* Zebra striping (mesmo efeito visual da tabela "Resumo Diário", table.ind-table) --
+   dá mais profundidade/acabamento à tabela mês a mês, pedido do usuário em 2026-09-22. */
+#dreContabilTabela tbody tr:nth-child(even):not(.total-row) td{background:#fafbfd;}
+#dreContabilTabela tbody tr:nth-child(even):not(.total-row) td:first-child{background:#fafbfd;}
+#dreContabilTabela tr.total-row td{background:var(--navy-soft);font-weight:700;}
+#dreContabilTabela tr.total-row td:first-child{background:var(--navy-soft);}
+#dreContabilTabela tr.clickable:hover td{background:#f5f7fb;}
+#dreContabilTabela tr.clickable:hover td:first-child{background:#eef1f8;}
+#dreContabilTabela tbody tr:last-child td{border-bottom:none;}
+#dreContabilTabela tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-md);}
+#dreContabilTabela tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-md);}
 /* Cabeçalho congelado nos popups de detalhe da aba Bancos (pedido dos sócios,
    2026-08-07) -- mesmo motivo/técnica já documentada acima para as tabelas de
    Ranking do Comercial: "overflow:hidden" em table.data (usado pra arredondar os
@@ -616,33 +637,27 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       </div>
     </section>
 
-    <!-- ABA DRE - CONTÁBIL (2026-08-16): estrutura societária clássica, ver
-         _montarDREContabil/renderDREContabil. Mesma convenção de filtro/tabela das outras
-         abas; competência PRÓPRIA (dreContabilCompetencia), independente do seletor da
-         DRE - Simplificado, pra cada aba poder olhar um mês diferente sem interferir uma
-         na outra. -->
+    <!-- ABA DRE - CONTÁBIL: estrutura societária clássica, ver
+         _montarDREContabil/renderDREContabil. Layout mês a mês (2026-09-22, pedido dos
+         acionistas): mostra os meses da base lado a lado (igual ao Resumo Diário do Painel
+         Comercial), sem seletor de COMPETÊNCIA única -- em vez disso, um filtro MÊS
+         INÍCIO/MÊS TÉRMINO (2026-09-22, 2ª rodada de ajuste: substituiu os KPIs de
+         destaque, que o usuário pediu pra tirar) restringe quais meses aparecem; por
+         padrão mostra a base inteira (Início = 1º mês disponível, Término = último). O
+         botão "Exportar Excel de Classificação/Espécie" continua funcionando normalmente:
+         cai no fallback de _periodoExportacaoDRE() que usa _dreContabilUltimoMesAno (mês
+         mais recente MOSTRADO na tabela, ou seja, respeita o filtro Término). -->
     <section class="tab hidden" id="tab-dre-contabil">
       <div class="panel filtro-box" id="filtrosPanelDreContabil">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
-        <div class="filters-grid" style="grid-template-columns:240px 180px 180px;">
-          <div><label>COMPETÊNCIA</label><select id="dreContabilCompetencia" onchange="renderDREContabil()"></select></div>
-          <!-- DATA INÍCIO/FIM (2026-08-18) -- mesmo filtro adicional da DRE - Simplificado
-               (ver comentário lá e _periodoExportacaoDRE()), só que pro período exportado
-               quando esta aba (DRE - Contábil) é a que está ativa no momento do clique. -->
-          <div><label>DATA INÍCIO (exportação)</label><input type="date" id="dreContabilDataIni"></div>
-          <div><label>DATA FIM (exportação)</label><input type="date" id="dreContabilDataFim"></div>
+        <div class="filters-grid" style="grid-template-columns:220px 220px;">
+          <div><label>MÊS INÍCIO</label><select id="dreContabilMesIni" onchange="renderDREContabil()"></select></div>
+          <div><label>MÊS TÉRMINO</label><select id="dreContabilMesFim" onchange="renderDREContabil()"></select></div>
         </div>
       </div>
 
-      <div class="kpi-row" id="dreContabilKpiRow"></div>
-
-      <!-- Layout lado a lado (2026-08-18, pedido do usuário): tabela reduzida a ~50% de
-           largura (colunas Discriminação/Valor/% mais próximas) + coluna de KPIs extras
-           (Receita Líquida/Impostos/Total Despesas Operacionais) preenchendo o espaço
-           que sobra à direita, em vez de ficarem na barra principal de KPIs. -->
-      <div class="panel dre-contabil-layout">
-        <table class="data" id="dreContabilTabela"><thead></thead><tbody></tbody></table>
-        <div id="dreContabilKpiLateral"></div>
+      <div class="dre-mes-wrap">
+        <table id="dreContabilTabela"><thead></thead><tbody></tbody></table>
       </div>
     </section>
 
@@ -812,6 +827,8 @@ function _normalizarFinanceiro(){
   DB.especie = DB.especie || {};
   DB.baixasConvenio = DB.baixasConvenio || [];
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
+  _reaplicarReclassificacoesBancoPontual();
+  _removerDuplicatasStoneNaoIdentificado();
 }
 // Correção 2026-08-16: o usuário confirmou que o mapeamento CONTA->banco em
 // _extrairSantander estava invertido desde o início (CONTA 130049081 é a FILIAL, não a
@@ -844,6 +861,75 @@ function _migrarContaSantander(){
   }
   DB._migSantanderContaSwap = true;
   return true;
+}
+// Correção pontual (2026-08-28, pedido do usuário): o lançamento da Stone de 27/08/2026,
+// R$4,13, contraparte "STONE INSTITUIÇÃO DE PAGAMENTO S.A.", caiu em "STONE (não
+// identificado)" porque o Destino/Origem dessa linha não trouxe nenhum dos nomes de
+// conta reconhecidos (GOIÁS/MATRIZ/PIAUÍ/BRASÍLIA/BAHIA, ver _extrairStone) -- é uma
+// transação interna da própria instituição de pagamento, sem repasse de terceiro. O
+// usuário confirmou que esse lançamento específico pertence à conta STONE MATRIZ (código
+// "STONE MA"). NÃO é uma mudança de REGRA (a detecção por regex em _extrairStone
+// continua igual) -- só a reclassificação pontual deste lançamento. Migra também a
+// chave de DB.classificacao (se existir alguma) pra não ficar órfã, mesmo raciocínio de
+// _migrarContaSantander logo acima. Roda a cada load, idempotente (não reaplica de novo
+// se t.banco já foi trocado), e usa 4 campos (banco atual + data + valor + contraparte)
+// pra não arriscar acertar outro lançamento por engano.
+const RECLASSIFICACOES_BANCO_PONTUAL = [
+  { bancoAtual: 'STONE (não identificado)', data: '2026-08-27', valor: 4.13, contraparte: 'STONE INSTITUIÇÃO DE PAGAMENTO S.A.', bancoNovo: 'STONE MA' },
+];
+function _reaplicarReclassificacoesBancoPontual(){
+  let mudouAlgo = false;
+  RECLASSIFICACOES_BANCO_PONTUAL.forEach(regra=>{
+    const lista = DB.bancos[regra.data] || [];
+    lista.forEach(t=>{
+      if(t.banco !== regra.bancoAtual) return;
+      if(Math.abs(t.valor - regra.valor) > 0.005) return;
+      if((t.contraparte||'').trim() !== regra.contraparte) return;
+      const chaveAntiga = _chaveClassificacao(t.banco, t.data, t.valor, t.descricao);
+      t.banco = regra.bancoNovo;
+      mudouAlgo = true;
+      if(DB.classificacao && DB.classificacao[chaveAntiga] !== undefined){
+        const chaveNova = _chaveClassificacao(t.banco, t.data, t.valor, t.descricao);
+        DB.classificacao[chaveNova] = DB.classificacao[chaveAntiga];
+        delete DB.classificacao[chaveAntiga];
+      }
+    });
+  });
+  return mudouAlgo;
+}
+// Correção 2026-09-08 (pedido do usuário): quando uma melhoria na regra de detecção do
+// banco (ex.: o fallback por CNPJ em _extrairStone, adicionado hoje) muda o rótulo de um
+// lançamento que já tinha sido salvo antes como "STONE (não identificado)", reenviar o
+// mesmo extrato não sobrescreve o lançamento antigo -- _mesclarTransacoesBanco só troca
+// entradas do MESMO nome de banco no dia (ver comentário lá), então o "não identificado"
+// antigo fica órfão ao lado do lançamento novo (agora corretamente rotulado STONE
+// MA/PI/DF/BA/GO), duplicando o total da aba Bancos. Esta função roda a cada load e
+// remove qualquer lançamento "STONE (não identificado)" que seja um DUPLICATA exato
+// (mesmo dia + mesmo valor + mesma natureza + mesma contraparte) de outro lançamento já
+// presente no mesmo dia sob um rótulo de Stone identificado -- não mexe em lançamentos
+// "não identificado" que não tenham par idêntico (esses continuam aparecendo
+// normalmente, pra não esconder um caso novo de detecção que realmente falhou). Exige
+// natureza igual (não só valor) pra não confundir com o par espelho de uma TRANSFERÊNCIA
+// ENTRE CONTAS de verdade (que é receita de um lado e despesa do outro, nunca duplicata).
+function _removerDuplicatasStoneNaoIdentificado(){
+  let mudouAlgo = false;
+  const BANCOS_STONE_IDENTIFICADOS = ['STONE MA','STONE PI','STONE DF','STONE BA','STONE GO'];
+  Object.keys(DB.bancos||{}).forEach(dia=>{
+    const lista = DB.bancos[dia] || [];
+    const identificados = lista.filter(t=>BANCOS_STONE_IDENTIFICADOS.includes(t.banco));
+    const restantes = lista.filter(t=>{
+      if(t.banco !== 'STONE (não identificado)') return true;
+      const temPar = identificados.some(id=>
+        Math.abs(id.valor - t.valor) <= 0.005 &&
+        id.natureza === t.natureza &&
+        (id.contraparte||'').trim() === (t.contraparte||'').trim()
+      );
+      if(temPar) mudouAlgo = true;
+      return !temPar;
+    });
+    if(restantes.length !== lista.length) DB.bancos[dia] = restantes;
+  });
+  return mudouAlgo;
 }
 async function loadDB(){
   if(EMBEDDED_DB){
@@ -998,32 +1084,68 @@ function exportarBaseCompleta(){
 // Bancos -- não mais por competência. SUBGRUPO/CENTRO DE CUSTO/COMPETÊNCIA de cada linha
 // continuam vindo de _classificacaoTransacao normalmente, só a SELEÇÃO de quais
 // lançamentos entram na exportação mudou de critério.
+// Compara uma competência {mes,ano} contra um intervalo [ini,fim] (ambos {mes,ano}) --
+// usado pra exportação da DRE - Contábil poder puxar VÁRIOS meses de uma vez (o
+// intervalo do filtro MÊS INÍCIO/MÊS TÉRMINO da tela), em vez de só 1 mês exato.
+function _dentroDoIntervaloCompetencia(c, ini, fim){
+  if(!ini || !fim) return true;
+  const chave = c.ano*100 + c.mes;
+  return chave >= (ini.ano*100+ini.mes) && chave <= (fim.ano*100+fim.mes);
+}
+// Sufixo do nome do arquivo exportado -- 1 mês só sai "_Julho", intervalo de vários
+// meses sai "_JulhoaAgosto" (mesmo padrão do sufixo por DATA já usado no filtro
+// dia-a-dia da DRE - Simplificado, só que por competência).
+function _sufixoCompetenciaExport(ini, fim){
+  if(!ini) return '';
+  if(!fim || (fim.mes===ini.mes && fim.ano===ini.ano)) return '_'+MESES_PT[ini.mes-1];
+  return '_'+MESES_PT[ini.mes-1]+'a'+MESES_PT[fim.mes-1];
+}
 function _periodoExportacaoDRE(){
   const abaAtivaBtn = document.querySelector('#sidebar button[data-tab].active');
   const usarContabil = !!abaAtivaBtn && abaAtivaBtn.dataset.tab === 'dre-contabil';
-  const filtroCompetencia = usarContabil ? _dreContabilUltimoMesAno : _dreUltimoMesAno;
-  const iniEl = document.getElementById(usarContabil ? 'dreContabilDataIni' : 'dreDataIni');
-  const fimEl = document.getElementById(usarContabil ? 'dreContabilDataFim' : 'dreDataFim');
-  const dataIni = iniEl ? iniEl.value : '';
-  const dataFim = fimEl ? fimEl.value : '';
-  let rotulo = '';
   const sufixoAba = usarContabil ? ' - Contábil' : ' - Simplificado';
+  let filtroCompetencia, filtroCompetenciaFim, dataIni = '', dataFim = '';
+  if(usarContabil){
+    // DRE - Contábil (2026-09-22, 3ª rodada de ajuste): o botão de exportar agora puxa o
+    // MESMO intervalo de meses que o filtro MÊS INÍCIO/MÊS TÉRMINO está mostrando na
+    // tela -- não tem mais filtro de DATA INÍCIO/FIM dia a dia separado nem "só o mês
+    // mais recente" isolado; exporta exatamente o recorte que o usuário está vendo.
+    const selIni = document.getElementById('dreContabilMesIni');
+    const selFim = document.getElementById('dreContabilMesFim');
+    const parse = v => { if(!v) return null; const [ano, mes] = v.split('-'); return { mes: Number(mes), ano: Number(ano) }; };
+    filtroCompetencia = parse(selIni ? selIni.value : '') || _dreContabilUltimoMesAno;
+    filtroCompetenciaFim = parse(selFim ? selFim.value : '') || _dreContabilUltimoMesAno;
+  } else {
+    // DRE - Simplificado: continua com competência única (seletor #dreCompetencia) +
+    // filtro adicional de DATA INÍCIO/FIM dia a dia, sem mudança.
+    filtroCompetencia = _dreUltimoMesAno;
+    filtroCompetenciaFim = _dreUltimoMesAno;
+    const iniEl = document.getElementById('dreDataIni');
+    const fimEl = document.getElementById('dreDataFim');
+    dataIni = iniEl ? iniEl.value : '';
+    dataFim = fimEl ? fimEl.value : '';
+  }
+  let rotulo = '';
   if(dataIni && dataFim){
     rotulo = ' (período '+formatarDataBR(dataIni)+' a '+formatarDataBR(dataFim)+', filtro da DRE'+sufixoAba+')';
+  } else if(usarContabil && filtroCompetencia && filtroCompetenciaFim){
+    rotulo = (filtroCompetencia.mes===filtroCompetenciaFim.mes && filtroCompetencia.ano===filtroCompetenciaFim.ano)
+      ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme filtro da DRE'+sufixoAba+')'
+      : ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+' a '+MESES_PT[filtroCompetenciaFim.mes-1]+'/'+filtroCompetenciaFim.ano+', conforme filtro da DRE'+sufixoAba+')';
   } else if(filtroCompetencia){
     rotulo = ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE'+sufixoAba+')';
   }
-  return { filtroCompetencia, dataIni: (dataIni && dataFim) ? dataIni : null, dataFim: (dataIni && dataFim) ? dataFim : null, rotulo };
+  return { filtroCompetencia, filtroCompetenciaFim, dataIni: (dataIni && dataFim) ? dataIni : null, dataFim: (dataIni && dataFim) ? dataFim : null, rotulo };
 }
 function exportarExcelClassificacao(){
-  const { filtroCompetencia, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
+  const { filtroCompetencia, filtroCompetenciaFim, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
   const linhas = [];
   Object.keys(DB.bancos||{}).sort().forEach(dia=>{
     if(dataIni && dataFim && (dia < dataIni || dia > dataFim)) return;
     (DB.bancos[dia]||[]).forEach(t=>{
       if(t.transferencia) return;
       const c = _classificacaoTransacao(t);
-      if(!dataIni && filtroCompetencia && (c.mes!==filtroCompetencia.mes || c.ano!==filtroCompetencia.ano)) return;
+      if(!dataIni && filtroCompetencia && !_dentroDoIntervaloCompetencia(c, filtroCompetencia, filtroCompetenciaFim)) return;
       const valorComSinal = t.natureza==='despesa' ? -Math.abs(t.valor) : Math.abs(t.valor);
       linhas.push([
         formatarDataBR(t.data),
@@ -1045,7 +1167,7 @@ function exportarExcelClassificacao(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Receitas e Despesas');
   const hoje = new Date().toISOString().slice(0,10);
-  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : (filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '');
+  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : _sufixoCompetenciaExport(filtroCompetencia, filtroCompetenciaFim);
   XLSX.writeFile(wb, 'Classificacao_DRE_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
   document.getElementById('uploadStatus').textContent = 'Excel de classificação exportado: '+linhas.length+' lançamento(s)'+rotulo+'. Complete os pontos que precisarem de ajuste e reimporte pelo botão "Importar Classificação (DRE)".';
 }
@@ -1059,10 +1181,10 @@ function exportarExcelClassificacao(){
 // LANÇAMENTO / VALOR (R$) / RECEITA OU DESPESA / AGÊNCIA-ROTA-ITEM / COMPETÊNCIA /
 // SUBGRUPO / CENTRO DE CUSTO -- reimportar sem editar nada é um roundtrip perfeito.
 function exportarExcelEspecie(){
-  const { filtroCompetencia, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
+  const { filtroCompetencia, filtroCompetenciaFim, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
   const registros = Object.values(DB.especie||{}).filter(t=>{
     if(dataIni && dataFim) return t.data >= dataIni && t.data <= dataFim;
-    return !filtroCompetencia || (t.mes===filtroCompetencia.mes && t.ano===filtroCompetencia.ano);
+    return !filtroCompetencia || _dentroDoIntervaloCompetencia({mes:t.mes, ano:t.ano}, filtroCompetencia, filtroCompetenciaFim);
   });
   registros.sort((a,b)=> a.data.localeCompare(b.data));
   const linhas = registros.map(t=>{
@@ -1086,7 +1208,7 @@ function exportarExcelEspecie(){
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Caixa Espécie');
   const hoje = new Date().toISOString().slice(0,10);
-  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : (filtroCompetencia ? '_'+MESES_PT[filtroCompetencia.mes-1] : '');
+  const sufixoCompetencia = dataIni ? '_'+dataIni.replace(/-/g,'')+'a'+dataFim.replace(/-/g,'') : _sufixoCompetenciaExport(filtroCompetencia, filtroCompetenciaFim);
   XLSX.writeFile(wb, 'Especie_Caixa_Viacao_Sete_'+hoje+sufixoCompetencia+'.xlsx');
   document.getElementById('uploadStatus').textContent = 'Excel de Espécie exportado: '+linhas.length+' lançamento(s)'+rotulo+'. Edite o que precisar e reimporte pelo botão "Importar Classificação Espécie (DRE)".';
 }
@@ -1545,13 +1667,26 @@ function _extrairStone(aoa, hIdx){
   const header = aoa[hIdx];
   const iMov=header.indexOf('Movimentação'), iTipo=header.indexOf('Tipo'), iValor=header.indexOf('Valor'),
         iData=header.indexOf('Data'), iDestino=header.indexOf('Destino'), iOrigem=header.indexOf('Origem'),
-        iDestinoInst=header.indexOf('Destino Instituição'), iOrigemInst=header.indexOf('Origem Instituição');
+        iDestinoInst=header.indexOf('Destino Instituição'), iOrigemInst=header.indexOf('Origem Instituição'),
+        iDestinoDoc=header.indexOf('Destino Documento'), iOrigemDoc=header.indexOf('Origem Documento');
   const CANDIDATOS = [
     { re: /GOI[ÁA]S/i, banco: 'STONE GO' },
     { re: /MATRIZ/i, banco: 'STONE MA' },
     { re: /PIAU[ÍI]/i, banco: 'STONE PI' },
     { re: /BRAS[ÍI]LIA/i, banco: 'STONE DF' },
     { re: /BAHIA/i, banco: 'STONE BA' },
+  ];
+  // Sinal de reforço por CNPJ (Documento) -- confirmado pelo usuário em 2026-09-08: a
+  // conta STONE MA às vezes NÃO traz mais a palavra "MATRIZ" no nome (só "Viaçao Sete",
+  // sem qualificador -- mesmo padrão do lançamento avulso de R$4,13 em 27/08, corrigido
+  // manualmente na época via RECLASSIFICACOES_BANCO_PONTUAL). O CNPJ 15.474.486/0001-77,
+  // que aparece em toda transação dessa conta (inclusive no extrato de 13/08 rotulado
+  // "VIACAO SETE MATRIZ"), serve como sinal complementar quando o NOME sozinho não
+  // identifica a conta -- só entra em jogo como FALLBACK, depois que o passe por nome
+  // (CANDIDATOS acima) já rodou pra todas as linhas e não achou nada; não muda a
+  // prioridade nem o resultado de nenhum extrato que já é identificado pelo nome hoje.
+  const CANDIDATOS_CNPJ = [
+    { re: /15\.474\.486\/0001-77/, banco: 'STONE MA' },
   ];
   let banco = null;
   for(let r=hIdx+1;r<aoa.length && !banco;r++){
@@ -1561,6 +1696,17 @@ function _extrairStone(aoa, hIdx){
       if(!texto || texto==='Desconhecido') continue;
       const achou = CANDIDATOS.find(c=>c.re.test(texto));
       if(achou){ banco = achou.banco; break; }
+    }
+  }
+  if(!banco){
+    for(let r=hIdx+1;r<aoa.length && !banco;r++){
+      const row = aoa[r]; if(!row) continue;
+      for(const campo of [iDestinoDoc>=0?row[iDestinoDoc]:null, iOrigemDoc>=0?row[iOrigemDoc]:null]){
+        const texto = String(campo||'');
+        if(!texto || texto==='Desconhecido') continue;
+        const achou = CANDIDATOS_CNPJ.find(c=>c.re.test(texto));
+        if(achou){ banco = achou.banco; break; }
+      }
     }
   }
   if(!banco) banco = 'STONE (não identificado)';
@@ -1996,6 +2142,11 @@ const CONVENIO_REGRAS_TEXTO = [
   // Municipal de Assistência Social -- "M B G R" é a abreviação do nome do município
   // usada nesse lançamento, não coberta pela regra ampla "B G RIBEIRO|BAIXA GRANDE".
   [/\bM\s*B\s*G\s*R\b/, 'PREFEITURA DE BAIXA GRANDE DO RIBEIRO'],
+  // Confirmado pelo usuário em 2026-09-03: "PREF MUN R GONCALVES" (Bradesco, PIX
+  // 01/09/2026, R$717,00) = Prefeitura de Ribeiro Gonçalves -- "R GONCALVES" é a
+  // abreviação do nome do município usada nesse lançamento, não coberta pela regra
+  // "RIBEIRO GON[CÇ]ALVES" por extenso.
+  [/\bR\s*GON[CÇ]ALVES\b/, 'PREFEITURA DE RIBEIRO GONÇALVES'],
 ];
 // Sinal amplo de que o lançamento É algum tipo de repasse de prefeitura/convênio, mesmo
 // quando nenhuma regra específica acima bate (vira "CONVÊNIO NÃO IDENTIFICADO" em vez de
@@ -3097,17 +3248,31 @@ function _montarDREContabil(mes, ano){
     EXTRA: _mesclarGuias(guias, EXTRA_FONTES),
   };
 }
-const _dreContabilExpandido = {}; // rubrica -> bool (estado próprio, independente do _dreExpandido da aba antiga)
-let _dreContabilUltimoMesAno = null; // {mes, ano} da última montagem, usado pelo popup de drill-down
+const _dreContabilExpandido = {}; // rubrica -> bool (estado ÚNICO/global de expandir/recolher --
+// pedido do usuário em 2026-09-22: abrir uma rubrica abre TODOS os meses de uma vez, já que
+// cada mês não tem mais estado próprio de expansão -- é a mesma tabela crescendo pra direita.
+let _dreContabilUltimoMesAno = null; // {mes, ano} do mês MAIS RECENTE mostrado na tabela --
+// usado só como padrão pros KPIs de destaque e pra exportação (_periodoExportacaoDRE) quando
+// nenhum filtro de data foi digitado. NÃO é mais usado pelo popup de drill-down (ver
+// _dreContabilPopupMesAno abaixo), porque agora cada célula pertence a um mês diferente.
+let _dreContabilPopupMesAno = null; // {mes, ano} do mês da célula que abriu o popup atual.
 function _toggleDreContabilGuia(nome){
   _dreContabilExpandido[nome] = !_dreContabilExpandido[nome];
   renderDREContabil();
 }
-// Linha de rubrica (RECEITA BRUTA/IMPOSTOS/DP/DV/DA/DC/OUTRAS/DF/FINANCIAMENTOS) -- `key`
-// é o identificador curto usado no estado de expansão e no popup (bate com as chaves de
-// _montarDREContabil), `label` é o texto exibido. `badge` marca visualmente OUTRAS
-// DESPESAS como agrupamento provisório (ver comentário grande acima de DP_FONTES).
-function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
+// Formata um valor pra célula da tabela mês a mês: "-" quando não há lançamento (ou o total
+// é efetivamente zero), R$ formatado caso contrário -- pedido do usuário em 2026-09-22
+// ("campos que não tiverem dados pode deixar em branco ou tracinho").
+function _valDREC(v){ return Math.abs(v||0) < 0.005 ? '-' : _fmtBRL(v); }
+function _pctDREC(v){ return (v===null || Math.abs(v||0) < 0.005) ? '-' : v.toFixed(1)+'%'; }
+// Linha de rubrica (RECEITA BRUTA/IMPOSTOS/DP/DV/DA/DC/OUTRAS/DF/FINANCIAMENTOS) -- `key` é
+// o identificador curto usado no estado de expansão e no popup (bate com as chaves de
+// _montarDREContabil), `label` é o texto exibido. `badge` marca visualmente OUTRAS DESPESAS
+// como agrupamento provisório (ver comentário grande acima de DP_FONTES). `porMes` é um
+// array, um item por competência mostrada na tabela (mesma ordem/quantidade em toda a
+// tabela): cada item é {mes, ano, total, pct, subgrupos} -- pct null pras linhas RECEITA
+// BRUTA/IMPOSTOS (sem percentual, igual ao comportamento anterior de 1 mês só).
+function _linhaDREC(key, label, porMes, vermelho, badge){
   const aberto = !!_dreContabilExpandido[key];
   const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
@@ -3115,136 +3280,211 @@ function _linhaDREC(key, label, total, pctVal, vermelho, subgrupos, badge){
   // próprio (usado por EXTRA, ver renderDREContabil) -- mesmo mecanismo visual, tooltip diferente.
   const badgeTitulo = typeof badge === 'string' ? badge : 'Centro(s) de custo que o pedido original não mapeou explicitamente pra DP/DV/DA/DC/DF (ex.: Diretoria, Seguro Capemisa) -- confirme com o Claude se preferir agrupar em outra rubrica.';
   const badgeHtml = badge ? ' <span class="info-badge" title="'+badgeTitulo+'">?</span>' : '';
-  // pctVal null (RECEITA BRUTA/IMPOSTOS) -- combinado com o usuário em 2026-08-17: a
-  // coluna de % passou a ser sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA, e
-  // essas 2 linhas ficam sem percentual (vêm ANTES da Receita Líquida na tabela).
-  const pctTxt = pctVal===null ? '' : pctVal.toFixed(1)+'%';
-  let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+
-    '<td style="'+cor+'font-weight:bold;">'+seta+label+badgeHtml+'</td>'+
-    '<td style="text-align:right;'+cor+'font-weight:bold;">'+_fmtBRL(total)+'</td>'+
-    '<td style="text-align:right;'+cor+'font-weight:bold;">'+pctTxt+'</td></tr>';
-  if(aberto) html += _linhasSubgruposDREC(key, subgrupos, vermelho);
+  let cels = '<td style="'+cor+'font-weight:bold;">'+seta+label+badgeHtml+'</td>';
+  porMes.forEach(m=>{
+    cels += '<td class="dre-mes-r" style="'+cor+'font-weight:bold;">'+_valDREC(m.total)+'</td>'+
+      '<td class="dre-mes-pct" style="'+cor+'font-weight:bold;">'+_pctDREC(m.pct)+'</td>';
+  });
+  let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+cels+'</tr>';
+  if(aberto) html += _linhasSubgruposDREC(key, porMes, vermelho);
   return html;
 }
-function _linhasSubgruposDREC(rubricaKey, subgrupos, vermelho){
+// Linhas de subgrupo, uma por NOME DE SUBGRUPO (união de todos os meses -- um subgrupo que
+// só existe em julho ainda aparece na linha, com "-" nos outros meses, pra manter a tabela
+// alinhada quando a rubrica é expandida). Cada célula de valor é clicável
+// INDIVIDUALMENTE e abre o popup só com os lançamentos DAQUELE mês (pedido do usuário em
+// 2026-09-22) -- células sem subgrupo naquele mês (s undefined) não são clicáveis.
+function _linhasSubgruposDREC(rubricaKey, porMes, vermelho){
   let html = '';
   const cor = vermelho ? 'color:var(--red);' : '';
-  const subNomes = Object.keys(subgrupos).sort((a,b)=> a.localeCompare(b,'pt-BR'));
+  const nomesSet = new Set();
+  porMes.forEach(m=> Object.keys(m.subgrupos||{}).forEach(n=>nomesSet.add(n)));
+  const subNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
   subNomes.forEach(sub=>{
-    const s = subgrupos[sub];
-    html += '<tr class="clickable" onclick="_abrirDreContabilSubgrupoPopup(\''+rubricaKey+'\',\''+sub.replace(/'/g,"\\'")+'\')">'+
-      '<td style="padding-left:18px;'+cor+'">'+sub+' <span style="color:var(--muted);">('+s.itens.length+')</span></td>'+
-      '<td style="text-align:right;'+cor+'">'+_fmtBRL(s.total)+'</td><td></td></tr>';
+    let cels = '<td style="padding-left:18px;'+cor+'">'+sub+'</td>';
+    porMes.forEach(m=>{
+      const s = m.subgrupos && m.subgrupos[sub];
+      if(s){
+        cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilSubgrupoPopup(\''+rubricaKey+'\',\''+sub.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+s.itens.length+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(s.total)+'</td>';
+      } else {
+        cels += '<td class="dre-mes-r" style="'+cor+'">-</td>';
+      }
+      cels += '<td class="dre-mes-pct"></td>';
+    });
+    html += '<tr>'+cels+'</tr>';
   });
   return html;
 }
 // Linha de fechamento (RECEITA LÍQUIDA/EBITDA/LL) -- mesmo padrão visual da linha de
-// fechamento da DRE - Simplificado (fundo vermelho quando negativo), com a 3ª coluna de %.
-function _linhaTotalDREC(rotulo, valor, pctVal, corFundo){
-  const estilo = valor < 0 ? 'background:var(--red);' : (corFundo ? 'background:'+corFundo+';' : '');
-  return '<tr class="total-row"><td style="'+estilo+'">'+rotulo+'</td>'+
-    '<td style="text-align:right;'+estilo+'">'+_fmtBRL(valor)+'</td>'+
-    '<td style="text-align:right;'+estilo+'">'+pctVal.toFixed(1)+'%</td></tr>';
+// fechamento da DRE - Simplificado (fundo vermelho quando negativo), com a coluna de %/R$
+// ao lado de cada mês. `corFundo` (opcional): pra diferenciar visualmente as 3 linhas de
+// fechamento -- EBITDA em verde-bandeira (var(--green5)) e LL num 2º tom de azul
+// (var(--blue-ll)), distinto do navy padrão da RECEITA LÍQUIDA. Negativo sempre vence e vira
+// vermelho NAQUELE MÊS, independente de `corFundo` (alerta é mais importante que tema).
+// `porMes` aqui é {total, pct} por mês -- sem mes/ano/subgrupos, pois estas 3 linhas não são
+// expansíveis nem clicáveis.
+function _linhaTotalDREC(rotulo, porMes, corFundo){
+  let cels = '<td>'+rotulo+'</td>';
+  porMes.forEach(m=>{
+    // Fonte branca sempre que a célula ganha um fundo colorido (vermelho de negativo, ou
+    // o corFundo verde/azul do EBITDA/LL) -- pedido do usuário em 2026-09-22, pra manter
+    // contraste/legibilidade independente da cor de fundo daquele mês específico. Sem
+    // fundo colorido (RECEITA LÍQUIDA positiva, por exemplo) mantém a cor de texto padrão
+    // da tabela (navy-soft de fundo + texto escuro, já legível).
+    const temFundoColorido = m.total < 0 || !!corFundo;
+    const estilo = (m.total < 0 ? 'background:var(--red);' : (corFundo ? 'background:'+corFundo+';' : ''))
+      + (temFundoColorido ? 'color:#fff;' : '');
+    cels += '<td class="dre-mes-r" style="'+estilo+'">'+_valDREC(m.total)+'</td>'+
+      '<td class="dre-mes-pct" style="'+estilo+'">'+_pctDREC(m.pct)+'</td>';
+  });
+  return '<tr class="total-row">'+cels+'</tr>';
 }
+// Layout mês a mês (2026-09-22, pedido dos acionistas): mostra os meses da base lado a
+// lado, do mais antigo (esquerda) ao mais recente (direita), igual ao Resumo Diário do
+// Painel Comercial. Sem seletor de COMPETÊNCIA única -- em vez disso, um filtro MÊS
+// INÍCIO/MÊS TÉRMINO (2026-09-22, 2ª rodada: o usuário pediu pra tirar os KPIs de
+// destaque e usar esse filtro no lugar) restringe o intervalo mostrado; por padrão
+// mostra a base inteira. Cada mês monta sua própria _montarDREContabil(mes, ano)
+// independente, e as linhas de rubrica/fechamento juntam os valores de todos os meses
+// do intervalo lado a lado (ver _linhaDREC/_linhaTotalDREC acima).
 function renderDREContabil(){
   const tabela = document.getElementById('dreContabilTabela');
   if(!tabela) return;
-  const sel = document.getElementById('dreContabilCompetencia');
   const disponiveis = _competenciasDisponiveis();
-  if(sel){
-    const anterior = sel.value;
-    sel.innerHTML = disponiveis.map(v=>{
+  const selIni = document.getElementById('dreContabilMesIni');
+  const selFim = document.getElementById('dreContabilMesFim');
+  if(!disponiveis.length){
+    tabela.innerHTML = '<thead></thead><tbody><tr><td>Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
+    if(selIni) selIni.innerHTML = '';
+    if(selFim) selFim.innerHTML = '';
+    _dreContabilUltimoMesAno = null;
+    return;
+  }
+  // "AAAA-MM" ordena certo como string -- cronológico, do mais antigo ao mais recente.
+  // _competenciasDisponiveis() só retorna competência com pelo menos 1 lançamento
+  // classificado, então um mês sem nada nunca aparece nem nos selects nem como coluna.
+  const todosMeses = disponiveis.slice().sort();
+
+  // Popula os 2 selects com TODOS os meses disponíveis (não só o intervalo atual, senão
+  // o usuário não conseguiria alargar o filtro de volta) -- preserva a seleção anterior
+  // se o mês ainda existir na base, senão volta pro padrão (Início=1º, Término=último,
+  // ou seja, mostra tudo).
+  if(selIni && selFim){
+    const opts = todosMeses.map(v=>{
       const [ano, mesStr] = v.split('-');
       return '<option value="'+v+'">'+MESES_PT[Number(mesStr)-1]+'/'+ano+'</option>';
     }).join('');
-    if(disponiveis.includes(anterior)) sel.value = anterior;
-    else if(disponiveis.length) sel.value = disponiveis[0];
+    const iniAnterior = selIni.value, fimAnterior = selFim.value;
+    selIni.innerHTML = opts;
+    selFim.innerHTML = opts;
+    selIni.value = todosMeses.includes(iniAnterior) ? iniAnterior : todosMeses[0];
+    selFim.value = todosMeses.includes(fimAnterior) ? fimAnterior : todosMeses[todosMeses.length-1];
   }
-  const valorSel = sel ? sel.value : '';
-  const kpi = document.getElementById('dreContabilKpiRow');
-  const kpiLateral = document.getElementById('dreContabilKpiLateral');
-  if(!valorSel){
-    tabela.innerHTML = '<thead></thead><tbody><tr><td colspan="3">Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
-    if(kpi) kpi.innerHTML = '';
-    if(kpiLateral) kpiLateral.innerHTML = '';
-    return;
-  }
-  const [anoStr, mesStr] = valorSel.split('-');
-  const mes = Number(mesStr), ano = Number(anoStr);
-  const d = _montarDREContabil(mes, ano);
-  _dreContabilUltimoMesAno = { mes, ano };
+  let iniIdx = selIni ? todosMeses.indexOf(selIni.value) : 0;
+  let fimIdx = selFim ? todosMeses.indexOf(selFim.value) : todosMeses.length-1;
+  if(iniIdx<0) iniIdx = 0;
+  if(fimIdx<0) fimIdx = todosMeses.length-1;
+  // Início digitado depois de Término -- inverte pra sempre exibir um intervalo válido
+  // em vez de dar tabela vazia.
+  if(iniIdx > fimIdx){ const t = iniIdx; iniIdx = fimIdx; fimIdx = t; }
 
-  const receitaBruta = d.RECEITA_BRUTA.total;
-  const impostos = d.IMPOSTOS.total;
-  const receitaLiquida = receitaBruta - impostos;
-  const dp = d.DP.total, dv = d.DV.total, da = d.DA.total, dc = d.DC.total, dir = d.DIR.total, outras = d.OUTRAS.total;
-  const totalDespesasOperacionais = dp + dv + da + dc + dir + outras;
-  const ebitda = receitaLiquida - totalDespesasOperacionais;
-  const df = d.DF.total;
-  const financiamentos = d.FINANCIAMENTOS.total;
-  const ll = ebitda - df - financiamentos;
-  // Informativo -- não entra em nenhuma conta acima (ver comentário em EXTRA_FONTES).
-  const extra = d.EXTRA.total;
-  // % agora é sobre RECEITA LÍQUIDA (=100%), não mais RECEITA BRUTA -- pedido do
-  // usuário em 2026-08-17 (RECEITA BRUTA e IMPOSTOS ficam sem percentual, ver _linhaDREC).
-  const pct = v => receitaLiquida ? (v / receitaLiquida * 100) : 0;
+  const meses = todosMeses.slice(iniIdx, fimIdx+1).map(v=>{
+    const [anoStr, mesStr] = v.split('-');
+    return { mes: Number(mesStr), ano: Number(anoStr) };
+  });
 
-  if(kpi){
-    // Barra principal: só as 3 caixas originais (2026-08-18 -- voltou a ser assim a
-    // pedido do usuário; as 3 novas abaixo foram pra coluna lateral da tabela).
-    //
-    // Atualização 2026-08-19 (pedido do usuário): EBITDA e LUCRO LÍQUIDO (LL) passam a
-    // mostrar o PERCENTUAL (% s/ RECEITA LÍQUIDA, mesma base `pct()` usada na tabela)
-    // em vez do valor em R$ -- só essas 2 caixas; RECEITA BRUTA continua em R$.
-    kpi.innerHTML =
-      '<div class="kpi kpi-destaque"><div class="lbl">RECEITA BRUTA — '+MESES_PT[mes-1]+'/'+ano+'</div><div class="val">'+_fmtBRL(receitaBruta)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">EBITDA</div><div class="val" style="color:'+(ebitda<0?'var(--red)':'var(--green5)')+';">'+pct(ebitda).toFixed(1)+'%</div></div>'+
-      '<div class="kpi"><div class="lbl">LUCRO LÍQUIDO (LL)</div><div class="val" style="color:'+(ll<0?'var(--red)':'var(--blue-ll)')+';">'+pct(ll).toFixed(1)+'%</div></div>';
-  }
-  if(kpiLateral){
-    // 3 caixas extras (2026-08-18) ao lado da tabela, preenchendo o espaço que sobrou
-    // com a tabela reduzida a ~50% de largura: RECEITA LÍQUIDA, IMPOSTOS e TOTAL
-    // DESPESAS OPERACIONAIS.
-    kpiLateral.innerHTML =
-      '<div class="kpi"><div class="lbl">RECEITA LÍQUIDA</div><div class="val" style="color:var(--navy);">'+_fmtBRL(receitaLiquida)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">IMPOSTOS</div><div class="val" style="color:var(--red);">'+_fmtBRL(impostos)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">TOTAL DESPESAS OPERACIONAIS</div><div class="val" style="color:var(--red);">'+_fmtBRL(totalDespesasOperacionais)+'</div></div>';
-  }
+  const calc = meses.map(({mes,ano})=>{
+    const d = _montarDREContabil(mes, ano);
+    const receitaBruta = d.RECEITA_BRUTA.total;
+    const impostos = d.IMPOSTOS.total;
+    const receitaLiquida = receitaBruta - impostos;
+    const dp=d.DP.total, dv=d.DV.total, da=d.DA.total, dc=d.DC.total, dir=d.DIR.total, outras=d.OUTRAS.total;
+    const totalDespesasOperacionais = dp+dv+da+dc+dir+outras;
+    const ebitda = receitaLiquida - totalDespesasOperacionais;
+    const df = d.DF.total, financiamentos = d.FINANCIAMENTOS.total;
+    const ll = ebitda - df - financiamentos;
+    const extra = d.EXTRA.total;
+    // % continua sobre RECEITA LÍQUIDA (=100%), calculado por mês (cada mês tem sua
+    // própria base de 100%).
+    const pct = v => receitaLiquida ? (v/receitaLiquida*100) : 0;
+    return { mes, ano, d, receitaBruta, impostos, receitaLiquida, dp,dv,da,dc,dir,outras, totalDespesasOperacionais, ebitda, df, financiamentos, ll, extra, pct };
+  });
 
-  let html = '<thead><tr><th>DISCRIMINAÇÃO</th><th style="text-align:right;">VALOR</th><th style="text-align:right;">% s/ RECEITA LÍQUIDA</th></tr></thead><tbody>';
+  // Mês mais recente MOSTRADO (última coluna do intervalo filtrado) -- usado como padrão
+  // de exportação (_periodoExportacaoDRE) quando não há filtro de data digitado. Os KPIs
+  // de destaque foram removidos (pedido do usuário em 2026-09-22) -- o filtro Início/
+  // Término cobre a mesma necessidade de "olhar um recorte específico".
+  const ultimo = calc[calc.length-1];
+  _dreContabilUltimoMesAno = { mes: ultimo.mes, ano: ultimo.ano };
 
-  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', receitaBruta, null, false, d.RECEITA_BRUTA.subgrupos);
-  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', impostos, null, true, d.IMPOSTOS.subgrupos);
-  html += _linhaTotalDREC('RECEITA LÍQUIDA', receitaLiquida, pct(receitaLiquida));
+  // Linhas condicionais (OUTRAS DESPESAS/PAGAMENTOS EXTRA - V7) entram na tabela se
+  // QUALQUER mês tiver valor -- pedido do usuário em 2026-09-22; nos meses sem valor a
+  // célula mostra "-" (ver _valDREC), mas a linha continua alinhada nos demais meses.
+  const showOutras = calc.some(c=> Math.abs(c.outras) > 0.004);
+  const showExtra = calc.some(c=> Math.abs(c.extra) > 0.004);
 
-  html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', dp, pct(dp), true, d.DP.subgrupos);
-  html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', dv, pct(dv), true, d.DV.subgrupos);
-  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', da, pct(da), true, d.DA.subgrupos);
-  html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', dc, pct(dc), true, d.DC.subgrupos);
-  html += _linhaDREC('DIR', 'DIR (DIRETORIA)', dir, pct(dir), true, d.DIR.subgrupos);
-  if(Math.abs(outras) > 0.004){
-    html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', outras, pct(outras), true, d.OUTRAS.subgrupos, true);
-  }
+  // Corrigido 2026-09-22: as 2 linhas de cabeçalho precisam estar dentro de um <thead>
+  // de verdade (não só soltas antes do <tbody>) -- sem isso o seletor CSS
+  // "#dreContabilTabela thead th" nunca casa, e o cabeçalho fica sem o fundo navy/fonte
+  // branca (bug reportado pelo usuário: cabeçalho saía com o mesmo fundo branco da
+  // planilha em vez de destacado).
+  const thead = '<thead><tr><th>DISCRIMINAÇÃO</th>'+
+    calc.map(c=>'<th colspan="2">'+MESES_PT[c.mes-1]+'/'+c.ano+'</th>').join('')+
+    '</tr><tr><th></th>'+
+    calc.map(()=>'<th>R$</th><th>%/R$</th>').join('')+
+    '</tr></thead>';
 
-  html += _linhaTotalDREC('EBITDA', ebitda, pct(ebitda), 'var(--green5)');
+  // Monta os arrays por rubrica (1 item por mês, na mesma ordem de `calc`) -- ver
+  // comentário de _linhaDREC pra formato de cada item.
+  const pmReceitaBruta = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.receitaBruta, pct:null, subgrupos:c.d.RECEITA_BRUTA.subgrupos}));
+  const pmImpostos = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.impostos, pct:null, subgrupos:c.d.IMPOSTOS.subgrupos}));
+  const pmReceitaLiquida = calc.map(c=>({total:c.receitaLiquida, pct:c.pct(c.receitaLiquida)}));
+  const pmDP = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dp, pct:c.pct(c.dp), subgrupos:c.d.DP.subgrupos}));
+  const pmDV = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dv, pct:c.pct(c.dv), subgrupos:c.d.DV.subgrupos}));
+  const pmDA = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.da, pct:c.pct(c.da), subgrupos:c.d.DA.subgrupos}));
+  const pmDC = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dc, pct:c.pct(c.dc), subgrupos:c.d.DC.subgrupos}));
+  const pmDIR = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dir, pct:c.pct(c.dir), subgrupos:c.d.DIR.subgrupos}));
+  const pmOutras = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.outras, pct:c.pct(c.outras), subgrupos:c.d.OUTRAS.subgrupos}));
+  const pmEbitda = calc.map(c=>({total:c.ebitda, pct:c.pct(c.ebitda)}));
+  const pmDF = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.df, pct:c.pct(c.df), subgrupos:c.d.DF.subgrupos}));
+  const pmFin = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.financiamentos, pct:c.pct(c.financiamentos), subgrupos:c.d.FINANCIAMENTOS.subgrupos}));
+  const pmLL = calc.map(c=>({total:c.ll, pct:c.pct(c.ll)}));
+  const pmExtra = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.extra, pct:null, subgrupos:c.d.EXTRA.subgrupos}));
 
-  html += _linhaDREC('DF', 'DF (DESPESA FINANCEIRA)', df, pct(df), true, d.DF.subgrupos);
-  html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', financiamentos, pct(financiamentos), true, d.FINANCIAMENTOS.subgrupos);
+  let html = thead + '<tbody>';
 
-  html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', ll, pct(ll), 'var(--blue-ll)');
+  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', pmReceitaBruta, false);
+  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', pmImpostos, true);
+  html += _linhaTotalDREC('RECEITA LÍQUIDA', pmReceitaLiquida);
 
-  // 2026-08-19, pedido do usuário: PAGAMENTOS EXTRA - V7 aparece abaixo do fechamento de
-  // LL, só pra consulta -- não soma nem deduz em nenhuma linha acima (ver EXTRA_FONTES).
-  if(Math.abs(extra) > 0.004){
-    html += '<tr><td colspan="3" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
-    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', extra, null, true, d.EXTRA.subgrupos, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.');
+  html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', pmDP, true);
+  html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', pmDV, true);
+  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', pmDA, true);
+  html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', pmDC, true);
+  html += _linhaDREC('DIR', 'DIR (DIRETORIA)', pmDIR, true);
+  if(showOutras) html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', pmOutras, true, true);
+
+  html += _linhaTotalDREC('EBITDA', pmEbitda, 'var(--green5)');
+
+  html += _linhaDREC('DF', 'DF (DESPESA FINANCEIRA)', pmDF, true);
+  html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', pmFin, true);
+
+  html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', pmLL, 'var(--blue-ll)');
+
+  if(showExtra){
+    html += '<tr><td colspan="'+(1+calc.length*2)+'" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
+    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.');
   }
 
   html += '</tbody>';
   tabela.innerHTML = html;
 }
-function _abrirDreContabilSubgrupoPopup(rubrica, subgrupo){
+// `mes`/`ano` (2026-09-22): agora cada célula clicada pertence a um mês diferente (tabela
+// mês a mês) -- guarda em _dreContabilPopupMesAno, separado de _dreContabilUltimoMesAno
+// (que continua representando o mês mais recente da tabela, usado pelo botão de exportar).
+function _abrirDreContabilSubgrupoPopup(rubrica, subgrupo, mes, ano){
   _modalTipoAtual = 'dreContabil';
+  _dreContabilPopupMesAno = { mes, ano };
   _dreModalAtual = { guia: rubrica, subgrupo };
   _renderDreModalTabela();
 }
@@ -3453,13 +3693,15 @@ function _renderDreModalTabela(){
   // 2026-08-16: mesma função de render serve os dois popups (DRE - Simplificado e DRE -
   // Contábil) -- só troca de onde vêm os itens (_modalTipoAtual seta qual das duas
   // funções de montagem usar), o resto (ordenação, tabela, export) é idêntico.
-  let itens;
+  let itens, tituloMes = '';
   if(_modalTipoAtual==='dreContabil'){
-    if(!_dreContabilUltimoMesAno) return;
-    const { mes, ano } = _dreContabilUltimoMesAno;
+    // Célula clicada (mês específico da tabela mês a mês) -- ver _abrirDreContabilSubgrupoPopup.
+    if(!_dreContabilPopupMesAno) return;
+    const { mes, ano } = _dreContabilPopupMesAno;
     const dados = _montarDREContabil(mes, ano);
     const g = dados[guia];
     itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+    tituloMes = ' — '+MESES_PT[mes-1]+'/'+ano;
   } else {
     if(!_dreUltimoMesAno) return;
     const { mes, ano } = _dreUltimoMesAno;
@@ -3471,7 +3713,7 @@ function _renderDreModalTabela(){
     ? _dreModalSortDir*(a.valor-b.valor)
     : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
   const total = itens.reduce((s,t)=>s+t.valor,0);
-  const titulo = '<h3>'+subgrupo+' — '+guia+'</h3>'+
+  const titulo = '<h3>'+subgrupo+' — '+guia+tituloMes+'</h3>'+
     '<div class="modal-actions"><button onclick="baixarCSVModal()">Baixar CSV</button><button class="pdf" onclick="baixarPDFModal()">Baixar PDF</button></div>'+
     '<div class="modal-summary"><span class="rs-label">Lançamentos:</span>&nbsp;<span class="rs-valor">'+itens.length+'</span>&nbsp;&nbsp;'+
     '<span class="rs-label">Total:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(total)+'</span></div>';
@@ -4209,9 +4451,9 @@ function _tituloModalFinanceiroAtual(){
   return 'Detalhamento';
 }
 function _linhasModalFinanceiroCSV(){
-  if(_modalTipoAtual==='dreContabil' && _dreContabilUltimoMesAno && _dreModalAtual){
+  if(_modalTipoAtual==='dreContabil' && _dreContabilPopupMesAno && _dreModalAtual){
     const { guia, subgrupo } = _dreModalAtual;
-    const { mes, ano } = _dreContabilUltimoMesAno;
+    const { mes, ano } = _dreContabilPopupMesAno;
     const dados = _montarDREContabil(mes, ano);
     const g = dados[guia];
     const itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
