@@ -2187,6 +2187,15 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '78808': '2026-09-20',
   '79481': '2026-09-20',
   '79475': '2026-09-20',
+  // Bilhetes MARCOS ANTONIO GOMES DA COSTA (78791) e NAGILA CRISTINA B PEREIRA
+  // (165048/78802), Convênio Fazenda Ribeirão; GERIVALDO FERREIRA DE LIMA (167187),
+  // Convênio DPL Construções: relatório gravou 22/09, mas as viagens foram de fato em
+  // 21/09 (confirmado pelo usuário em 2026-09-22).
+  '78791': '2026-09-21',
+  '165048': '2026-09-21',
+  '78802': '2026-09-21',
+  '165048/78802': '2026-09-21',
+  '167187': '2026-09-21',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -4066,6 +4075,12 @@ function renderVisaoGeral(){
   // (pedido dos sócios, 2026-08-05) -- ver comentário grande logo acima da
   // definição de FROTA_VEICULOS/_pktDia/_diasVisaoGeralNova.
   const diasVG = _diasVisaoGeralNova();
+  // Precomputa "Convênios por dia" pro período (mesma lógica de renderIndicadores(),
+  // ver comentário completo em _prepararConveniosPorDia) -- sem isso, _receitaConveniosDia()
+  // cai na "rede de segurança" isolada (se o cache nunca rodou) ou, pior, lê um cache
+  // de OUTRO período deixado por uma renderização anterior de Indicadores/Resumo Diário,
+  // devolvendo 0 pros dias fora daquele cache antigo (bug: CONVÊNIOS zerado na Visão Geral).
+  _prepararConveniosPorDia(di, df);
   const baseDiaVG = {}; diasVG.forEach(d=>{ baseDiaVG[d] = _indicadoresDiaBase(d); });
 
   const somaVG = campo => diasVG.reduce((s,d)=>s+(baseDiaVG[d][campo]||0),0);
