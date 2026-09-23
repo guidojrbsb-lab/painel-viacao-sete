@@ -598,7 +598,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       </div>
 
       <div class="panel" id="painelAjusteComissao">
-        <h2>Ajuste Fiscal — Comissão de Agências/Internet <span class="info-badge">soma como RECEITA e, espelhado, como DESPESA em DC (Despesa Comercial) -- não muda o resultado final (EBITDA/LL), só deixa a apresentação contábil mais correta. Digite olhando as caixas "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" do Painel Comercial &gt; Agências, para a competência selecionada abaixo.</span></h2>
+        <h2>Ajuste Fiscal — Comissão de Agências/Internet <span class="info-badge">soma como RECEITA e, espelhado, como DESPESA em COMISSÃO (2026-09-24: rubrica própria, antes entrava em DC) -- não muda o resultado final (EBITDA/LL), só deixa a apresentação contábil mais correta. Digite olhando as caixas "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" do Painel Comercial &gt; Agências, para a competência selecionada abaixo.</span></h2>
         <div class="filters-grid" style="grid-template-columns:200px 220px 220px 140px;align-items:end;">
           <div><label>COMPETÊNCIA</label><select id="ajusteComissaoCompetencia" onchange="_onMudarCompetenciaAjusteComissao()"></select></div>
           <div><label>COMISSÃO DE AGÊNCIAS (R$)</label><input type="text" id="ajusteComissaoAgencias" placeholder="0,00"></div>
@@ -3076,22 +3076,71 @@ function _redirecionarSubgrupoDREC(origem, destino, subgrupo){
   gDest.total += s.total;
   destino.total += s.total;
 }
+// Extrai de `origem` (uma rubrica já mesclada por _mesclarGuias) todo GRUPO DE
+// CLASSIFICAÇÃO cujo nome comece com "COMISSÃO"/"COMISSAO", movendo pra `destino` (a nova
+// rubrica COMISSÃO, ver comentário grande abaixo em _montarDREContabil). Diferente de
+// _redirecionarSubgrupoDREC (que move 1 SUBGRUPO específico, achado por nome exato), esta
+// função varre TODOS os grupos de UMA rubrica de uma vez e casa por PREFIXO -- pensada
+// pra pegar comissão não importa em qual CENTRO DE CUSTO ela tenha caído (normalmente
+// CUSTO COMERCIAL, mas também serve de rede de segurança se cair em OUTRAS por um nome de
+// SUBGRUPO que a planilha de classificação ainda não tem mapeado). Usada 1x por rubrica
+// de despesa (DP/DV/DA/DC/DIR/OUTRAS) logo depois de montá-las em _montarDREContabil.
+function _extrairGruposComissaoDREC(origem, destino){
+  const gruposOrigem = origem.grupos || {};
+  Object.keys(gruposOrigem).forEach(grupoNome=>{
+    if(!/^COMISS[ÃA]O/i.test(grupoNome)) return;
+    const g = gruposOrigem[grupoNome];
+    origem.total -= g.total;
+    delete gruposOrigem[grupoNome];
+    if(!destino.grupos[grupoNome]) destino.grupos[grupoNome] = { total: 0, subgrupos: {} };
+    const gDest = destino.grupos[grupoNome];
+    Object.keys(g.subgrupos).forEach(sub=>{
+      if(!gDest.subgrupos[sub]) gDest.subgrupos[sub] = { total: 0, itens: [] };
+      gDest.subgrupos[sub].total += g.subgrupos[sub].total;
+      gDest.subgrupos[sub].itens = gDest.subgrupos[sub].itens.concat(g.subgrupos[sub].itens);
+    });
+    gDest.total += g.total;
+    destino.total += g.total;
+  });
+}
 function _montarDREContabil(mes, ano){
   const guias = _montarDRE(mes, ano);
   const nomeadas = new Set([...DP_FONTES, ...DV_FONTES, ...DA_FONTES, ...DC_FONTES, ...DF_FONTES, ...IMPOSTOS_FONTES, ...DIR_FONTES, ...EXTRA_FONTES]);
   const outrasFontes = Object.keys(guias).filter(k=> k!=='RECEITAS' && k!=='FINANCIAMENTOS' && !nomeadas.has(k));
   const impostos = _mesclarGuias(guias, IMPOSTOS_FONTES);
+  const dp = _mesclarGuias(guias, DP_FONTES);
+  const dv = _mesclarGuias(guias, DV_FONTES);
+  const da = _mesclarGuias(guias, DA_FONTES);
   const dc = _mesclarGuias(guias, DC_FONTES);
   _redirecionarSubgrupoDREC(impostos, dc, 'SEGURO CAPEMISA');
+  const dir = _mesclarGuias(guias, DIR_FONTES);
+  const outras = _mesclarGuias(guias, outrasFontes);
+  // CENTRO DE CUSTO "COMISSÃO" (2026-09-24, pedido do usuário: "crie um novo CENTRO DE
+  // CUSTO denominado COMISSÃO... todas as despesas com Comissão que temos, inclusive o
+  // ajuste fiscal manual"): antes, COMISSÃO DE AGÊNCIAS/COMISSÃO PREFEITURAS/COMISSÃO DE
+  // PARCEIROS ficavam espalhadas -- a maioria dentro de CUSTO COMERCIAL (DC), mas qualquer
+  // nome de SUBGRUPO que a planilha de classificação ainda não tivesse mapeado caía no
+  // catch-all OUTRAS DESPESAS (foi o caso reportado pelo usuário, com print mostrando as 3
+  // dentro de "OUTRAS DESPESAS"). Em vez de mapear centro de custo por centro de custo,
+  // _extrairGruposComissaoDREC varre TODAS as rubricas de despesa já montadas e puxa pra
+  // cá qualquer GRUPO cujo nome comece com "COMISSÃO" -- pega tanto o que estava em DC
+  // quanto o que tinha escapado pra OUTRAS, na mesma passada. O Ajuste Fiscal (gross-up
+  // manual, ver salvarAjusteComissao) também entra aqui automaticamente: ele é injetado em
+  // _montarDRE() com GRUPO "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" dentro de CUSTO
+  // COMERCIAL, então cai no mesmo prefixo e é puxado pra COMISSÃO igual aos lançamentos
+  // reais -- não precisou mudar o código do ajuste fiscal em si.
+  const comissao = { total: 0, grupos: {} };
+  [dp, dv, da, dc, dir, outras].forEach(g=> _extrairGruposComissaoDREC(g, comissao));
   return {
     RECEITA_BRUTA: guias['RECEITAS'] || { total: 0, grupos: {} },
     IMPOSTOS: impostos,
-    DP: _mesclarGuias(guias, DP_FONTES),
-    DV: _mesclarGuias(guias, DV_FONTES),
-    DA: _mesclarGuias(guias, DA_FONTES),
+    DP: dp,
+    DV: dv,
+    DA: da,
     DC: dc,
-    DIR: _mesclarGuias(guias, DIR_FONTES),
-    OUTRAS: _mesclarGuias(guias, outrasFontes),
+    DIR: dir,
+    COMISSAO: comissao,
+    OUTRAS: outras,
     OUTRAS_FONTES: outrasFontes,
     DF: _mesclarGuias(guias, DF_FONTES),
     FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, grupos: {} },
@@ -3114,7 +3163,12 @@ function _toggleDreContabilGuia(nome){
 // Formata um valor pra célula da tabela mês a mês: "-" quando não há lançamento (ou o total
 // é efetivamente zero), R$ formatado caso contrário -- pedido do usuário em 2026-09-22
 // ("campos que não tiverem dados pode deixar em branco ou tracinho").
-function _valDREC(v){ return Math.abs(v||0) < 0.005 ? '-' : _fmtBRL(v); }
+// Sem "R$" e sem casas decimais (2026-09-24, pedido do usuário: "diminuir o tamanho
+// necessário da coluna") -- só nesta tabela (DRE - Caixa); o resto do painel continua
+// usando _fmtBRL (com "R$" e centavos) normalmente. Math.round antes do toLocaleString
+// pra arredondar certo (toLocaleString sozinho já arredondaria maximumFractionDigits:0,
+// mas o Math.round deixa explícito).
+function _valDREC(v){ return Math.abs(v||0) < 0.005 ? '-' : Math.round(v||0).toLocaleString('pt-BR'); }
 function _pctDREC(v){ return (v===null || Math.abs(v||0) < 0.005) ? '-' : v.toFixed(1)+'%'; }
 // Linha de rubrica (RECEITA BRUTA/IMPOSTOS/DP/DV/DA/DC/OUTRAS/DF/FINANCIAMENTOS) -- `key` é
 // o identificador curto usado no estado de expansão e no popup (bate com as chaves de
@@ -3178,9 +3232,11 @@ function _linhasGruposDREC(rubricaKey, porMes, vermelho){
   const grupoNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
   grupoNomes.forEach(grupo=>{
     let cels = '<td style="padding-left:18px;'+cor+'">'+grupo+'</td>';
+    let totalAcum = 0;
     porMes.forEach(m=>{
       const g = m.grupos && m.grupos[grupo];
       if(g){
+        totalAcum += g.total||0;
         const qtdItens = Object.values(g.subgrupos||{}).reduce((s,sg)=>s+sg.itens.length,0);
         cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilGrupoPopup(\''+rubricaKey+'\',\''+grupo.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+qtdItens+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(g.total)+'</td>';
       } else {
@@ -3188,11 +3244,17 @@ function _linhasGruposDREC(rubricaKey, porMes, vermelho){
       }
       cels += '<td class="dre-mes-pct"></td>';
     });
-    // Colunas de resumo (2026-09-24) ficam em branco no detalhe por GRUPO -- o usuário
-    // confirmou que não precisa de acumulado/média nesse nível, só nas linhas de rubrica/
-    // fechamento. As 4 células vazias existem só pra manter o número de colunas igual ao
-    // do cabeçalho (senão a tabela desalinha visualmente).
-    cels += '<td class="dre-mes-r dre-resumo dre-resumo-1a-col"></td><td class="dre-mes-pct dre-resumo"></td><td class="dre-mes-r dre-resumo"></td><td class="dre-mes-pct dre-resumo"></td>';
+    // Colunas de resumo (2026-09-24, atualizado 2026-09-24: pedido do usuário -- "todos os
+    // Centros de Custo acompanhem a planilha ACUMULADO e MEDIA") -- mostra a soma/média dos
+    // meses do período pra este GRUPO também, igual às linhas de rubrica/fechamento; só o
+    // popup de drill-down (onclick) continua de fora, por isso as 2 colunas de resumo nunca
+    // ganham a classe "clickable" nem o onclick que as células mensais têm acima. Sem %/R$
+    // aqui (mesmo padrão das células mensais desta linha, que também não mostram percentual).
+    const mediaAcum = porMes.length ? totalAcum/porMes.length : 0;
+    cels += '<td class="dre-mes-r dre-resumo dre-resumo-1a-col" style="'+cor+'">'+_valDREC(totalAcum)+'</td>'+
+      '<td class="dre-mes-pct dre-resumo"></td>'+
+      '<td class="dre-mes-r dre-resumo" style="'+cor+'">'+_valDREC(mediaAcum)+'</td>'+
+      '<td class="dre-mes-pct dre-resumo"></td>';
     html += '<tr>'+cels+'</tr>';
   });
   return html;
@@ -3301,8 +3363,8 @@ function renderDREContabil(){
     const receitaBruta = d.RECEITA_BRUTA.total;
     const impostos = d.IMPOSTOS.total;
     const receitaLiquida = receitaBruta - impostos;
-    const dp=d.DP.total, dv=d.DV.total, da=d.DA.total, dc=d.DC.total, dir=d.DIR.total, outras=d.OUTRAS.total;
-    const totalDespesasOperacionais = dp+dv+da+dc+dir+outras;
+    const dp=d.DP.total, dv=d.DV.total, da=d.DA.total, dc=d.DC.total, dir=d.DIR.total, comissao=d.COMISSAO.total, outras=d.OUTRAS.total;
+    const totalDespesasOperacionais = dp+dv+da+dc+dir+comissao+outras;
     const ebitda = receitaLiquida - totalDespesasOperacionais;
     const df = d.DF.total, financiamentos = d.FINANCIAMENTOS.total;
     const ll = ebitda - df - financiamentos;
@@ -3310,7 +3372,7 @@ function renderDREContabil(){
     // % continua sobre RECEITA LÍQUIDA (=100%), calculado por mês (cada mês tem sua
     // própria base de 100%).
     const pct = v => receitaLiquida ? (v/receitaLiquida*100) : 0;
-    return { mes, ano, d, receitaBruta, impostos, receitaLiquida, dp,dv,da,dc,dir,outras, totalDespesasOperacionais, ebitda, df, financiamentos, ll, extra, pct };
+    return { mes, ano, d, receitaBruta, impostos, receitaLiquida, dp,dv,da,dc,dir,comissao,outras, totalDespesasOperacionais, ebitda, df, financiamentos, ll, extra, pct };
   });
 
   // Mês mais recente MOSTRADO (última coluna do intervalo filtrado) -- usado como padrão
@@ -3358,6 +3420,7 @@ function renderDREContabil(){
   const pmDA = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.da, pct:c.pct(c.da), grupos:c.d.DA.grupos}));
   const pmDC = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dc, pct:c.pct(c.dc), grupos:c.d.DC.grupos}));
   const pmDIR = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dir, pct:c.pct(c.dir), grupos:c.d.DIR.grupos}));
+  const pmComissao = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.comissao, pct:c.pct(c.comissao), grupos:c.d.COMISSAO.grupos}));
   const pmOutras = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.outras, pct:c.pct(c.outras), grupos:c.d.OUTRAS.grupos}));
   const pmEbitda = calc.map(c=>({total:c.ebitda, pct:c.pct(c.ebitda)}));
   const pmDF = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.df, pct:c.pct(c.df), grupos:c.d.DF.grupos}));
@@ -3379,6 +3442,7 @@ function renderDREContabil(){
   html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', pmDV, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', pmDA, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', pmDC, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('COMISSAO', 'COMISSÃO', pmComissao, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DIR', 'DIR (DIRETORIA)', pmDIR, true, undefined, receitaLiquidaAcumulada);
   if(showOutras) html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', pmOutras, true, true, receitaLiquidaAcumulada);
 

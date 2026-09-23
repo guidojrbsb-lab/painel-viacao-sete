@@ -6508,6 +6508,17 @@ function exportarIndicadoresPDF(){
 // MAIN REFRESH + TAB SWITCHING
 // =====================================================================
 function atualizarTudo(){
+  // Corrigido 2026-09-22 (bug reportado pelo usuário: "Sumiu o valor dos Convênios no
+  // Resumo Diário -- dia que acabei de atualizar a Base não puxou"): _prepararConveniosPorDia()
+  // só recalcula quando dataIni/dataFim mudam (cache chaveado só pela data), então um novo
+  // upload de Convênios que ENTRA num dia já coberto pelo filtro atual (ex.: filtro
+  // 01/09-22/09 sem alterar, e o usuário sobe o relatório do dia 22 pela 1ª vez) reusa o
+  // mapa por-dia calculado ANTES do upload, sem o dia novo -- por isso a coluna daquele dia
+  // aparecia zerada mesmo com o lançamento já salvo em DB.convenios. atualizarTudo() roda
+  // depois de TODO upload/edição (ver saveDB()+atualizarTudo() nos handlers de upload), então
+  // zerar o cache aqui garante que o próximo _prepararConveniosPorDia() sempre recalcula com
+  // os dados atuais -- custo desprezível (roda 1x por atualização de tela, não em loop).
+  _conveniosPorDiaCache = null;
   popularFiltros();
   renderVisaoGeral();
   renderLinhas();
