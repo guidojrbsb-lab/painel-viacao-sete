@@ -386,8 +386,8 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 #dreContabilTabela td:first-child,#dreContabilTabela th:first-child{position:sticky;left:0;z-index:3;background:#fff;text-align:left;min-width:220px;max-width:220px;white-space:normal;font-weight:600;}
 #dreContabilTabela thead th:first-child{z-index:4;background:var(--navy);color:#fff;}
 #dreContabilTabela td{text-align:right;color:var(--ink);}
-#dreContabilTabela td.dre-mes-pct{color:var(--muted);min-width:56px;}
-#dreContabilTabela td.dre-mes-r{min-width:80px;}
+#dreContabilTabela td.dre-mes-pct{color:var(--muted);min-width:40px;padding-left:6px;padding-right:6px;}
+#dreContabilTabela td.dre-mes-r{min-width:52px;padding-left:6px;padding-right:6px;}
 /* Zebra striping (mesmo efeito visual da tabela "Resumo Diário", table.ind-table) --
    dá mais profundidade/acabamento à tabela mês a mês, pedido do usuário em 2026-09-22. */
 #dreContabilTabela tbody tr:nth-child(even):not(.total-row) td{background:#fafbfd;}
@@ -399,6 +399,14 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 #dreContabilTabela tbody tr:last-child td{border-bottom:none;}
 #dreContabilTabela tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-md);}
 #dreContabilTabela tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-md);}
+/* Colunas TOTAL ACUMULADO / MÉDIA MENSAL do período (2026-09-24, pedido do usuário): fixas
+   à direita da última coluna de mês, somando/tirando a média de todos os meses do filtro
+   Início/Término -- reage ao filtro, mas é só consulta (sem clique/drill-down, ver
+   renderDREContabil) e não entra nas exportações Excel/CSV/PDF (que montam os dados
+   direto via _montarDREContabil, sem ler esta tabela). Tom de fundo levemente diferente +
+   borda esquerda mais grossa marcam visualmente que é um bloco à parte dos meses.*/
+#dreContabilTabela td.dre-resumo{background:#eef1f8;}
+#dreContabilTabela td.dre-resumo-1a-col{border-left:2px solid var(--navy);}
 /* Cabeçalho congelado nos popups de detalhe da aba Bancos (pedido dos sócios,
    2026-08-07) -- mesmo motivo/técnica já documentada acima para as tabelas de
    Ranking do Comercial: "overflow:hidden" em table.data (usado pra arredondar os
@@ -425,35 +433,13 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
    convenção visual de "precisa de revisão" já usada na aba Convênios do painel
    Comercial (cv-linha-sem-regra). */
 #bcTabelaConvenios tr.bc-convenio-nao-identificado td{color:var(--red);font-weight:700;}
-/* VENDA FUTURA (pedido dos sócios, 2026-08-10): cabeçalho congelado dentro da
-   .scroll-box, mesma técnica de #bcTabelaConvenios acima (overflow:visible pra não
-   quebrar o position:sticky do cabeçalho, cantos arredondados recriados na mão). */
-#vfTabela{overflow:visible;}
-#vfTabela tr:first-child th:first-child{border-top-left-radius:12px;}
-#vfTabela tr:first-child th:last-child{border-top-right-radius:12px;}
-#vfTabela tr:last-child td:first-child{border-bottom-left-radius:12px;}
-#vfTabela tr:last-child td:last-child{border-bottom-right-radius:12px;}
-/* Linha TOTAL RECEBÍVEIS (pedido dos sócios, 2026-08-10) -- desistimos de
-   position:sticky pra essa linha: dentro de uma .scroll-box cujo conteúdo normalmente
-   NÃO enche os 420px (só 2 guias + poucos itens expandidos), o sticky não tinha
-   "distância" nenhuma pra ancorar e acabava vazando pro rodapé da página (colidindo
-   com #uploadBar), mesmo aumentando o padding-bottom do <main> estática ou
-   dinamicamente -- nenhuma das duas tentativas resolveu. Solução definitiva: TOTAL
-   RECEBÍVEIS é uma TABELA SEPARADA (#vfTabelaTotal), fora da .scroll-box, sempre visível
-   em fluxo normal logo abaixo dela -- nunca precisa de sticky pra "ficar visível", ela
-   simplesmente nunca entra na área que rola. Cantos de cima retos (encosta direto na
-   .scroll-box acima, sem espaço entre as duas), cantos de baixo arredondados (fecha o
-   visual do painel). */
-#vfTabelaTotal{margin-top:-1px;}
-#vfTabelaTotal tr td{border-top-left-radius:0;border-top-right-radius:0;}
-/* Cabeçalho congelado nos popups da aba DRE (DRE > Subgrupo, Venda Futura > Cartão de
-   Crédito, Venda Futura > Convênio) -- pedido dos sócios, 2026-08-10, mesma técnica dos
-   popups da aba Bancos (#bcModalTabela). */
-#dreModalTabela,#vfModalTabela,#vfModalConvTabela{overflow:visible;}
-#dreModalTabela tr:first-child th:first-child,#vfModalTabela tr:first-child th:first-child,#vfModalConvTabela tr:first-child th:first-child{border-top-left-radius:12px;}
-#dreModalTabela tr:first-child th:last-child,#vfModalTabela tr:first-child th:last-child,#vfModalConvTabela tr:first-child th:last-child{border-top-right-radius:12px;}
-#dreModalTabela tr:last-child td:first-child,#vfModalTabela tr:last-child td:first-child,#vfModalConvTabela tr:last-child td:first-child{border-bottom-left-radius:12px;}
-#dreModalTabela tr:last-child td:last-child,#vfModalTabela tr:last-child td:last-child,#vfModalConvTabela tr:last-child td:last-child{border-bottom-right-radius:12px;}
+/* Cabeçalho congelado no popup da aba DRE - Caixa (DRE > Subgrupo) -- pedido dos sócios,
+   2026-08-10, mesma técnica dos popups da aba Bancos (#bcModalTabela). */
+#dreModalTabela,#dreGrupoModalTabela{overflow:visible;}
+#dreModalTabela tr:first-child th:first-child,#dreGrupoModalTabela tr:first-child th:first-child{border-top-left-radius:12px;}
+#dreModalTabela tr:first-child th:last-child,#dreGrupoModalTabela tr:first-child th:last-child{border-top-right-radius:12px;}
+#dreModalTabela tr:last-child td:first-child,#dreGrupoModalTabela tr:last-child td:first-child{border-bottom-left-radius:12px;}
+#dreModalTabela tr:last-child td:last-child,#dreGrupoModalTabela tr:last-child td:last-child{border-bottom-right-radius:12px;}
 </style></head>
 <body>
 <!-- Barra fixa só do modo público (link do Vercel), mesmo padrão do painel Comercial:
@@ -484,15 +470,13 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          "tab-content"/"active" (não existe CSS pra essas classes, ficaria tudo visível ao
          mesmo tempo assim que houver mais de uma aba). -->
     <button data-tab="bancos" class="active"><span class="ic">&#127974;</span>Bancos</button>
-    <button data-tab="dre"><span class="ic">&#128202;</span>DRE - Simplificado</button>
-    <!-- DRE - CONTÁBIL (2026-08-16): pedido dos sócios pra estrutura mais próxima de um DRE
-         societário (Receita Bruta > Impostos > Receita Líquida > despesas agrupadas em
-         DP/DV/DA/DC > EBITDA > DF/Financiamentos > Lucro Líquido, com % sobre Receita Bruta
-         em cada linha). A aba antiga (Receitas x Centro de Custo, dupla expansão) foi
-         preservada como "DRE - Simplificado" pra não perder o trabalho já feito -- as duas
-         abas leem a MESMA base de lançamentos já classificados (DB.bancos/DB.especie/
-         DB.classificacao), só reagrupam de um jeito diferente na hora de exibir. -->
-    <button data-tab="dre-contabil"><span class="ic">&#128200;</span>DRE - Contábil</button>
+    <!-- DRE - CAIXA (2026-08-16, renomeada de "DRE - Contábil" em 2026-09-22 quando a aba
+         "DRE - Simplificado" foi excluída em definitivo a pedido dos sócios): estrutura
+         societária clássica -- Receita Bruta > Impostos > Receita Líquida > despesas
+         agrupadas em DP/DV/DA/DC > EBITDA > DF/Financiamentos > Lucro Líquido, com % sobre
+         Receita Líquida em cada linha. Lê a base de lançamentos já classificados
+         (DB.bancos/DB.especie/DB.classificacao) via _montarDRE/_montarDREContabil. -->
+    <button data-tab="dre-contabil"><span class="ic">&#128200;</span>DRE - Caixa</button>
     <!-- ORÇAMENTO (2026-08-27): Programado x Realizado a partir da Estrutura de Custo
          Padrão anexada pelo usuário. Ver bloco de comentário grande no script, logo
          antes de renderOrcamento(). -->
@@ -584,75 +568,42 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          Lançamentos ainda classificados como DESCONHECIDO ficam de fora por pedido
          explícito do usuário (serão corrigidos manualmente depois, com o fornecedor
          certo). -->
-    <section class="tab hidden" id="tab-dre">
-      <div class="panel filtro-box" id="filtrosPanelDre">
-        <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
-        <div class="filters-grid" style="grid-template-columns:240px 180px 180px;">
-          <div><label>COMPETÊNCIA</label><select id="dreCompetencia" onchange="renderDRE()"></select></div>
-          <!-- DATA INÍCIO/FIM (2026-08-18, pedido do usuário; critério corrigido em
-               2026-08-19 -- ver comentário de _periodoExportacaoDRE() no script): filtro
-               ADICIONAL, só usado pelos botões "Exportar Excel de Classificação/Espécie"
-               do rodapé -- não muda o que aparece na tabela acima (isso continua 100%
-               controlado pela COMPETÊNCIA à esquerda). Compara a DATA CRUA do evento dia
-               a dia (mesmo critério do filtro da aba Bancos) -- Início=Fim=17/08 exporta
-               SÓ o dia 17/08, mesmo que a competência classificada de algum lançamento
-               seja outro mês. -->
-          <div><label>DATA INÍCIO (exportação)</label><input type="date" id="dreDataIni"></div>
-          <div><label>DATA FIM (exportação)</label><input type="date" id="dreDataFim"></div>
-        </div>
-      </div>
-
-      <!-- Ajuste Fiscal (gross-up) de Comissão de Agências/Internet -- pedido do usuário
-           em 2026-08-16: "COMISSÃO DE AGÊNCIAS" e "COMISSÃO INTERNET" só existem
-           calculadas no painel COMERCIAL (aba Agências), a partir de relatórios de venda
-           que o Financeiro não importa -- por isso são digitadas aqui manualmente, olhando
-           o Comercial, em vez de calculadas sozinhas. Ver salvarAjusteComissao/
-           _montarDRE. Escondida no modo público (toggleControlesModoPublico), já que
-           saveDB() é no-op lá -- não faz sentido deixar o campo editável. -->
-      <div class="panel" id="painelAjusteComissao">
-        <h2>Ajuste Fiscal — Comissão de Agências/Internet <span class="info-badge">soma como RECEITA e, espelhado, como DESPESA em DC (Despesa Comercial) -- não muda o resultado final (EBITDA/LL), só deixa a apresentação contábil mais correta. Digite olhando as caixas "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" do Painel Comercial &gt; Agências, para a mesma competência selecionada acima.</span></h2>
-        <div class="filters-grid" style="grid-template-columns:220px 220px 140px;align-items:end;">
-          <div><label>COMISSÃO DE AGÊNCIAS (R$)</label><input type="text" id="ajusteComissaoAgencias" placeholder="0,00"></div>
-          <div><label>COMISSÃO INTERNET (R$)</label><input type="text" id="ajusteComissaoInternet" placeholder="0,00"></div>
-          <div><button style="background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;cursor:pointer;width:100%;" onclick="salvarAjusteComissao()">Salvar</button></div>
-        </div>
-      </div>
-
-      <div class="kpi-row" id="dreKpiRow"></div>
-
-      <div class="panel">
-        <table class="data" id="dreTabela"><thead></thead><tbody></tbody></table>
-      </div>
-
-      <!-- VENDA FUTURA -- pedido dos sócios em 2026-08-10: tópico independente da apuração
-           acima (dinheiro que ainda não chegou -- recebível de cartão em aberto e, no
-           futuro, repasse de convênio ainda não pago). NUNCA soma em RECEITAS/DESPESAS/
-           RESULTADO/RECEITA LÍQUIDA -- por isso é uma tabela à parte, fora do dreTabela. -->
-      <div class="panel" id="painelVendaFutura">
-        <h2>Venda Futura <span class="info-badge">tópico independente — os valores abaixo NÃO somam na apuração da DRE acima; mostra SEMPRE tudo o que está em aberto (cartão a receber + convênios não pagos), de qualquer mês, sem depender da competência selecionada acima</span></h2>
-        <div class="scroll-box">
-          <table class="data" id="vfTabela"><thead></thead><tbody></tbody></table>
-        </div>
-        <table class="data" id="vfTabelaTotal"><tbody></tbody></table>
-      </div>
-    </section>
-
-    <!-- ABA DRE - CONTÁBIL: estrutura societária clássica, ver
-         _montarDREContabil/renderDREContabil. Layout mês a mês (2026-09-22, pedido dos
-         acionistas): mostra os meses da base lado a lado (igual ao Resumo Diário do Painel
-         Comercial), sem seletor de COMPETÊNCIA única -- em vez disso, um filtro MÊS
-         INÍCIO/MÊS TÉRMINO (2026-09-22, 2ª rodada de ajuste: substituiu os KPIs de
-         destaque, que o usuário pediu pra tirar) restringe quais meses aparecem; por
-         padrão mostra a base inteira (Início = 1º mês disponível, Término = último). O
+    <!-- ABA DRE - CAIXA (2026-08-16, renomeada de "DRE - Contábil" em 2026-09-22 quando a aba
+         "DRE - Simplificado" foi excluída em definitivo a pedido dos sócios): estrutura
+         societária clássica, ver _montarDREContabil/renderDREContabil. Layout mês a mês
+         (2026-09-22, pedido dos acionistas): mostra os meses da base lado a lado (igual ao
+         Resumo Diário do Painel Comercial), sem seletor de COMPETÊNCIA única -- em vez
+         disso, um filtro MÊS INÍCIO/MÊS TÉRMINO (2026-09-22, 2ª rodada de ajuste: substituiu
+         os KPIs de destaque, que o usuário pediu pra tirar) restringe quais meses aparecem;
+         por padrão mostra a base inteira (Início = 1º mês disponível, Término = último). O
          botão "Exportar Excel de Classificação/Espécie" continua funcionando normalmente:
          cai no fallback de _periodoExportacaoDRE() que usa _dreContabilUltimoMesAno (mês
-         mais recente MOSTRADO na tabela, ou seja, respeita o filtro Término). -->
+         mais recente MOSTRADO na tabela, ou seja, respeita o filtro Término).
+         Ajuste Fiscal (gross-up) de Comissão de Agências/Internet -- pedido do usuário em
+         2026-08-16: "COMISSÃO DE AGÊNCIAS" e "COMISSÃO INTERNET" só existem calculadas no
+         painel COMERCIAL (aba Agências), a partir de relatórios de venda que o Financeiro
+         não importa -- por isso são digitadas aqui manualmente, olhando o Comercial, em vez
+         de calculadas sozinhas. Ver salvarAjusteComissao/_montarDRE. Tem competência PRÓPRIA
+         (2026-09-22, desacoplada de _dreUltimoMesAno que deixou de existir junto com a aba
+         DRE - Simplificado, e também do filtro MÊS INÍCIO/TÉRMINO acima, que é só de exibição
+         da tabela). Escondida no modo público (toggleControlesModoPublico), já que saveDB() é
+         no-op lá -- não faz sentido deixar o campo editável. -->
     <section class="tab hidden" id="tab-dre-contabil">
       <div class="panel filtro-box" id="filtrosPanelDreContabil">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid" style="grid-template-columns:220px 220px;">
           <div><label>MÊS INÍCIO</label><select id="dreContabilMesIni" onchange="renderDREContabil()"></select></div>
           <div><label>MÊS TÉRMINO</label><select id="dreContabilMesFim" onchange="renderDREContabil()"></select></div>
+        </div>
+      </div>
+
+      <div class="panel" id="painelAjusteComissao">
+        <h2>Ajuste Fiscal — Comissão de Agências/Internet <span class="info-badge">soma como RECEITA e, espelhado, como DESPESA em DC (Despesa Comercial) -- não muda o resultado final (EBITDA/LL), só deixa a apresentação contábil mais correta. Digite olhando as caixas "COMISSÃO DE AGÊNCIAS"/"COMISSÃO INTERNET" do Painel Comercial &gt; Agências, para a competência selecionada abaixo.</span></h2>
+        <div class="filters-grid" style="grid-template-columns:200px 220px 220px 140px;align-items:end;">
+          <div><label>COMPETÊNCIA</label><select id="ajusteComissaoCompetencia" onchange="_onMudarCompetenciaAjusteComissao()"></select></div>
+          <div><label>COMISSÃO DE AGÊNCIAS (R$)</label><input type="text" id="ajusteComissaoAgencias" placeholder="0,00"></div>
+          <div><label>COMISSÃO INTERNET (R$)</label><input type="text" id="ajusteComissaoInternet" placeholder="0,00"></div>
+          <div><button style="background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;cursor:pointer;width:100%;" onclick="salvarAjusteComissao()">Salvar</button></div>
         </div>
       </div>
 
@@ -693,6 +644,12 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <button class="secondary" onclick="limparBase()">Limpar base local</button>
     <select id="selLimparBanco" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;font-weight:bold;"></select>
     <button class="secondary" onclick="limparBaseBanco()">Limpar base do banco</button>
+    <!-- Remover Período da Base (2026-09-23, pedido do usuário): diferente do "Limpar base
+         do banco" acima (1 banco por vez), remove um intervalo de MESES inteiros de TODOS
+         os bancos + Espécie de uma vez -- ver removerPeriodoDaBase(). -->
+    <input type="month" id="removerPeriodoIni" title="Mês inicial a remover" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;">
+    <input type="month" id="removerPeriodoFim" title="Mês final a remover" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;">
+    <button class="secondary" onclick="removerPeriodoDaBase()">Remover meses da Base (todos os bancos + Espécie)</button>
     <button class="secondary" onclick="exportarBaseCompleta()">Exportar base (para link público)</button>
     <button class="secondary" onclick="exportarExcelClassificacao()">Exportar Excel de Classificação</button>
     <button class="secondary" onclick="document.getElementById('fileInputClassificacao').click()">Importar Classificação (DRE)</button>
@@ -704,26 +661,8 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <button class="secondary" onclick="exportarExcelEspecie()">Exportar Excel de Espécie</button>
     <button class="secondary" onclick="document.getElementById('fileInputEspecie').click()">Importar Classificação Espécie (DRE)</button>
     <input type="file" id="fileInputEspecie" accept=".xls,.xlsx" style="display:none">
-    <!-- Recebíveis Stone (VENDA FUTURA) -- pedido dos sócios em 2026-08-10: mesmo padrão
-         visual/posição dos demais botões do rodapé, em vez de ficar solto dentro da aba
-         DRE. O select de terminal precisa ficar aqui do lado do botão porque o relatório
-         da Stone não identifica sozinho qual terminal é (ver comentário grande em
-         _extrairRecebiveisStone) -- por isso não dá pra unificar com o botão vermelho
-         principal "+ Carregar arquivos" sem perder essa informação. -->
-    <select id="vfBancoSelect" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;font-weight:bold;">
-      <option value="STONE PI">STONE PI</option>
-      <option value="STONE DF">STONE DF</option>
-      <option value="STONE GO">STONE GO</option>
-      <option value="STONE BA">STONE BA</option>
-      <option value="STONE MA">STONE MA</option>
-    </select>
-    <button class="secondary" onclick="document.getElementById('vfFileInput').click()">Carregar Recebíveis Stone</button>
-    <input type="file" id="vfFileInput" multiple accept=".xls,.xlsx" style="display:none">
-    <button class="secondary" onclick="document.getElementById('vfFileInputConvenios').click()">Importar Convênios (Venda Futura)</button>
-    <input type="file" id="vfFileInputConvenios" accept=".json" style="display:none">
   </span>
   <span class="status" id="uploadStatus">Nenhum arquivo carregado ainda. Carregue os extratos bancários na aba Bancos.</span>
-  <span class="status" id="vfUploadStatus"></span>
 </div>
 
 <!-- Modal genérico de detalhe (popup ao clicar num banco da tabela de Receitas/Despesas) --
@@ -788,7 +727,7 @@ async function _sincronizarNuvem(){
   }catch(e){ console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e); }
 }
 
-let DB = { resumo: {}, bancos: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [], comissaoGrossUp: {} };
+let DB = { resumo: {}, bancos: {}, especie: {}, comissaoGrossUp: {} };
 
 const IDB_NOME = 'viacaosete_financeiro_idb';
 const IDB_STORE = 'kv';
@@ -822,10 +761,7 @@ function _normalizarFinanceiro(){
   DB.resumo = DB.resumo || {};
   DB.bancos = DB.bancos || {};
   DB.classificacao = DB.classificacao || {};
-  DB.vendaFuturaCartao = DB.vendaFuturaCartao || {};
-  DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
-  DB.baixasConvenio = DB.baixasConvenio || [];
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   _reaplicarReclassificacoesBancoPontual();
   _removerDuplicatasStoneNaoIdentificado();
@@ -955,10 +891,7 @@ async function loadDB(){
   DB.resumo = DB.resumo || {};
   DB.bancos = DB.bancos || {};
   DB.classificacao = DB.classificacao || {};
-  DB.vendaFuturaCartao = DB.vendaFuturaCartao || {};
-  DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
   DB.especie = DB.especie || {};
-  DB.baixasConvenio = DB.baixasConvenio || [];
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   if(_migrarContaSantander()) await saveDB();
 }
@@ -976,7 +909,7 @@ async function saveDB(){
 }
 async function limparBase(){
   if(!confirm('Isso vai apagar todos os dados do Painel Financeiro carregados neste navegador. Confirma?')) return;
-  DB = { resumo: {}, bancos: {}, classificacao: {}, vendaFuturaCartao: {}, vendaFuturaConvenios: {}, especie: {}, baixasConvenio: [] };
+  DB = { resumo: {}, bancos: {}, classificacao: {}, especie: {}, comissaoGrossUp: {} };
   await saveDB();
   atualizarTudo();
   document.getElementById('uploadStatus').textContent = 'Base local do Financeiro limpa.';
@@ -1033,6 +966,72 @@ async function limparBaseBanco(){
   await saveDB();
   atualizarTudo();
   document.getElementById('uploadStatus').textContent = 'Base do banco "'+banco+'"'+textoPeriodo+' foi limpa ('+totalNoPeriodo+' lançamentos removidos). Carregue o(s) extrato(s) desse banco novamente.';
+}
+// Remove TODOS os lançamentos (extratos bancários de QUALQUER banco + Espécie/Caixa) de um
+// intervalo de MESES inteiros da Base do Financeiro -- pedido do usuário em 2026-09-23,
+// pra tirar meses inteiros (ex.: Abril a Julho) que não devem mais entrar na DRE - Caixa.
+// Diferente de limparBaseBanco() (que exige escolher 1 banco por vez e filtra por DATA
+// CRUA de um único banco), esta função apaga de uma vez só, cobrindo TODOS os bancos.
+//
+// CORREÇÃO (2026-09-24, bug reportado pelo usuário): a 1ª versão filtrava DB.bancos pela
+// DATA CRUA do evento (chave "YYYY-MM-DD" de DB.bancos) -- mas a DRE - Caixa NUNCA agrupa
+// por data crua, agrupa pela COMPETÊNCIA classificada (_classificacaoTransacao(t).mes/ano,
+// que vem de DB.classificacao quando o lançamento foi reclassificado manualmente via Excel
+// de Classificação, e só cai de volta na data crua como fallback quando NÃO há
+// reclassificação). Um lançamento pago/recebido fisicamente em Agosto, mas reclassificado
+// pra competência Abril na planilha, tinha data crua "2026-08-..." -- fora do intervalo
+// 04 a 07/2026 -- e por isso sobrevivia à exclusão por data crua, continuando a aparecer
+// na coluna ABRIL/2026 da DRE mesmo depois de "removido". Agora filtra pela MESMA
+// competência que a DRE usa (idêntico critério de _montarDRE), removendo só os
+// LANÇAMENTOS individuais cuja competência cai no período (não o dia inteiro -- um mesmo
+// dia pode ter lançamentos de competências diferentes). Transferências entre contas nunca
+// entram na DRE (_montarDRE já as ignora) -- não são tocadas aqui.
+// DB.especie já guarda mes/ano como a própria competência (preenchida na planilha, sem
+// fallback pra data), então seu filtro continua igual.
+// DB.classificacao NÃO é tocado: é só um mapa de SUBGRUPO/CENTRO DE CUSTO/GRUPO por
+// assinatura de lançamento -- sem o lançamento original em DB.bancos, a entrada
+// correspondente fica órfã e inofensiva (nunca mais é lida), então limpar ela também não
+// muda nada visualmente e mantém a classificação pronta caso o usuário resuba esse mesmo
+// período no futuro.
+async function removerPeriodoDaBase(){
+  const elIni = document.getElementById('removerPeriodoIni'), elFim = document.getElementById('removerPeriodoFim');
+  const mesIni = elIni ? elIni.value : '', mesFim = elFim ? elFim.value : ''; // "YYYY-MM"
+  if(!mesIni || !mesFim){ alert('Preencha os dois campos de mês (início e fim) antes de remover.'); return; }
+  if(mesIni > mesFim){ alert('O mês de início não pode ser depois do mês de fim.'); return; }
+  let qtdBancos = 0;
+  Object.keys(DB.bancos||{}).forEach(dia=>{
+    (DB.bancos[dia]||[]).forEach(t=>{
+      if(t.transferencia) return;
+      const c = _classificacaoTransacao(t);
+      const chaveMes = c.ano+'-'+String(c.mes).padStart(2,'0');
+      if(chaveMes>=mesIni && chaveMes<=mesFim) qtdBancos++;
+    });
+  });
+  let qtdEspecie = 0;
+  Object.values(DB.especie||{}).forEach(t=>{
+    const chaveMes = t.ano+'-'+String(t.mes).padStart(2,'0');
+    if(chaveMes>=mesIni && chaveMes<=mesFim) qtdEspecie++;
+  });
+  if(qtdBancos===0 && qtdEspecie===0){ alert('Nenhum lançamento encontrado com competência entre '+mesIni+' e '+mesFim+'.'); return; }
+  const rotuloPeriodo = MESES_PT[Number(mesIni.slice(5,7))-1]+'/'+mesIni.slice(0,4)+' a '+MESES_PT[Number(mesFim.slice(5,7))-1]+'/'+mesFim.slice(0,4);
+  if(!confirm('Isso vai apagar '+qtdBancos+' lançamento(s) de extrato bancário (de TODOS os bancos) e '+qtdEspecie+' lançamento(s) de Espécie (Caixa) cuja COMPETÊNCIA seja '+rotuloPeriodo+' (mesmo critério de agrupamento da DRE - Caixa). Essa ação não pode ser desfeita. Confirma?')) return;
+  Object.keys(DB.bancos||{}).forEach(dia=>{
+    DB.bancos[dia] = (DB.bancos[dia]||[]).filter(t=>{
+      if(t.transferencia) return true;
+      const c = _classificacaoTransacao(t);
+      const chaveMes = c.ano+'-'+String(c.mes).padStart(2,'0');
+      return !(chaveMes>=mesIni && chaveMes<=mesFim);
+    });
+    if(!DB.bancos[dia].length) delete DB.bancos[dia];
+  });
+  Object.keys(DB.especie||{}).forEach(chave=>{
+    const t = DB.especie[chave];
+    const chaveMes = t.ano+'-'+String(t.mes).padStart(2,'0');
+    if(chaveMes>=mesIni && chaveMes<=mesFim) delete DB.especie[chave];
+  });
+  await saveDB();
+  atualizarTudo();
+  document.getElementById('uploadStatus').textContent = 'Removido(s) '+qtdBancos+' lançamento(s) de banco e '+qtdEspecie+' de Espécie com competência '+rotuloPeriodo+'.';
 }
 // Exporta a base local do Financeiro inteira (todos os bancos/dias) num único .json --
 // mesmo mecanismo do painel Comercial (exportarBaseCompleta em painel.html): baixe este
@@ -1093,49 +1092,29 @@ function _dentroDoIntervaloCompetencia(c, ini, fim){
   return chave >= (ini.ano*100+ini.mes) && chave <= (fim.ano*100+fim.mes);
 }
 // Sufixo do nome do arquivo exportado -- 1 mês só sai "_Julho", intervalo de vários
-// meses sai "_JulhoaAgosto" (mesmo padrão do sufixo por DATA já usado no filtro
-// dia-a-dia da DRE - Simplificado, só que por competência).
+// meses sai "_JulhoaAgosto".
 function _sufixoCompetenciaExport(ini, fim){
   if(!ini) return '';
   if(!fim || (fim.mes===ini.mes && fim.ano===ini.ano)) return '_'+MESES_PT[ini.mes-1];
   return '_'+MESES_PT[ini.mes-1]+'a'+MESES_PT[fim.mes-1];
 }
+// _periodoExportacaoDRE() (2026-09-22, simplificado quando a aba "DRE - Simplificado" foi
+// excluída em definitivo): agora só existe a DRE - Caixa, então o botão de exportar
+// (visível no rodapé, de qualquer aba) sempre puxa o MESMO intervalo de meses que o
+// filtro MÊS INÍCIO/MÊS TÉRMINO da DRE - Caixa está mostrando na tela.
 function _periodoExportacaoDRE(){
-  const abaAtivaBtn = document.querySelector('#sidebar button[data-tab].active');
-  const usarContabil = !!abaAtivaBtn && abaAtivaBtn.dataset.tab === 'dre-contabil';
-  const sufixoAba = usarContabil ? ' - Contábil' : ' - Simplificado';
-  let filtroCompetencia, filtroCompetenciaFim, dataIni = '', dataFim = '';
-  if(usarContabil){
-    // DRE - Contábil (2026-09-22, 3ª rodada de ajuste): o botão de exportar agora puxa o
-    // MESMO intervalo de meses que o filtro MÊS INÍCIO/MÊS TÉRMINO está mostrando na
-    // tela -- não tem mais filtro de DATA INÍCIO/FIM dia a dia separado nem "só o mês
-    // mais recente" isolado; exporta exatamente o recorte que o usuário está vendo.
-    const selIni = document.getElementById('dreContabilMesIni');
-    const selFim = document.getElementById('dreContabilMesFim');
-    const parse = v => { if(!v) return null; const [ano, mes] = v.split('-'); return { mes: Number(mes), ano: Number(ano) }; };
-    filtroCompetencia = parse(selIni ? selIni.value : '') || _dreContabilUltimoMesAno;
-    filtroCompetenciaFim = parse(selFim ? selFim.value : '') || _dreContabilUltimoMesAno;
-  } else {
-    // DRE - Simplificado: continua com competência única (seletor #dreCompetencia) +
-    // filtro adicional de DATA INÍCIO/FIM dia a dia, sem mudança.
-    filtroCompetencia = _dreUltimoMesAno;
-    filtroCompetenciaFim = _dreUltimoMesAno;
-    const iniEl = document.getElementById('dreDataIni');
-    const fimEl = document.getElementById('dreDataFim');
-    dataIni = iniEl ? iniEl.value : '';
-    dataFim = fimEl ? fimEl.value : '';
-  }
+  const parse = v => { if(!v) return null; const [ano, mes] = v.split('-'); return { mes: Number(mes), ano: Number(ano) }; };
+  const selIni = document.getElementById('dreContabilMesIni');
+  const selFim = document.getElementById('dreContabilMesFim');
+  const filtroCompetencia = parse(selIni ? selIni.value : '') || _dreContabilUltimoMesAno;
+  const filtroCompetenciaFim = parse(selFim ? selFim.value : '') || _dreContabilUltimoMesAno;
   let rotulo = '';
-  if(dataIni && dataFim){
-    rotulo = ' (período '+formatarDataBR(dataIni)+' a '+formatarDataBR(dataFim)+', filtro da DRE'+sufixoAba+')';
-  } else if(usarContabil && filtroCompetencia && filtroCompetenciaFim){
+  if(filtroCompetencia && filtroCompetenciaFim){
     rotulo = (filtroCompetencia.mes===filtroCompetenciaFim.mes && filtroCompetencia.ano===filtroCompetenciaFim.ano)
-      ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme filtro da DRE'+sufixoAba+')'
-      : ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+' a '+MESES_PT[filtroCompetenciaFim.mes-1]+'/'+filtroCompetenciaFim.ano+', conforme filtro da DRE'+sufixoAba+')';
-  } else if(filtroCompetencia){
-    rotulo = ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme selecionado na DRE'+sufixoAba+')';
+      ? ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+', conforme filtro da DRE - Caixa)'
+      : ' (competência '+MESES_PT[filtroCompetencia.mes-1]+'/'+filtroCompetencia.ano+' a '+MESES_PT[filtroCompetenciaFim.mes-1]+'/'+filtroCompetenciaFim.ano+', conforme filtro da DRE - Caixa)';
   }
-  return { filtroCompetencia, filtroCompetenciaFim, dataIni: (dataIni && dataFim) ? dataIni : null, dataFim: (dataIni && dataFim) ? dataFim : null, rotulo };
+  return { filtroCompetencia, filtroCompetenciaFim, dataIni: null, dataFim: null, rotulo };
 }
 function exportarExcelClassificacao(){
   const { filtroCompetencia, filtroCompetenciaFim, dataIni, dataFim, rotulo } = _periodoExportacaoDRE();
@@ -1158,12 +1137,13 @@ function exportarExcelClassificacao(){
         MESES_PT[c.mes-1] || '',
         c.subgrupo,
         c.centroCusto,
+        c.grupo,
       ]);
     });
   });
-  const cabecalho = ['DATA DO EVENTO','NOME DO BANCO','DESCRIÇÃO','TIPO DE LANÇAMENTO','VALOR (R$)','RECEITA OU DESPESA','ORIGEM DA ENTRADA / DESTINO DA SAÍDA','COMPETÊNCIA','SUBGRUPO','CENTRO DE CUSTO'];
+  const cabecalho = ['DATA DO EVENTO','NOME DO BANCO','DESCRIÇÃO','TIPO DE LANÇAMENTO','VALOR (R$)','RECEITA OU DESPESA','ORIGEM DA ENTRADA / DESTINO DA SAÍDA','COMPETÊNCIA','SUBGRUPO','CENTRO DE CUSTO','GRUPO DE CLASSIFICAÇÃO'];
   const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
-  ws['!cols'] = [{wch:12},{wch:18},{wch:45},{wch:14},{wch:14},{wch:13},{wch:30},{wch:11},{wch:34},{wch:26}];
+  ws['!cols'] = [{wch:12},{wch:18},{wch:45},{wch:14},{wch:14},{wch:13},{wch:30},{wch:11},{wch:34},{wch:26},{wch:30}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Receitas e Despesas');
   const hoje = new Date().toISOString().slice(0,10);
@@ -1200,11 +1180,12 @@ function exportarExcelEspecie(){
       MESES_PT[t.mes-1] || '',
       t.subgrupo,
       t.centroCusto,
+      t.grupo || t.subgrupo,
     ];
   });
-  const cabecalho = ['DATA DO EVENTO','ORIGEM (CAIXA)','DESCRIÇÃO','TIPO DE LANÇAMENTO','VALOR (R$)','RECEITA OU DESPESA','AGÊNCIA/ROTA/ITEM','COMPETÊNCIA','SUBGRUPO','CENTRO DE CUSTO'];
+  const cabecalho = ['DATA DO EVENTO','ORIGEM (CAIXA)','DESCRIÇÃO','TIPO DE LANÇAMENTO','VALOR (R$)','RECEITA OU DESPESA','AGÊNCIA/ROTA/ITEM','COMPETÊNCIA','SUBGRUPO','CENTRO DE CUSTO','GRUPO DE CLASSIFICAÇÃO'];
   const ws = XLSX.utils.aoa_to_sheet([cabecalho, ...linhas]);
-  ws['!cols'] = [{wch:12},{wch:18},{wch:45},{wch:20},{wch:14},{wch:15},{wch:26},{wch:11},{wch:30},{wch:22}];
+  ws['!cols'] = [{wch:12},{wch:18},{wch:45},{wch:20},{wch:14},{wch:15},{wch:26},{wch:11},{wch:30},{wch:22},{wch:30}];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Caixa Espécie');
   const hoje = new Date().toISOString().slice(0,10);
@@ -1218,7 +1199,7 @@ function toggleFiltroBox(h2){
   if(box) box.classList.toggle('collapsed');
 }
 
-const TITULOS_ABA_FIN = { bancos: 'Bancos', dre: 'DRE - Simplificado', 'dre-contabil': 'DRE - Contábil', orcamento: 'Orçamento' };
+const TITULOS_ABA_FIN = { bancos: 'Bancos', 'dre-contabil': 'DRE - Caixa', orcamento: 'Orçamento' };
 
 // Troca de aba -- mesma convenção do painel Comercial: as <section class="tab"> ficam
 // visíveis por padrão, o JS só alterna a classe "hidden" (NÃO usar "tab-content"/"active",
@@ -2679,6 +2660,10 @@ function _detectarConvenioParaDRE(t){
 // 7.519 lançamentos da planilha do usuário — sempre foi: venda de passagem via
 // agência ou cliente direto). DESPESA sem regra específica vira DESCONHECIDO (nunca
 // "chuta" uma categoria de custo errada).
+// `grupo` (2026-09-22, ver GRUPO DE CLASSIFICAÇÃO): as regras automáticas abaixo cobrem
+// só um punhado de SUBGRUPO fixos (nunca a granularidade de despesa vinda de extrato,
+// que sempre passa por DB.classificacao importado) -- por isso aqui GRUPO = o próprio
+// SUBGRUPO, sem regra própria; não faz diferença visual (esses SUBGRUPO já são coarse).
 function _classificarSubgrupoCentroCusto(t){
   const textoContraparte = _normColapsado(t.contraparte||'');
   const textoDescricao = _normColapsado(t.descricao||'');
@@ -2686,7 +2671,7 @@ function _classificarSubgrupoCentroCusto(t){
     const chave = CENTRO_CUSTO_REGRAS[i][0];
     if((textoContraparte && textoContraparte.includes(chave)) || textoDescricao.includes(chave)){
       const subgrupo = CENTRO_CUSTO_REGRAS[i][1];
-      return { subgrupo, centroCusto: SUBGRUPO_CENTRO_CUSTO[subgrupo] || 'DESCONHECIDO' };
+      return { subgrupo, grupo: subgrupo, centroCusto: SUBGRUPO_CENTRO_CUSTO[subgrupo] || 'DESCONHECIDO' };
     }
   }
   if(t.natureza==='receita'){
@@ -2700,11 +2685,11 @@ function _classificarSubgrupoCentroCusto(t){
       // erro pontual de digitação -- então a distinção deixou de existir, ambos sempre
       // CENTRO DE CUSTO CONVÊNIOS.
       const subgrupo = 'PREFEITURAS / CORRENTISTAS';
-      return { subgrupo, centroCusto: SUBGRUPO_CENTRO_CUSTO[subgrupo] || 'CONVÊNIOS' };
+      return { subgrupo, grupo: subgrupo, centroCusto: SUBGRUPO_CENTRO_CUSTO[subgrupo] || 'CONVÊNIOS' };
     }
-    return { subgrupo:'AGÊNCIAS', centroCusto:'AGÊNCIAS' };
+    return { subgrupo:'AGÊNCIAS', grupo:'AGÊNCIAS', centroCusto:'AGÊNCIAS' };
   }
-  return { subgrupo:'DESCONHECIDO', centroCusto:'DESCONHECIDO' };
+  return { subgrupo:'DESCONHECIDO', grupo:'DESCONHECIDO', centroCusto:'DESCONHECIDO' };
 }
 // Competência padrão = mês/ano da própria data do evento -- só isso é derivável do
 // extrato bancário com segurança. Casos em que a competência de verdade é um mês
@@ -2724,10 +2709,13 @@ function _competenciaPadrao(dataISO){
 function _classificacaoTransacao(t){
   const chave = _chaveClassificacao(t.banco, t.data, Math.abs(t.valor), t.descricao);
   const imp = (DB.classificacao||{})[chave];
-  if(imp) return { subgrupo: imp.subgrupo, centroCusto: imp.centroCusto, mes: imp.mes, ano: imp.ano };
+  // `grupo` (2026-09-22): planilhas importadas ANTES desse recurso não têm a coluna
+  // GRUPO DE CLASSIFICAÇÃO preenchida -- cai no fallback (= o próprio SUBGRUPO, sem
+  // consolidar) até o usuário reimportar uma planilha atualizada com o GRUPO certo.
+  if(imp) return { subgrupo: imp.subgrupo, grupo: imp.grupo || imp.subgrupo, centroCusto: imp.centroCusto, mes: imp.mes, ano: imp.ano };
   const auto = _classificarSubgrupoCentroCusto(t);
   const padrao = _competenciaPadrao(t.data);
-  return { subgrupo: auto.subgrupo, centroCusto: auto.centroCusto, mes: padrao.mes, ano: padrao.ano };
+  return { subgrupo: auto.subgrupo, grupo: auto.grupo || auto.subgrupo, centroCusto: auto.centroCusto, mes: padrao.mes, ano: padrao.ano };
 }
 // Importa uma planilha no mesmo formato do Excel exportado daqui (DATA DO EVENTO /
 // NOME DO BANCO / DESCRIÇÃO / TIPO DE LANÇAMENTO / VALOR (R$) / RECEITA OU DESPESA /
@@ -2754,7 +2742,7 @@ async function importarClassificacao(file){
     let importadas = 0, semCompetencia = 0;
     for(let i=hIdx+1;i<aoa.length;i++){
       const row = aoa[i]||[];
-      const dataRaw = row[0], banco = row[1], descricao = row[2], valorRaw = row[4], competenciaTxt = row[7], subgrupo = row[8], centroCusto = row[9];
+      const dataRaw = row[0], banco = row[1], descricao = row[2], valorRaw = row[4], competenciaTxt = row[7], subgrupo = row[8], centroCusto = row[9], grupoTxt = row[10];
       if(!dataRaw || !banco || (typeof valorRaw!=='number' && typeof valorRaw!=='string')) continue;
       if(!subgrupo && !centroCusto && !competenciaTxt) continue; // linha ainda não classificada -- ignora
       const dataISO = _parseDataBanco(dataRaw);
@@ -2766,7 +2754,13 @@ async function importarClassificacao(file){
       if(!mesNum){ semCompetencia++; continue; }
       // competência só traz o NOME do mês (sem ano) na planilha -- assume o mesmo ano
       // da data do evento (nenhum lançamento deste painel ainda cruzou virada de ano).
-      DB.classificacao[chave] = { subgrupo: String(subgrupo||'').trim()||'DESCONHECIDO', centroCusto: String(centroCusto||'').trim()||'DESCONHECIDO', mes: mesNum, ano: Number(dataISO.slice(0,4)) };
+      const subgrupoStr = String(subgrupo||'').trim()||'DESCONHECIDO';
+      // GRUPO DE CLASSIFICAÇÃO (2026-09-22, 11ª coluna, ver comentário grande no cabeçalho
+      // desta seção) -- coluna NOVA e opcional: planilha sem ela (ou com a célula vazia)
+      // cai no fallback GRUPO = SUBGRUPO (sem consolidar), pra nunca quebrar um import
+      // antigo nem deixar a DRE - Caixa com linha em branco.
+      const grupoStr = String(grupoTxt||'').trim() || subgrupoStr;
+      DB.classificacao[chave] = { subgrupo: subgrupoStr, grupo: grupoStr, centroCusto: String(centroCusto||'').trim()||'DESCONHECIDO', mes: mesNum, ano: Number(dataISO.slice(0,4)) };
       importadas++;
     }
     await saveDB();
@@ -2813,7 +2807,7 @@ async function importarEspecie(file){
     let importados = 0, semClassificacao = 0;
     for(let i=hIdx+1;i<aoa.length;i++){
       const row = aoa[i]||[];
-      const dataRaw = row[0], origem = row[1], descricao = row[2], tipoLancamento = row[3], valorRaw = row[4], natRaw = row[5], contraparte = row[6], competenciaTxt = row[7], subgrupo = row[8], centroCusto = row[9];
+      const dataRaw = row[0], origem = row[1], descricao = row[2], tipoLancamento = row[3], valorRaw = row[4], natRaw = row[5], contraparte = row[6], competenciaTxt = row[7], subgrupo = row[8], centroCusto = row[9], grupoTxt = row[10];
       if(!dataRaw || !origem || (typeof valorRaw!=='number' && typeof valorRaw!=='string')) continue;
       const dataISO = _parseDataBanco(dataRaw);
       if(!dataISO) continue;
@@ -2831,6 +2825,9 @@ async function importarEspecie(file){
       const subgrupoStr = String(subgrupo||'').trim();
       const centroCustoStr = String(centroCusto||'').trim();
       if(!mesNum || !subgrupoStr || !centroCustoStr){ semClassificacao++; continue; }
+      // GRUPO DE CLASSIFICAÇÃO (2026-09-22): mesmo fallback GRUPO = SUBGRUPO de
+      // importarClassificacao, pros mesmos motivos (coluna nova/opcional).
+      const grupoStr = String(grupoTxt||'').trim() || subgrupoStr;
       const chave = _chaveClassificacao(origem, dataISO, Math.abs(valorCorrigido), descricao);
       DB.especie[chave] = {
         data: dataISO,
@@ -2843,6 +2840,7 @@ async function importarEspecie(file){
         mes: mesNum,
         ano: Number(dataISO.slice(0,4)),
         subgrupo: subgrupoStr,
+        grupo: grupoStr,
         centroCusto: centroCustoStr,
       };
       importados++;
@@ -2854,144 +2852,6 @@ async function importarEspecie(file){
     console.error('Erro ao importar Espécie', e);
     statusEl.textContent = 'ERRO ao importar Espécie: '+e.message;
   }
-}
-
-// Importa DB.vendaFuturaConvenios (VENDA FUTURA > CONVÊNIOS) a partir de um JSON no
-// formato { "<NOME DO CONVÊNIO>": [ {dataVenda, origem, destino, passageiro, bilhete,
-// valorCobrado, linha, agencia, bilheteiro, status}, ... ], ... } -- mesmo formato que
-// _abrirVfPopupConvenio/_renderVfModalConvenio esperam. Diferente do upload de
-// Recebíveis Stone (que o próprio usuário faz, o relatório é dele), a base de Convênios
-// vem do painel COMERCIAL (outra base, outro IndexedDB) -- por isso não tem um parser de
-// planilha bruta aqui: o JSON já vem pronto (gerado a partir da mesma base/pipeline de
-// preço da aba CONVÊNIOS do Comercial), pedido dos sócios em 2026-08-10: "vou lhe
-// avisando pra atualizar o painel" conforme as prefeituras forem pagando -- ou seja, é
-// pra reimportar (full-replace) sempre que a lista mudar, não pra acumular.
-// Correção 2026-08-10: era full-replace de DB.vendaFuturaConvenios inteiro -- mudado
-// pra MERGE por chave de convênio (só substitui os convênios que vierem no JSON,
-// mantendo os outros intocados). Motivo: o usuário esclareceu que Venda Futura >
-// Convênios deve ACUMULAR meses em aberto por convênio (ex.: PREFEITURA DE SÃO
-// RAIMUNDO NONATO ainda não pagou julho, e agosto também venceu sem pagar -- o painel
-// tem que mostrar os dois meses juntos dentro do mesmo convênio). O fluxo correto é:
-// sempre que o usuário avisar que um convênio tem mês novo em aberto (ou que um mês
-// foi pago), a gente recalcula a lista COMPLETA e atual daquele convênio específico
-// (com o pipeline de precificação do Comercial) e reimporta um JSON só com os
-// convênios que mudaram -- isso substitui a entrada deles em DB.vendaFuturaConvenios,
-// sem tocar nos demais convênios nem no cartão.
-async function importarVendaFuturaConvenios(file){
-  const statusEl = document.getElementById('vfUploadStatus');
-  try{
-    const texto = await file.text();
-    const json = JSON.parse(texto);
-    if(typeof json !== 'object' || json===null || Array.isArray(json)) throw new Error('formato inesperado (esperava um objeto {"CONVÊNIO": [...]})');
-    DB.vendaFuturaConvenios = DB.vendaFuturaConvenios || {};
-    Object.keys(json).forEach(convenio=>{
-      DB.vendaFuturaConvenios[convenio] = json[convenio];
-    });
-    const qtdConvenios = Object.keys(json).length;
-    const qtdBilhetes = Object.values(json).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
-    await saveDB();
-    atualizarTudo();
-    statusEl.textContent = 'Convênios (Venda Futura) atualizados: '+qtdConvenios+' convênio(s) afetado(s), '+qtdBilhetes+' bilhete(s) — os demais convênios já cadastrados permanecem como estavam.';
-  }catch(e){
-    console.error('Erro ao importar Convênios (Venda Futura)', e);
-    statusEl.textContent = 'ERRO ao importar Convênios: '+e.message;
-  }
-}
-
-// ==================================================================================
-// DAR BAIXA (VENDA FUTURA > CONVÊNIOS) -- pedido do usuário em 2026-08-13: até aqui,
-// tirar um convênio/mês da lista de "em aberto" dependia de avisar o Claude pra
-// regerar e reimportar o JSON. Isso deixa o usuário fazer sozinho, direto no
-// navegador: escolhe o convênio (botão "Baixar" na própria linha) e o mês, confirma,
-// e os bilhetes daquele mês somem de `DB.vendaFuturaConvenios[convenio]` na hora --
-// sem depender de mim pra cada baixa. Mantém um histórico consultável em
-// `DB.baixasConvenio` (não entra em nenhuma soma, só fica disponível pra conferência
-// futura, ex.: "quando foi que demos baixa em Uruçuí Saúde de julho?").
-// "Mês" aqui é o ano-mês da própria Data Servi. (dataVenda) de cada bilhete -- mesmo
-// campo que a Venda Futura já usa pra tudo, não é um conceito novo de competência.
-let _baixaConvenioAtual = null;
-function _mesesDisponiveisConvenio(nome){
-  const porMes = {};
-  (DB.vendaFuturaConvenios[nome]||[]).forEach(t=>{
-    const mes = String(t.dataVenda||'').slice(0,7); // "AAAA-MM"
-    if(!mes) return;
-    porMes[mes] = porMes[mes] || { qtd: 0, valor: 0 };
-    porMes[mes].qtd++;
-    porMes[mes].valor += t.valorCobrado;
-  });
-  return Object.keys(porMes).sort().map(mes=>({ mes, qtd: porMes[mes].qtd, valor: porMes[mes].valor }));
-}
-function _rotuloMes(mesAAAAMM){
-  const [ano, mesNum] = mesAAAAMM.split('-').map(Number);
-  return MESES_PT[mesNum-1]+'/'+ano;
-}
-function _abrirBaixaConvenioModal(nome){
-  _baixaConvenioAtual = nome;
-  const meses = _mesesDisponiveisConvenio(nome);
-  const titulo = '<h3>Dar Baixa — '+nome+'</h3>';
-  if(!meses.length){
-    abrirModal(titulo, '<p>Nenhum lançamento em aberto pra este convênio.</p>');
-    return;
-  }
-  const opcoes = meses.map(m=>'<option value="'+m.mes+'">'+_rotuloMes(m.mes)+' — '+m.qtd+' bilhete(s), '+_fmtBRL(m.valor)+'</option>').join('');
-  const corpo =
-    '<p style="color:var(--muted);margin-bottom:12px;">Escolha o mês que a prefeitura já pagou. Os bilhetes daquele mês saem da lista de "em aberto" — fica registrado no histórico de baixas, mas não entra em nenhuma soma do painel.</p>'+
-    '<div style="margin-bottom:12px;"><label>Mês:&nbsp;</label><select id="baixaMesSelect" onchange="_atualizarBaixaPreview()">'+opcoes+'</select></div>'+
-    '<div id="baixaPreview" class="modal-summary"></div>'+
-    '<div class="modal-actions" style="margin-top:16px;"><button onclick="_confirmarBaixaConvenio()">Confirmar Baixa</button><button onclick="fecharModal()">Cancelar</button></div>';
-  abrirModal(titulo, corpo);
-  _atualizarBaixaPreview();
-}
-function _atualizarBaixaPreview(){
-  const sel = document.getElementById('baixaMesSelect');
-  const preview = document.getElementById('baixaPreview');
-  if(!sel || !preview) return;
-  const mes = sel.value;
-  const meses = _mesesDisponiveisConvenio(_baixaConvenioAtual);
-  const info = meses.find(m=>m.mes===mes);
-  preview.innerHTML = info
-    ? '<span class="rs-label">Vai remover:</span>&nbsp;<span class="rs-valor">'+info.qtd+' bilhete(s)</span>&nbsp;&nbsp;<span class="rs-label">Valor:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(info.valor)+'</span>'
-    : '';
-}
-async function _confirmarBaixaConvenio(){
-  const nome = _baixaConvenioAtual;
-  const sel = document.getElementById('baixaMesSelect');
-  if(!nome || !sel) return;
-  const mes = sel.value;
-  const itens = DB.vendaFuturaConvenios[nome]||[];
-  const doMes = itens.filter(t=> String(t.dataVenda||'').slice(0,7)===mes);
-  if(!doMes.length) return;
-  const qtd = doMes.length;
-  const valor = doMes.reduce((s,t)=>s+t.valorCobrado,0);
-  if(!confirm('Confirma a baixa de '+_rotuloMes(mes)+' — '+nome+'?\n'+qtd+' bilhete(s), '+_fmtBRL(valor)+'.\n\nOs bilhetes saem da lista de "em aberto" (fica registrado no histórico de baixas).')) return;
-  DB.vendaFuturaConvenios[nome] = itens.filter(t=> String(t.dataVenda||'').slice(0,7)!==mes);
-  DB.baixasConvenio = DB.baixasConvenio || [];
-  DB.baixasConvenio.push({
-    convenio: nome, mes, quantidade: qtd, valor,
-    dataHora: new Date().toISOString(),
-  });
-  await saveDB();
-  fecharModal();
-  atualizarTudo();
-}
-function _abrirHistoricoBaixas(){
-  const lista = (DB.baixasConvenio||[]).slice().sort((a,b)=> (b.dataHora||'').localeCompare(a.dataHora||''));
-  const titulo = '<h3>Histórico de Baixas — Convênios</h3>';
-  if(!lista.length){
-    abrirModal(titulo, '<p>Nenhuma baixa registrada ainda.</p>');
-    return;
-  }
-  const totalBaixado = lista.reduce((s,b)=>s+b.valor,0);
-  let corpo = '<div class="modal-summary" style="margin-bottom:12px;"><span class="rs-label">Baixas:</span>&nbsp;<span class="rs-valor">'+lista.length+'</span>&nbsp;&nbsp;'+
-    '<span class="rs-label">Total baixado:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(totalBaixado)+'</span></div>';
-  corpo += '<div class="scroll-box"><table class="data"><thead><tr><th>DATA/HORA</th><th>CONVÊNIO</th><th>MÊS</th><th style="text-align:right;">BILHETES</th><th style="text-align:right;">VALOR</th></tr></thead><tbody>';
-  lista.forEach(b=>{
-    const dh = new Date(b.dataHora);
-    const dhFmt = isNaN(dh) ? (b.dataHora||'') : dh.toLocaleString('pt-BR');
-    corpo += '<tr><td>'+dhFmt+'</td><td>'+b.convenio+'</td><td>'+_rotuloMes(b.mes)+'</td><td style="text-align:right;">'+b.quantidade+'</td><td style="text-align:right;">'+_fmtBRL(b.valor)+'</td></tr>';
-  });
-  corpo += '</tbody></table></div>';
-  abrirModal(titulo, corpo);
 }
 
 // ==================================================================================
@@ -3019,57 +2879,13 @@ function _competenciasDisponiveis(){
 // competência (mes/ano) -- cada guia guarda seus SUBGRUPOS com total e a lista de
 // lançamentos originais (pro popup de drill-down não precisar refazer o parse).
 // ==================================================================================
-// VENDA FUTURA -- pedido dos sócios em 2026-08-10: tópico independente da apuração da
-// DRE (NUNCA soma em RECEITAS/DESPESAS/RESULTADO/RECEITA LÍQUIDA) trazendo dinheiro que
-// ainda não chegou -- hoje só recebível de cartão (relatório "Recebimentos" da Stone),
-// no futuro também repasse de convênio ainda não pago (subgrupo CONVÊNIOS, ver
-// placeholder vazio em renderVendaFutura, aguardando lista de prefeituras em aberto que
-// o usuário ainda vai enviar). Cada upload é de UM TERMINAL Stone (STONE PI/DF/GO/BA/MA,
-// escolhido manualmente no seletor #vfBancoSelect) -- o relatório da Stone não tem
-// coluna própria identificando o terminal, só o CNPJ do estabelecimento (DOCUMENTO), que
-// pode repetir entre terminais diferentes da mesma empresa.
-//
-// Cabeçalho fixo do relatório "relatorio-recebimentos-...xls" (mesmo pra qualquer mês,
-// confirmado nos 7 arquivos reais ago/2026-fev/2027): DOCUMENTO / STONECODE / CATEGORIA /
-// DATA DA VENDA / DATA DE VENCIMENTO / DATA DE VENCIMENTO ORIGINAL / BANDEIRA / PRODUTO /
-// STONE ID / QTD DE PARCELAS / Nº DA PARCELA / VALOR BRUTO / VALOR LÍQUIDO / DESCONTO DE
-// MDR / DESCONTO DE ANTECIPAÇÃO / DESCONTO UNIFICADO / ÚLTIMO STATUS / DATA DO ÚLTIMO
-// STATUS / ENTRADAS BRUTAS / SAÍDAS BRUTAS.
-//
-// Regras confirmadas pelo usuário em 2026-08-10:
-// - Considerar só lançamentos com ÚLTIMO STATUS "Aberto" ou "Agendado" (dinheiro que
-//   ainda vai cair) -- "Pago" já caiu em conta e já está em BANCOS/DRE normal via o
-//   extrato bancário da própria Stone; contaria duplicado se entrasse aqui de novo.
-// - Descartar CATEGORIA "Balanceamento de Saldo" (não é venda, é ajuste interno da
-//   Stone, sem efeito de caixa futuro).
-// - Usar só VALOR LÍQUIDO (já descontado MDR/antecipação) pro total do tópico -- nunca
-//   VALOR BRUTO. Bruto/Desconto ficam só como colunas informativas no popup.
-// Validado com os 7 relatórios reais (ago/2026 a fev/2027) via harness Node: R$151.192,01
-// líquidos, 999 lançamentos (984 Aberto + 15 Agendado).
-function _extrairRecebiveisStone(aoa){
-  const hIdx = _acharLinhaHeaderBanco(aoa, row=> row[0]==='DOCUMENTO' && row[1]==='STONECODE' && row[2]==='CATEGORIA', 15);
-  if(hIdx<0) return null;
-  const recebiveis = [];
-  for(let r=hIdx+1;r<aoa.length;r++){
-    const row = aoa[r]; if(!row || row[0]==null) continue;
-    if(row[2]==='Balanceamento de Saldo') continue;
-    const status = row[16];
-    if(status!=='Aberto' && status!=='Agendado') continue;
-    const valorBruto = _parseValorBanco(row[11]);
-    const valorLiquido = _parseValorBanco(row[12]);
-    recebiveis.push({
-      bandeira: row[6] || '',
-      dataVenda: _parseDataBanco(row[3]),
-      dataVencimento: _parseDataBanco(row[4]),
-      valorBruto: valorBruto,
-      valorLiquido: valorLiquido,
-      desconto: valorBruto - valorLiquido,
-      status: status,
-    });
-  }
-  return recebiveis;
-}
-
+// Estrutura de cada guia (2026-09-22, ver GRUPO DE CLASSIFICAÇÃO): agora tem um nível
+// intermediário `grupos` entre o guia e o antigo `subgrupos` -- guias[nome] = { tipo,
+// total, grupos: { <GRUPO>: { total, subgrupos: { <SUBGRUPO>: { total, itens } } } } }.
+// GRUPO consolida vários SUBGRUPO granulares numa única linha visível na DRE - Caixa
+// (ex.: "ALUGUEL DE P.A. - BRASÍLIA"/"ALUGUEL DE P.A. - PASTOS BONS" -> GRUPO "ALUGUEL")
+// -- o SUBGRUPO original nunca é alterado, só vira o detalhamento de dentro do popup do
+// GRUPO. Pedido do usuário em 2026-09-22.
 function _montarDRE(mes, ano){
   const guias = {};
   Object.values(DB.bancos||{}).forEach(lista=>{
@@ -3079,11 +2895,14 @@ function _montarDRE(mes, ano){
       if(c.mes!==mes || c.ano!==ano) return;
       if(c.subgrupo==='DESCONHECIDO') return;
       const guiaNome = t.natureza==='receita' ? 'RECEITAS' : c.centroCusto;
-      if(!guias[guiaNome]) guias[guiaNome] = { tipo: t.natureza, subgrupos: {}, total: 0 };
+      if(!guias[guiaNome]) guias[guiaNome] = { tipo: t.natureza, grupos: {}, total: 0 };
       const g = guias[guiaNome];
-      if(!g.subgrupos[c.subgrupo]) g.subgrupos[c.subgrupo] = { total: 0, itens: [] };
-      g.subgrupos[c.subgrupo].total += t.valor;
-      g.subgrupos[c.subgrupo].itens.push(t);
+      if(!g.grupos[c.grupo]) g.grupos[c.grupo] = { total: 0, subgrupos: {} };
+      const gr = g.grupos[c.grupo];
+      if(!gr.subgrupos[c.subgrupo]) gr.subgrupos[c.subgrupo] = { total: 0, itens: [] };
+      gr.subgrupos[c.subgrupo].total += t.valor;
+      gr.subgrupos[c.subgrupo].itens.push(t);
+      gr.total += t.valor;
       g.total += t.valor;
     });
   });
@@ -3097,11 +2916,15 @@ function _montarDRE(mes, ano){
     if(t.mes!==mes || t.ano!==ano) return;
     if(t.subgrupo==='DESCONHECIDO') return;
     const guiaNome = t.natureza==='receita' ? 'RECEITAS' : t.centroCusto;
-    if(!guias[guiaNome]) guias[guiaNome] = { tipo: t.natureza, subgrupos: {}, total: 0 };
+    const grupoNome = t.grupo || t.subgrupo; // fallback pra registros de Espécie importados antes do GRUPO existir
+    if(!guias[guiaNome]) guias[guiaNome] = { tipo: t.natureza, grupos: {}, total: 0 };
     const g = guias[guiaNome];
-    if(!g.subgrupos[t.subgrupo]) g.subgrupos[t.subgrupo] = { total: 0, itens: [] };
-    g.subgrupos[t.subgrupo].total += t.valor;
-    g.subgrupos[t.subgrupo].itens.push(t);
+    if(!g.grupos[grupoNome]) g.grupos[grupoNome] = { total: 0, subgrupos: {} };
+    const gr = g.grupos[grupoNome];
+    if(!gr.subgrupos[t.subgrupo]) gr.subgrupos[t.subgrupo] = { total: 0, itens: [] };
+    gr.subgrupos[t.subgrupo].total += t.valor;
+    gr.subgrupos[t.subgrupo].itens.push(t);
+    gr.total += t.valor;
     g.total += t.valor;
   });
   // AJUSTE FISCAL - COMISSÃO DE AGÊNCIAS/INTERNET (gross-up), pedido do usuário em
@@ -3126,16 +2949,21 @@ function _montarDRE(mes, ano){
     [['COMISSÃO DE AGÊNCIAS', ajusteComissao.agencias], ['COMISSÃO INTERNET', ajusteComissao.internet]].forEach(([subgrupo, valor])=>{
       if(!valor) return;
       const itemBase = { data: dataRepresentativa, banco: 'AJUSTE FISCAL (COMERCIAL)', descricao: subgrupo+' -- ajuste fiscal digitado (ver Painel Comercial > Agências)', contraparte: '', valor };
-      if(!guias['RECEITAS']) guias['RECEITAS'] = { tipo: 'receita', subgrupos: {}, total: 0 };
-      if(!guias['RECEITAS'].subgrupos[subgrupo]) guias['RECEITAS'].subgrupos[subgrupo] = { total: 0, itens: [] };
-      guias['RECEITAS'].subgrupos[subgrupo].total += valor;
-      guias['RECEITAS'].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      // GRUPO = o próprio SUBGRUPO aqui (já é específico o suficiente, só 2 nomes fixos).
+      if(!guias['RECEITAS']) guias['RECEITAS'] = { tipo: 'receita', grupos: {}, total: 0 };
+      if(!guias['RECEITAS'].grupos[subgrupo]) guias['RECEITAS'].grupos[subgrupo] = { total: 0, subgrupos: {} };
+      if(!guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo]) guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo] = { total: 0, itens: [] };
+      guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo].total += valor;
+      guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      guias['RECEITAS'].grupos[subgrupo].total += valor;
       guias['RECEITAS'].total += valor;
 
-      if(!guias['CUSTO COMERCIAL']) guias['CUSTO COMERCIAL'] = { tipo: 'despesa', subgrupos: {}, total: 0 };
-      if(!guias['CUSTO COMERCIAL'].subgrupos[subgrupo]) guias['CUSTO COMERCIAL'].subgrupos[subgrupo] = { total: 0, itens: [] };
-      guias['CUSTO COMERCIAL'].subgrupos[subgrupo].total += valor;
-      guias['CUSTO COMERCIAL'].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      if(!guias['CUSTO COMERCIAL']) guias['CUSTO COMERCIAL'] = { tipo: 'despesa', grupos: {}, total: 0 };
+      if(!guias['CUSTO COMERCIAL'].grupos[subgrupo]) guias['CUSTO COMERCIAL'].grupos[subgrupo] = { total: 0, subgrupos: {} };
+      if(!guias['CUSTO COMERCIAL'].grupos[subgrupo].subgrupos[subgrupo]) guias['CUSTO COMERCIAL'].grupos[subgrupo].subgrupos[subgrupo] = { total: 0, itens: [] };
+      guias['CUSTO COMERCIAL'].grupos[subgrupo].subgrupos[subgrupo].total += valor;
+      guias['CUSTO COMERCIAL'].grupos[subgrupo].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      guias['CUSTO COMERCIAL'].grupos[subgrupo].total += valor;
       guias['CUSTO COMERCIAL'].total += valor;
     });
   }
@@ -3196,15 +3024,21 @@ const EXTRA_FONTES = ['PAGAMENTOS EXTRA - V7'];
 // mesmo SUBGRUPO existir em mais de uma fonte, soma total e concatena itens (nunca
 // sobrescreve).
 function _mesclarGuias(guias, nomes){
-  const out = { total: 0, subgrupos: {} };
+  const out = { total: 0, grupos: {} };
   nomes.forEach(nome=>{
     const g = guias[nome];
     if(!g) return;
     out.total += g.total;
-    Object.keys(g.subgrupos).forEach(sub=>{
-      if(!out.subgrupos[sub]) out.subgrupos[sub] = { total: 0, itens: [] };
-      out.subgrupos[sub].total += g.subgrupos[sub].total;
-      out.subgrupos[sub].itens = out.subgrupos[sub].itens.concat(g.subgrupos[sub].itens);
+    Object.keys(g.grupos).forEach(grupoNome=>{
+      if(!out.grupos[grupoNome]) out.grupos[grupoNome] = { total: 0, subgrupos: {} };
+      const grOut = out.grupos[grupoNome];
+      const grIn = g.grupos[grupoNome];
+      grOut.total += grIn.total;
+      Object.keys(grIn.subgrupos).forEach(sub=>{
+        if(!grOut.subgrupos[sub]) grOut.subgrupos[sub] = { total: 0, itens: [] };
+        grOut.subgrupos[sub].total += grIn.subgrupos[sub].total;
+        grOut.subgrupos[sub].itens = grOut.subgrupos[sub].itens.concat(grIn.subgrupos[sub].itens);
+      });
     });
   });
   return out;
@@ -3216,13 +3050,30 @@ function _mesclarGuias(guias, nomes){
 // exibir a DRE-Contábil, então não afeta a DRE-Simplificado nem exportações que leem a
 // classificação bruta.
 function _redirecionarSubgrupoDREC(origem, destino, subgrupo){
-  const s = origem.subgrupos && origem.subgrupos[subgrupo];
+  // Procura o SUBGRUPO dentro de qualquer GRUPO em `origem` (não sabemos de antemão em
+  // qual GRUPO ele caiu), remove de lá (apagando o GRUPO se ficar vazio) e reinsere em
+  // `destino` preservando o MESMO nome de GRUPO em que foi encontrado.
+  let grupoAchado = null, s = null;
+  const gruposOrigem = origem.grupos || {};
+  for(const grupoNome in gruposOrigem){
+    if(gruposOrigem[grupoNome].subgrupos && gruposOrigem[grupoNome].subgrupos[subgrupo]){
+      grupoAchado = grupoNome;
+      s = gruposOrigem[grupoNome].subgrupos[subgrupo];
+      break;
+    }
+  }
   if(!s) return;
   origem.total -= s.total;
-  delete origem.subgrupos[subgrupo];
-  if(!destino.subgrupos[subgrupo]) destino.subgrupos[subgrupo] = { total: 0, itens: [] };
-  destino.subgrupos[subgrupo].total += s.total;
-  destino.subgrupos[subgrupo].itens = destino.subgrupos[subgrupo].itens.concat(s.itens);
+  const gOrig = gruposOrigem[grupoAchado];
+  gOrig.total -= s.total;
+  delete gOrig.subgrupos[subgrupo];
+  if(Object.keys(gOrig.subgrupos).length===0) delete gruposOrigem[grupoAchado];
+  if(!destino.grupos[grupoAchado]) destino.grupos[grupoAchado] = { total: 0, subgrupos: {} };
+  const gDest = destino.grupos[grupoAchado];
+  if(!gDest.subgrupos[subgrupo]) gDest.subgrupos[subgrupo] = { total: 0, itens: [] };
+  gDest.subgrupos[subgrupo].total += s.total;
+  gDest.subgrupos[subgrupo].itens = gDest.subgrupos[subgrupo].itens.concat(s.itens);
+  gDest.total += s.total;
   destino.total += s.total;
 }
 function _montarDREContabil(mes, ano){
@@ -3233,7 +3084,7 @@ function _montarDREContabil(mes, ano){
   const dc = _mesclarGuias(guias, DC_FONTES);
   _redirecionarSubgrupoDREC(impostos, dc, 'SEGURO CAPEMISA');
   return {
-    RECEITA_BRUTA: guias['RECEITAS'] || { total: 0, subgrupos: {} },
+    RECEITA_BRUTA: guias['RECEITAS'] || { total: 0, grupos: {} },
     IMPOSTOS: impostos,
     DP: _mesclarGuias(guias, DP_FONTES),
     DV: _mesclarGuias(guias, DV_FONTES),
@@ -3243,7 +3094,7 @@ function _montarDREContabil(mes, ano){
     OUTRAS: _mesclarGuias(guias, outrasFontes),
     OUTRAS_FONTES: outrasFontes,
     DF: _mesclarGuias(guias, DF_FONTES),
-    FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, subgrupos: {} },
+    FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, grupos: {} },
     // Informativo -- nunca usado em totalDespesasOperacionais/ebitda/ll (ver comentário em EXTRA_FONTES).
     EXTRA: _mesclarGuias(guias, EXTRA_FONTES),
   };
@@ -3272,7 +3123,12 @@ function _pctDREC(v){ return (v===null || Math.abs(v||0) < 0.005) ? '-' : v.toFi
 // array, um item por competência mostrada na tabela (mesma ordem/quantidade em toda a
 // tabela): cada item é {mes, ano, total, pct, subgrupos} -- pct null pras linhas RECEITA
 // BRUTA/IMPOSTOS (sem percentual, igual ao comportamento anterior de 1 mês só).
-function _linhaDREC(key, label, porMes, vermelho, badge){
+// `receitaLiquidaAcumulada` (2026-09-24): soma da RECEITA LÍQUIDA de todos os meses do
+// período filtrado -- base do %/R$ das 2 colunas de resumo (TOTAL ACUMULADO/MÉDIA MENSAL),
+// mesmo critério das colunas mensais (cada uma sobre sua própria RECEITA LÍQUIDA). Repare
+// que o percentual da MÉDIA MENSAL é idêntico ao do TOTAL ACUMULADO -- dividir a linha e a
+// RECEITA LÍQUIDA pela mesma quantidade de meses não muda a proporção entre elas.
+function _linhaDREC(key, label, porMes, vermelho, badge, receitaLiquidaAcumulada){
   const aberto = !!_dreContabilExpandido[key];
   const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
@@ -3285,32 +3141,58 @@ function _linhaDREC(key, label, porMes, vermelho, badge){
     cels += '<td class="dre-mes-r" style="'+cor+'font-weight:bold;">'+_valDREC(m.total)+'</td>'+
       '<td class="dre-mes-pct" style="'+cor+'font-weight:bold;">'+_pctDREC(m.pct)+'</td>';
   });
+  cels += _celulasResumoDREC(porMes, receitaLiquidaAcumulada, cor+'font-weight:bold;');
   let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+cels+'</tr>';
-  if(aberto) html += _linhasSubgruposDREC(key, porMes, vermelho);
+  if(aberto) html += _linhasGruposDREC(key, porMes, vermelho);
   return html;
 }
-// Linhas de subgrupo, uma por NOME DE SUBGRUPO (união de todos os meses -- um subgrupo que
-// só existe em julho ainda aparece na linha, com "-" nos outros meses, pra manter a tabela
-// alinhada quando a rubrica é expandida). Cada célula de valor é clicável
-// INDIVIDUALMENTE e abre o popup só com os lançamentos DAQUELE mês (pedido do usuário em
-// 2026-09-22) -- células sem subgrupo naquele mês (s undefined) não são clicáveis.
-function _linhasSubgruposDREC(rubricaKey, porMes, vermelho){
+// Monta as 4 células (R$/%/R$ de TOTAL ACUMULADO + R$/%/R$ de MÉDIA MENSAL) fixas ao final
+// de cada linha da DRE - Caixa (2026-09-24, pedido do usuário: "sempre à direita da
+// planilha atual", reagindo ao filtro Início/Término, sem clique e fora da exportação).
+// `porMes` é o mesmo array usado nas colunas mensais dessa linha -- soma todos os `.total`
+// pra "acumulado" e divide pela quantidade de meses pra "média". `pct` é null quando a
+// própria linha mensal não mostra percentual (RECEITA BRUTA/IMPOSTOS/PAGAMENTOS EXTRA -
+// V7), detectado olhando o 1º item de `porMes` (mesmo comportamento em toda a linha).
+function _celulasResumoDREC(porMes, receitaLiquidaAcumulada, estiloTexto){
+  const temPct = porMes.length>0 && porMes[0].pct !== null && porMes[0].pct !== undefined;
+  const totalAcum = porMes.reduce((s,m)=>s+(m.total||0),0);
+  const mediaAcum = porMes.length ? totalAcum/porMes.length : 0;
+  const pctAcum = (temPct && receitaLiquidaAcumulada) ? (totalAcum/receitaLiquidaAcumulada*100) : null;
+  return '<td class="dre-mes-r dre-resumo dre-resumo-1a-col" style="'+estiloTexto+'">'+_valDREC(totalAcum)+'</td>'+
+    '<td class="dre-mes-pct dre-resumo" style="'+estiloTexto+'">'+_pctDREC(pctAcum)+'</td>'+
+    '<td class="dre-mes-r dre-resumo" style="'+estiloTexto+'">'+_valDREC(mediaAcum)+'</td>'+
+    '<td class="dre-mes-pct dre-resumo" style="'+estiloTexto+'">'+_pctDREC(pctAcum)+'</td>';
+}
+// Linhas de GRUPO DE CLASSIFICAÇÃO (2026-09-22), uma por NOME DE GRUPO (união de todos os
+// meses -- um grupo que só existe em julho ainda aparece na linha, com "-" nos outros meses,
+// pra manter a tabela alinhada quando a rubrica é expandida). GRUPO consolida vários
+// SUBGRUPO granulares numa única linha visível (ex.: "ALUGUEL"); o detalhamento por
+// SUBGRUPO fica dentro do popup (nível 1) aberto ao clicar na célula. Cada célula de valor
+// é clicável INDIVIDUALMENTE e abre o popup só com os lançamentos DAQUELE mês -- células
+// sem grupo naquele mês (g undefined) não são clicáveis.
+function _linhasGruposDREC(rubricaKey, porMes, vermelho){
   let html = '';
   const cor = vermelho ? 'color:var(--red);' : '';
   const nomesSet = new Set();
-  porMes.forEach(m=> Object.keys(m.subgrupos||{}).forEach(n=>nomesSet.add(n)));
-  const subNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
-  subNomes.forEach(sub=>{
-    let cels = '<td style="padding-left:18px;'+cor+'">'+sub+'</td>';
+  porMes.forEach(m=> Object.keys(m.grupos||{}).forEach(n=>nomesSet.add(n)));
+  const grupoNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  grupoNomes.forEach(grupo=>{
+    let cels = '<td style="padding-left:18px;'+cor+'">'+grupo+'</td>';
     porMes.forEach(m=>{
-      const s = m.subgrupos && m.subgrupos[sub];
-      if(s){
-        cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilSubgrupoPopup(\''+rubricaKey+'\',\''+sub.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+s.itens.length+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(s.total)+'</td>';
+      const g = m.grupos && m.grupos[grupo];
+      if(g){
+        const qtdItens = Object.values(g.subgrupos||{}).reduce((s,sg)=>s+sg.itens.length,0);
+        cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilGrupoPopup(\''+rubricaKey+'\',\''+grupo.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+qtdItens+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(g.total)+'</td>';
       } else {
         cels += '<td class="dre-mes-r" style="'+cor+'">-</td>';
       }
       cels += '<td class="dre-mes-pct"></td>';
     });
+    // Colunas de resumo (2026-09-24) ficam em branco no detalhe por GRUPO -- o usuário
+    // confirmou que não precisa de acumulado/média nesse nível, só nas linhas de rubrica/
+    // fechamento. As 4 células vazias existem só pra manter o número de colunas igual ao
+    // do cabeçalho (senão a tabela desalinha visualmente).
+    cels += '<td class="dre-mes-r dre-resumo dre-resumo-1a-col"></td><td class="dre-mes-pct dre-resumo"></td><td class="dre-mes-r dre-resumo"></td><td class="dre-mes-pct dre-resumo"></td>';
     html += '<tr>'+cels+'</tr>';
   });
   return html;
@@ -3323,7 +3205,7 @@ function _linhasSubgruposDREC(rubricaKey, porMes, vermelho){
 // vermelho NAQUELE MÊS, independente de `corFundo` (alerta é mais importante que tema).
 // `porMes` aqui é {total, pct} por mês -- sem mes/ano/subgrupos, pois estas 3 linhas não são
 // expansíveis nem clicáveis.
-function _linhaTotalDREC(rotulo, porMes, corFundo){
+function _linhaTotalDREC(rotulo, porMes, corFundo, receitaLiquidaAcumulada){
   let cels = '<td>'+rotulo+'</td>';
   porMes.forEach(m=>{
     // Fonte branca sempre que a célula ganha um fundo colorido (vermelho de negativo, ou
@@ -3337,6 +3219,21 @@ function _linhaTotalDREC(rotulo, porMes, corFundo){
     cels += '<td class="dre-mes-r" style="'+estilo+'">'+_valDREC(m.total)+'</td>'+
       '<td class="dre-mes-pct" style="'+estilo+'">'+_pctDREC(m.pct)+'</td>';
   });
+  // Colunas de resumo (2026-09-24): mesmo cálculo de _celulasResumoDREC, mas com o fundo
+  // colorido (verde EBITDA/azul LL/vermelho negativo) recalculado sobre o TOTAL ACUMULADO
+  // -- um EBITDA acumulado negativo pinta de vermelho mesmo que os meses individuais sejam
+  // positivos, e vice-versa.
+  const temPctAcum = porMes.length>0 && porMes[0].pct !== null && porMes[0].pct !== undefined;
+  const totalAcum = porMes.reduce((s,m)=>s+(m.total||0),0);
+  const mediaAcum = porMes.length ? totalAcum/porMes.length : 0;
+  const pctAcum = (temPctAcum && receitaLiquidaAcumulada) ? (totalAcum/receitaLiquidaAcumulada*100) : null;
+  const temFundoColoridoAcum = totalAcum < 0 || !!corFundo;
+  const estiloAcum = (totalAcum < 0 ? 'background:var(--red);' : (corFundo ? 'background:'+corFundo+';' : ''))
+    + (temFundoColoridoAcum ? 'color:#fff;' : '');
+  cels += '<td class="dre-mes-r dre-resumo dre-resumo-1a-col" style="'+estiloAcum+'">'+_valDREC(totalAcum)+'</td>'+
+    '<td class="dre-mes-pct dre-resumo" style="'+estiloAcum+'">'+_pctDREC(pctAcum)+'</td>'+
+    '<td class="dre-mes-r dre-resumo" style="'+estiloAcum+'">'+_valDREC(mediaAcum)+'</td>'+
+    '<td class="dre-mes-pct dre-resumo" style="'+estiloAcum+'">'+_pctDREC(pctAcum)+'</td>';
   return '<tr class="total-row">'+cels+'</tr>';
 }
 // Layout mês a mês (2026-09-22, pedido dos acionistas): mostra os meses da base lado a
@@ -3357,6 +3254,8 @@ function renderDREContabil(){
     tabela.innerHTML = '<thead></thead><tbody><tr><td>Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
     if(selIni) selIni.innerHTML = '';
     if(selFim) selFim.innerHTML = '';
+    const selAjusteVazio = document.getElementById('ajusteComissaoCompetencia');
+    if(selAjusteVazio) selAjusteVazio.innerHTML = '';
     _dreContabilUltimoMesAno = null;
     return;
   }
@@ -3380,6 +3279,10 @@ function renderDREContabil(){
     selIni.value = todosMeses.includes(iniAnterior) ? iniAnterior : todosMeses[0];
     selFim.value = todosMeses.includes(fimAnterior) ? fimAnterior : todosMeses[todosMeses.length-1];
   }
+  // Painel "Ajuste Fiscal" (competência própria, independente do intervalo acima) --
+  // repopula a cada render pra acompanhar novos meses da base.
+  const competenciaAjuste = _popularCompetenciaAjusteComissao();
+  if(competenciaAjuste) _preencherAjusteComissao(competenciaAjuste.mes, competenciaAjuste.ano);
   let iniIdx = selIni ? todosMeses.indexOf(selIni.value) : 0;
   let fimIdx = selFim ? todosMeses.indexOf(selFim.value) : todosMeses.length-1;
   if(iniIdx<0) iniIdx = 0;
@@ -3428,52 +3331,67 @@ function renderDREContabil(){
   // "#dreContabilTabela thead th" nunca casa, e o cabeçalho fica sem o fundo navy/fonte
   // branca (bug reportado pelo usuário: cabeçalho saía com o mesmo fundo branco da
   // planilha em vez de destacado).
+  // Colunas TOTAL ACUMULADO / MÉDIA MENSAL (2026-09-24, pedido do usuário: "sempre à
+  // direita da planilha atual"): 2 grupos de colunas fixos coladas depois do último mês,
+  // reagindo ao mesmo filtro Início/Término -- ver _celulasResumoDREC/_linhaTotalDREC.
+  // Cabeçalho das 2 colunas de resumo em verde-bandeira (2026-09-24, pedido do usuário) --
+  // mesmo tom usado na linha de fechamento EBITDA (var(--green5)), pra diferenciar
+  // visualmente do navy padrão dos meses.
+  const estiloHeaderResumo = 'background:var(--green5);';
   const thead = '<thead><tr><th>DISCRIMINAÇÃO</th>'+
     calc.map(c=>'<th colspan="2">'+MESES_PT[c.mes-1]+'/'+c.ano+'</th>').join('')+
+    '<th colspan="2" class="dre-resumo-1a-col" style="'+estiloHeaderResumo+'border-left:2px solid #fff;">TOTAL ACUMULADO</th>'+
+    '<th colspan="2" style="'+estiloHeaderResumo+'">MÉDIA MENSAL</th>'+
     '</tr><tr><th></th>'+
     calc.map(()=>'<th>R$</th><th>%/R$</th>').join('')+
+    '<th class="dre-resumo-1a-col" style="'+estiloHeaderResumo+'border-left:2px solid #fff;">R$</th><th style="'+estiloHeaderResumo+'">%/R$</th>'+
+    '<th style="'+estiloHeaderResumo+'">R$</th><th style="'+estiloHeaderResumo+'">%/R$</th>'+
     '</tr></thead>';
 
   // Monta os arrays por rubrica (1 item por mês, na mesma ordem de `calc`) -- ver
   // comentário de _linhaDREC pra formato de cada item.
-  const pmReceitaBruta = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.receitaBruta, pct:null, subgrupos:c.d.RECEITA_BRUTA.subgrupos}));
-  const pmImpostos = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.impostos, pct:null, subgrupos:c.d.IMPOSTOS.subgrupos}));
+  const pmReceitaBruta = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.receitaBruta, pct:null, grupos:c.d.RECEITA_BRUTA.grupos}));
+  const pmImpostos = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.impostos, pct:null, grupos:c.d.IMPOSTOS.grupos}));
   const pmReceitaLiquida = calc.map(c=>({total:c.receitaLiquida, pct:c.pct(c.receitaLiquida)}));
-  const pmDP = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dp, pct:c.pct(c.dp), subgrupos:c.d.DP.subgrupos}));
-  const pmDV = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dv, pct:c.pct(c.dv), subgrupos:c.d.DV.subgrupos}));
-  const pmDA = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.da, pct:c.pct(c.da), subgrupos:c.d.DA.subgrupos}));
-  const pmDC = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dc, pct:c.pct(c.dc), subgrupos:c.d.DC.subgrupos}));
-  const pmDIR = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dir, pct:c.pct(c.dir), subgrupos:c.d.DIR.subgrupos}));
-  const pmOutras = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.outras, pct:c.pct(c.outras), subgrupos:c.d.OUTRAS.subgrupos}));
+  const pmDP = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dp, pct:c.pct(c.dp), grupos:c.d.DP.grupos}));
+  const pmDV = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dv, pct:c.pct(c.dv), grupos:c.d.DV.grupos}));
+  const pmDA = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.da, pct:c.pct(c.da), grupos:c.d.DA.grupos}));
+  const pmDC = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dc, pct:c.pct(c.dc), grupos:c.d.DC.grupos}));
+  const pmDIR = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.dir, pct:c.pct(c.dir), grupos:c.d.DIR.grupos}));
+  const pmOutras = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.outras, pct:c.pct(c.outras), grupos:c.d.OUTRAS.grupos}));
   const pmEbitda = calc.map(c=>({total:c.ebitda, pct:c.pct(c.ebitda)}));
-  const pmDF = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.df, pct:c.pct(c.df), subgrupos:c.d.DF.subgrupos}));
-  const pmFin = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.financiamentos, pct:c.pct(c.financiamentos), subgrupos:c.d.FINANCIAMENTOS.subgrupos}));
+  const pmDF = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.df, pct:c.pct(c.df), grupos:c.d.DF.grupos}));
+  const pmFin = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.financiamentos, pct:c.pct(c.financiamentos), grupos:c.d.FINANCIAMENTOS.grupos}));
   const pmLL = calc.map(c=>({total:c.ll, pct:c.pct(c.ll)}));
-  const pmExtra = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.extra, pct:null, subgrupos:c.d.EXTRA.subgrupos}));
+  const pmExtra = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.extra, pct:null, grupos:c.d.EXTRA.grupos}));
+
+  // Base do %/R$ das colunas de resumo (2026-09-24) -- soma da RECEITA LÍQUIDA de todos os
+  // meses do período filtrado, igual à receitaLiquidaAcumulada documentada em _linhaDREC.
+  const receitaLiquidaAcumulada = pmReceitaLiquida.reduce((s,m)=>s+(m.total||0),0);
 
   let html = thead + '<tbody>';
 
-  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', pmReceitaBruta, false);
-  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', pmImpostos, true);
-  html += _linhaTotalDREC('RECEITA LÍQUIDA', pmReceitaLiquida);
+  html += _linhaDREC('RECEITA_BRUTA', 'RECEITA BRUTA', pmReceitaBruta, false, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('IMPOSTOS', 'IMPOSTOS', pmImpostos, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaTotalDREC('RECEITA LÍQUIDA', pmReceitaLiquida, undefined, receitaLiquidaAcumulada);
 
-  html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', pmDP, true);
-  html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', pmDV, true);
-  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', pmDA, true);
-  html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', pmDC, true);
-  html += _linhaDREC('DIR', 'DIR (DIRETORIA)', pmDIR, true);
-  if(showOutras) html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', pmOutras, true, true);
+  html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', pmDP, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', pmDV, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', pmDA, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', pmDC, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('DIR', 'DIR (DIRETORIA)', pmDIR, true, undefined, receitaLiquidaAcumulada);
+  if(showOutras) html += _linhaDREC('OUTRAS', 'OUTRAS DESPESAS', pmOutras, true, true, receitaLiquidaAcumulada);
 
-  html += _linhaTotalDREC('EBITDA', pmEbitda, 'var(--green5)');
+  html += _linhaTotalDREC('EBITDA', pmEbitda, 'var(--green5)', receitaLiquidaAcumulada);
 
-  html += _linhaDREC('DF', 'DF (DESPESA FINANCEIRA)', pmDF, true);
-  html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', pmFin, true);
+  html += _linhaDREC('DF', 'DF (DESPESA FINANCEIRA)', pmDF, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('FINANCIAMENTOS', 'FINANCIAMENTOS', pmFin, true, undefined, receitaLiquidaAcumulada);
 
-  html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', pmLL, 'var(--blue-ll)');
+  html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', pmLL, 'var(--blue-ll)', receitaLiquidaAcumulada);
 
   if(showExtra){
-    html += '<tr><td colspan="'+(1+calc.length*2)+'" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
-    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.');
+    html += '<tr><td colspan="'+(1+calc.length*2+4)+'" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
+    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.', receitaLiquidaAcumulada);
   }
 
   html += '</tbody>';
@@ -3482,112 +3400,50 @@ function renderDREContabil(){
 // `mes`/`ano` (2026-09-22): agora cada célula clicada pertence a um mês diferente (tabela
 // mês a mês) -- guarda em _dreContabilPopupMesAno, separado de _dreContabilUltimoMesAno
 // (que continua representando o mês mais recente da tabela, usado pelo botão de exportar).
-function _abrirDreContabilSubgrupoPopup(rubrica, subgrupo, mes, ano){
+// Popup nível 1 (2026-09-22, GRUPO DE CLASSIFICAÇÃO): abre a lista de SUBGRUPO dentro do
+// GRUPO clicado na tabela da DRE - Caixa. Clicar num SUBGRUPO dali abre o popup nível 2
+// (lançamentos), via _abrirDreContabilSubgrupoPopup.
+function _abrirDreContabilGrupoPopup(rubrica, grupo, mes, ano){
+  _modalTipoAtual = 'dreContabilGrupo';
+  _dreContabilPopupMesAno = { mes, ano };
+  _dreGrupoModalAtual = { guia: rubrica, grupo };
+  _renderDreGrupoModalTabela();
+}
+// Popup nível 2: lançamentos de UM SUBGRUPO específico dentro do GRUPO já aberto no nível 1.
+function _abrirDreContabilSubgrupoPopup(rubrica, grupo, subgrupo, mes, ano){
   _modalTipoAtual = 'dreContabil';
   _dreContabilPopupMesAno = { mes, ano };
-  _dreModalAtual = { guia: rubrica, subgrupo };
+  _dreModalAtual = { guia: rubrica, grupo, subgrupo };
   _renderDreModalTabela();
 }
-const _dreExpandido = {}; // guiaNome -> bool (estado de expandir/recolher, persiste entre re-renders)
-let _dreUltimoMesAno = null; // {mes, ano} da última montagem, usado pelo popup de drill-down
-function renderDRE(){
-  const tabela = document.getElementById('dreTabela');
-  if(!tabela) return;
-  const sel = document.getElementById('dreCompetencia');
-  const disponiveis = _competenciasDisponiveis();
-  if(sel){
-    const anterior = sel.value;
-    sel.innerHTML = disponiveis.map(v=>{
-      const [ano, mesStr] = v.split('-');
-      return '<option value="'+v+'">'+MESES_PT[Number(mesStr)-1]+'/'+ano+'</option>';
-    }).join('');
-    if(disponiveis.includes(anterior)) sel.value = anterior;
-    else if(disponiveis.length) sel.value = disponiveis[0];
-  }
-  const valorSel = sel ? sel.value : '';
-  if(!valorSel){
-    tabela.innerHTML = '<thead></thead><tbody><tr><td>Nenhum lançamento classificado ainda — carregue extratos na aba Bancos e/ou importe a planilha de classificação.</td></tr></tbody>';
-    const kpi = document.getElementById('dreKpiRow');
-    if(kpi) kpi.innerHTML = '';
-    return;
-  }
-  const [anoStr, mesStr] = valorSel.split('-');
-  const mes = Number(mesStr), ano = Number(anoStr);
-  const guias = _montarDRE(mes, ano);
-  _dreUltimoMesAno = { mes, ano };
-
-  // Reorganização pedida pelos sócios em 2026-08-10: RECEITAS primeiro; depois um
-  // guia sintético "DESPESAS" com dupla expansão -- expande pra lista de CENTRO DE
-  // CUSTO (IMPOSTOS E TAXAS sempre primeiro, resto por total decrescente), e cada
-  // CENTRO DE CUSTO expande de novo pros SUBGRUPOS -- SEM incluir FINANCIAMENTOS
-  // nessa soma; fecha com RESULTADO (Receitas − Despesas sem financiamentos); depois
-  // FINANCIAMENTOS aparece como bloco separado (também expansível); e por fim
-  // RECEITA LÍQUIDA = Resultado − Financiamentos.
-  const receitas = guias['RECEITAS'] || { total: 0, subgrupos: {} };
-  const financiamentos = guias['FINANCIAMENTOS'] || null;
-  const centrosDespesa = Object.keys(guias).filter(k=> k!=='RECEITAS' && k!=='FINANCIAMENTOS');
-  // Ordem fixa pedida pelos sócios em 2026-08-10. Qualquer CENTRO DE CUSTO de
-  // despesa que não esteja nesta lista (ex.: um nome novo que apareça num mês
-  // futuro) não desaparece -- só cai no fim, ordenado por total decrescente, pra
-  // nunca esconder dado sem querer.
-  const _DRE_ORDEM_CENTRO_CUSTO = ['IMPOSTOS E TAXAS','CUSTO MANUTENÇÃO','CUSTO PESSOAL','CUSTO OPERAÇÃO','CUSTO COMERCIAL','CUSTO ADMINISTRATIVO','CUSTO FINANCEIRO','DIRETORIA','SEGURO CAPEMISA'];
-  centrosDespesa.sort((a,b)=>{
-    const ia = _DRE_ORDEM_CENTRO_CUSTO.indexOf(a), ib = _DRE_ORDEM_CENTRO_CUSTO.indexOf(b);
-    if(ia!==-1 && ib!==-1) return ia-ib;
-    if(ia!==-1) return -1;
-    if(ib!==-1) return 1;
-    return guias[b].total - guias[a].total;
-  });
-  const totalDespesasSemFinanciamentos = centrosDespesa.reduce((s,k)=> s+guias[k].total, 0);
-  const resultado = receitas.total - totalDespesasSemFinanciamentos;
-  const totalFinanciamentos = financiamentos ? financiamentos.total : 0;
-  const receitaLiquida = resultado - totalFinanciamentos;
-
-  const kpi = document.getElementById('dreKpiRow');
-  if(kpi){
-    kpi.innerHTML =
-      '<div class="kpi kpi-destaque"><div class="lbl">RECEITA — '+MESES_PT[mes-1]+'/'+ano+'</div><div class="val">'+_fmtBRL(receitas.total)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">DESPESA (sem financiamentos)</div><div class="val" style="color:var(--red);">'+_fmtBRL(totalDespesasSemFinanciamentos)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">FINANCIAMENTOS</div><div class="val" style="color:var(--red);">'+_fmtBRL(totalFinanciamentos)+'</div></div>'+
-      '<div class="kpi"><div class="lbl">RECEITA LÍQUIDA</div><div class="val" style="color:'+(receitaLiquida<0?'var(--red)':'var(--navy)')+';">'+_fmtBRL(receitaLiquida)+'</div></div>';
-  }
-
-  let html = '<thead><tr><th>RECEITAS / DESPESAS</th><th style="text-align:right;">TOTAL</th></tr></thead><tbody>';
-
-  // RECEITAS -- fonte padrão (navy)
-  html += _linhaGuiaDRE('RECEITAS', receitas.total, 0, false);
-  if(_dreExpandido['RECEITAS']) html += _linhasSubgruposDRE('RECEITAS', receitas.subgrupos, 1, false);
-
-  // DESPESAS (guia sintética -- dupla expansão: guia > centro de custo > subgrupo).
-  // Pedido dos sócios em 2026-08-10: toda DESPESA em fonte vermelha, pra distinguir
-  // visualmente de RECEITAS de cara, sem precisar ler o rótulo.
-  html += _linhaGuiaDRE('DESPESAS', totalDespesasSemFinanciamentos, 0, true);
-  if(_dreExpandido['DESPESAS']){
-    centrosDespesa.forEach(nome=>{
-      const g = guias[nome];
-      html += _linhaGuiaDRE(nome, g.total, 1, true);
-      if(_dreExpandido[nome]) html += _linhasSubgruposDRE(nome, g.subgrupos, 2, true);
-    });
-  }
-
-  html += _linhaTotalDRE('RESULTADO (RECEITAS − DESPESAS)', resultado);
-
-  // FINANCIAMENTOS -- bloco separado, abatido só na Receita Líquida; também é
-  // despesa, então também vermelho.
-  html += _linhaGuiaDRE('FINANCIAMENTOS', totalFinanciamentos, 0, true);
-  if(_dreExpandido['FINANCIAMENTOS'] && financiamentos) html += _linhasSubgruposDRE('FINANCIAMENTOS', financiamentos.subgrupos, 1, true);
-
-  html += _linhaTotalDRE('RECEITA LÍQUIDA (RESULTADO − FINANCIAMENTOS)', receitaLiquida);
-
-  html += '</tbody>';
-  tabela.innerHTML = html;
-  _preencherAjusteComissao(mes, ano);
+function _popularCompetenciaAjusteComissao(){
+  const sel = document.getElementById('ajusteComissaoCompetencia');
+  if(!sel) return null;
+  const disponiveis = _competenciasDisponiveis().slice().sort();
+  const anterior = sel.value;
+  sel.innerHTML = disponiveis.map(v=>{
+    const [ano, mesStr] = v.split('-');
+    return '<option value="'+v+'">'+MESES_PT[Number(mesStr)-1]+'/'+ano+'</option>';
+  }).join('');
+  if(disponiveis.includes(anterior)) sel.value = anterior;
+  else if(disponiveis.length) sel.value = disponiveis[disponiveis.length-1];
+  return _lerCompetenciaAjusteComissao();
+}
+function _lerCompetenciaAjusteComissao(){
+  const sel = document.getElementById('ajusteComissaoCompetencia');
+  if(!sel || !sel.value) return null;
+  const [anoStr, mesStr] = sel.value.split('-');
+  return { mes: Number(mesStr), ano: Number(anoStr) };
+}
+function _onMudarCompetenciaAjusteComissao(){
+  const competencia = _lerCompetenciaAjusteComissao();
+  if(competencia) _preencherAjusteComissao(competencia.mes, competencia.ano);
 }
 // Preenche os 2 campos do painel "Ajuste Fiscal" com o que já está salvo em
-// DB.comissaoGrossUp pra competência atual (chave igual à de _competenciasDisponiveis:
-// "AAAA-MM") -- chamado no fim de renderDRE() toda vez que a COMPETÊNCIA muda, pra nunca
-// mostrar o valor do mês errado. Campo fica vazio (não "0,00") quando não há nada salvo
-// ainda pra esse mês, pra diferenciar "zero digitado" de "nunca preenchido".
+// DB.comissaoGrossUp pra competência selecionada no próprio seletor
+// #ajusteComissaoCompetencia (2026-09-22: desacoplado de _dreUltimoMesAno, que deixou de
+// existir junto com a aba DRE - Simplificado). Campo fica vazio (não "0,00") quando não
+// há nada salvo ainda pra esse mês, pra diferenciar "zero digitado" de "nunca preenchido".
 function _preencherAjusteComissao(mes, ano){
   const inputAgencias = document.getElementById('ajusteComissaoAgencias');
   const inputInternet = document.getElementById('ajusteComissaoInternet');
@@ -3598,17 +3454,17 @@ function _preencherAjusteComissao(mes, ano){
   inputInternet.value = salvo && salvo.internet ? String(salvo.internet).replace('.',',') : '';
 }
 // Salva os 2 valores digitados no painel "Ajuste Fiscal" pra COMPETÊNCIA selecionada no
-// seletor da DRE - Simplificado (_dreUltimoMesAno, populado pelo último renderDRE()) --
-// mesma competência vale pros dois DREs, já que os dois leem _montarDRE(). Aceita vírgula
-// ou ponto decimal (_parseValorBanco já trata os dois formatos, mesma função usada nos
-// parsers de extrato bancário). Campo vazio ou 0 remove a entrada em vez de salvar zero,
-// pra não deixar lixo em DB.comissaoGrossUp.
+// seletor PRÓPRIO #ajusteComissaoCompetencia. Aceita vírgula ou ponto decimal
+// (_parseValorBanco já trata os dois formatos, mesma função usada nos parsers de extrato
+// bancário). Campo vazio ou 0 remove a entrada em vez de salvar zero, pra não deixar lixo
+// em DB.comissaoGrossUp.
 function salvarAjusteComissao(){
-  if(!_dreUltimoMesAno){
-    alert('Selecione uma competência na DRE antes de salvar o Ajuste Fiscal.');
+  const competencia = _lerCompetenciaAjusteComissao();
+  if(!competencia){
+    alert('Selecione uma competência no Ajuste Fiscal antes de salvar.');
     return;
   }
-  const { mes, ano } = _dreUltimoMesAno;
+  const { mes, ano } = competencia;
   const chave = ano+'-'+String(mes).padStart(2,'0');
   const agencias = _parseValorBanco(document.getElementById('ajusteComissaoAgencias').value) || 0;
   const internet = _parseValorBanco(document.getElementById('ajusteComissaoInternet').value) || 0;
@@ -3622,98 +3478,33 @@ function salvarAjusteComissao(){
   atualizarTudo();
   document.getElementById('uploadStatus').textContent = 'Ajuste Fiscal de Comissão salvo pra '+MESES_PT[mes-1]+'/'+ano+'.';
 }
-// Linha de guia/centro de custo clicável (expande/recolhe) -- nivel 0 = guia
-// principal (RECEITAS/DESPESAS/FINANCIAMENTOS), nivel 1 = CENTRO DE CUSTO dentro de
-// DESPESAS (2º nível da dupla expansão). `vermelho` pinta rótulo e valor em
-// var(--red) -- usado pra DESPESAS/FINANCIAMENTOS e tudo dentro deles (pedido dos
-// sócios, 2026-08-10), RECEITAS fica na cor padrão (navy).
-function _linhaGuiaDRE(nome, total, nivel, vermelho){
-  const aberto = !!_dreExpandido[nome];
-  const peso = nivel===0 ? 'font-weight:bold;' : 'font-weight:600;';
-  const cor = vermelho ? 'color:var(--red);' : '';
-  return '<tr class="clickable" onclick="_toggleDreGuia(\''+nome.replace(/'/g,"\\'")+'\')">'+
-    '<td style="padding-left:'+(nivel*18)+'px;'+cor+'"><span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span><span style="'+peso+cor+'">'+nome+'</span></td>'+
-    '<td style="text-align:right;'+peso+cor+'">'+_fmtBRL(total)+'</td></tr>';
-}
-// Linhas de SUBGRUPO dentro de um guia (clicáveis, abrem popup de drill-down) --
-// nivel 1 = direto sob RECEITAS/FINANCIAMENTOS, nivel 2 = sob um CENTRO DE CUSTO
-// dentro de DESPESAS (3º nível visual da dupla expansão). Mesmo `vermelho` da linha
-// de guia acima -- o contador "(N)" continua em cinza (var(--muted)) por legibilidade.
-function _linhasSubgruposDRE(guiaNome, subgrupos, nivel, vermelho){
-  let html = '';
-  const cor = vermelho ? 'color:var(--red);' : '';
-  // Pedido dos sócios em 2026-08-10: SUBGRUPOS em ordem alfabética (não mais por
-  // total decrescente) -- as caixas de CENTRO DE CUSTO continuam na ordem fixa
-  // (_DRE_ORDEM_CENTRO_CUSTO), só o que está DENTRO de cada uma foi alfabetizado.
-  const subNomes = Object.keys(subgrupos).sort((a,b)=> a.localeCompare(b,'pt-BR'));
-  subNomes.forEach(sub=>{
-    const s = subgrupos[sub];
-    html += '<tr class="clickable" onclick="_abrirDreSubgrupoPopup(\''+guiaNome.replace(/'/g,"\\'")+'\',\''+sub.replace(/'/g,"\\'")+'\')">'+
-      '<td style="padding-left:'+(16+nivel*18)+'px;'+cor+'">'+sub+' <span style="color:var(--muted);">('+s.itens.length+')</span></td>'+
-      '<td style="text-align:right;'+cor+'">'+_fmtBRL(s.total)+'</td></tr>';
-  });
-  return html;
-}
-// Linha de fechamento (RESULTADO / RECEITA LÍQUIDA) -- pedido dos sócios em
-// 2026-08-10: quando o valor der negativo, o fundo da linha vira vermelho (em vez do
-// navy padrão de tr.total-row) pra chamar atenção; estilo inline sempre vence o CSS
-// da classe, então não precisa de !important.
-function _linhaTotalDRE(rotulo, valor){
-  const estiloNegativo = valor < 0 ? 'background:var(--red);' : '';
-  return '<tr class="total-row"><td style="'+estiloNegativo+'">'+rotulo+'</td>'+
-    '<td style="text-align:right;'+estiloNegativo+'">'+_fmtBRL(valor)+'</td></tr>';
-}
-function _toggleDreGuia(nome){
-  _dreExpandido[nome] = !_dreExpandido[nome];
-  renderDRE();
-}
-// Popup de drill-down de um SUBGRUPO (mesmo padrão visual dos popups de Bancos:
-// cabeçalho clicável com setas de ordenação dentro de .scroll-box).
 let _dreModalSortCol='data', _dreModalSortDir=-1, _dreModalAtual=null;
-// Estado do export CSV/PDF dos popups da aba DRE -- pedido dos sócios em 2026-08-10,
-// mesma opção já existente nos popups do painel COMERCIAL (ver _linhasModalCSV/
-// baixarCSVGrupo/baixarPDFGrupo em "Painel Viação Sete.html"). Como o Financeiro tem
-// TRÊS popups diferentes reaproveitando o mesmo #modalOverlay genérico (drill-down de
-// subgrupo da DRE, recebível de cartão, convênio em aberto), guardamos qual popup está
-// aberto em _modalTipoAtual pra um único par de funções (baixarCSVModal/baixarPDFModal)
-// saber montar as linhas certas -- em vez de duplicar 3x o botão com 3 funções.
-let _modalTipoAtual = null; // 'dre' | 'vfCartao' | 'vfConvenio'
-function _abrirDreSubgrupoPopup(guia, subgrupo){
-  _modalTipoAtual = 'dre';
-  _dreModalAtual = { guia, subgrupo };
-  _renderDreModalTabela();
-}
+// Popup nível 1 (2026-09-22, GRUPO DE CLASSIFICAÇÃO): estado próprio, ordenável por
+// SUBGRUPO/qtd/valor. Aberto por _abrirDreContabilGrupoPopup, a partir da célula de GRUPO
+// na tabela da DRE - Caixa.
+let _dreGrupoModalSortCol='total', _dreGrupoModalSortDir=-1, _dreGrupoModalAtual=null;
+let _modalTipoAtual = null; // 'dreContabil' | 'dreContabilGrupo'
 function _ordenarDreModal(col){
   if(_dreModalSortCol===col) _dreModalSortDir*=-1; else { _dreModalSortCol=col; _dreModalSortDir=1; }
   _renderDreModalTabela();
 }
 function _renderDreModalTabela(){
-  if(!_dreModalAtual) return;
-  const { guia, subgrupo } = _dreModalAtual;
-  // 2026-08-16: mesma função de render serve os dois popups (DRE - Simplificado e DRE -
-  // Contábil) -- só troca de onde vêm os itens (_modalTipoAtual seta qual das duas
-  // funções de montagem usar), o resto (ordenação, tabela, export) é idêntico.
-  let itens, tituloMes = '';
-  if(_modalTipoAtual==='dreContabil'){
-    // Célula clicada (mês específico da tabela mês a mês) -- ver _abrirDreContabilSubgrupoPopup.
-    if(!_dreContabilPopupMesAno) return;
-    const { mes, ano } = _dreContabilPopupMesAno;
-    const dados = _montarDREContabil(mes, ano);
-    const g = dados[guia];
-    itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
-    tituloMes = ' — '+MESES_PT[mes-1]+'/'+ano;
-  } else {
-    if(!_dreUltimoMesAno) return;
-    const { mes, ano } = _dreUltimoMesAno;
-    const guias = _montarDRE(mes, ano);
-    const g = guias[guia];
-    itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
-  }
+  if(!_dreModalAtual || !_dreContabilPopupMesAno) return;
+  const { guia, grupo, subgrupo } = _dreModalAtual;
+  const { mes, ano } = _dreContabilPopupMesAno;
+  const dados = _montarDREContabil(mes, ano);
+  const g = dados[guia];
+  const gr = g && g.grupos[grupo];
+  const itens = (gr && gr.subgrupos[subgrupo] ? gr.subgrupos[subgrupo].itens : []).slice();
+  const tituloMes = ' — '+MESES_PT[mes-1]+'/'+ano;
   itens.sort((a,b)=> _dreModalSortCol==='valor'
     ? _dreModalSortDir*(a.valor-b.valor)
     : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
   const total = itens.reduce((s,t)=>s+t.valor,0);
-  const titulo = '<h3>'+subgrupo+' — '+guia+tituloMes+'</h3>'+
+  // ← Voltar (2026-09-22): reabre o popup nível 1 (GRUPO), preservando mes/ano/guia --
+  // permite navegar de volta ao SUBGRUPOs do mesmo GRUPO sem fechar o modal inteiro.
+  const titulo = '<div class="modal-voltar" onclick="_abrirDreContabilGrupoPopup(\''+guia+'\',\''+grupo.replace(/'/g,"\\'")+'\','+mes+','+ano+')" style="cursor:pointer;font-size:13px;color:var(--blue);margin-bottom:4px;">&#8592; Voltar para '+grupo+'</div>'+
+    '<h3>'+subgrupo+' — '+guia+tituloMes+'</h3>'+
     '<div class="modal-actions"><button onclick="baixarCSVModal()">Baixar CSV</button><button class="pdf" onclick="baixarPDFModal()">Baixar PDF</button></div>'+
     '<div class="modal-summary"><span class="rs-label">Lançamentos:</span>&nbsp;<span class="rs-valor">'+itens.length+'</span>&nbsp;&nbsp;'+
     '<span class="rs-label">Total:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(total)+'</span></div>';
@@ -3728,45 +3519,45 @@ function _renderDreModalTabela(){
   corpo += '</tbody></table></div>';
   abrirModal(titulo, corpo);
 }
+// Popup nível 1 (2026-09-22): lista de SUBGRUPO dentro do GRUPO clicado, com qtd de
+// lançamentos e total -- clicar numa linha abre o popup nível 2 (lançamentos daquele
+// SUBGRUPO), via _abrirDreContabilSubgrupoPopup.
+function _ordenarDreGrupoModal(col){
+  if(_dreGrupoModalSortCol===col) _dreGrupoModalSortDir*=-1; else { _dreGrupoModalSortCol=col; _dreGrupoModalSortDir=1; }
+  _renderDreGrupoModalTabela();
+}
+function _renderDreGrupoModalTabela(){
+  if(!_dreGrupoModalAtual || !_dreContabilPopupMesAno) return;
+  const { guia, grupo } = _dreGrupoModalAtual;
+  const { mes, ano } = _dreContabilPopupMesAno;
+  const dados = _montarDREContabil(mes, ano);
+  const g = dados[guia];
+  const gr = g && g.grupos[grupo];
+  const subNomes = gr ? Object.keys(gr.subgrupos) : [];
+  let linhas = subNomes.map(sub=>({ subgrupo: sub, qtd: gr.subgrupos[sub].itens.length, total: gr.subgrupos[sub].total }));
+  const tituloMes = ' — '+MESES_PT[mes-1]+'/'+ano;
+  linhas.sort((a,b)=> _dreGrupoModalSortCol==='subgrupo'
+    ? _dreGrupoModalSortDir*String(a.subgrupo).localeCompare(String(b.subgrupo))
+    : _dreGrupoModalSortDir*(a[_dreGrupoModalSortCol]-b[_dreGrupoModalSortCol]));
+  const total = linhas.reduce((s,l)=>s+l.total,0);
+  const qtdTotal = linhas.reduce((s,l)=>s+l.qtd,0);
+  const titulo = '<h3>'+grupo+' — '+guia+tituloMes+'</h3>'+
+    '<div class="modal-actions"><button onclick="baixarCSVModal()">Baixar CSV</button><button class="pdf" onclick="baixarPDFModal()">Baixar PDF</button></div>'+
+    '<div class="modal-summary"><span class="rs-label">Subgrupos:</span>&nbsp;<span class="rs-valor">'+linhas.length+'</span>&nbsp;&nbsp;'+
+    '<span class="rs-label">Lançamentos:</span>&nbsp;<span class="rs-valor">'+qtdTotal+'</span>&nbsp;&nbsp;'+
+    '<span class="rs-label">Total:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(total)+'</span></div>';
+  const cols = [{key:'subgrupo',label:'SUBGRUPO'},{key:'qtd',label:'QTD',right:true},{key:'total',label:'VALOR',right:true}];
+  const seta = key => _dreGrupoModalSortCol===key ? (_dreGrupoModalSortDir===1?' &#9650;':' &#9660;') : '';
+  let corpo = '<div class="scroll-box"><table class="data" id="dreGrupoModalTabela"><thead><tr>'+
+    cols.map(c=>'<th'+(c.right?' style="text-align:right;"':'')+' onclick="_ordenarDreGrupoModal(\''+c.key+'\')">'+c.label+seta(c.key)+'</th>').join('')+
+    '</tr></thead><tbody>';
+  linhas.forEach(l=>{
+    corpo += '<tr class="clickable" onclick="_abrirDreContabilSubgrupoPopup(\''+guia+'\',\''+grupo.replace(/'/g,"\\'")+'\',\''+l.subgrupo.replace(/'/g,"\\'")+'\','+mes+','+ano+')"><td>'+l.subgrupo+'</td><td style="text-align:right;">'+l.qtd+'</td><td style="text-align:right;">'+_fmtBRL(l.total)+'</td></tr>';
+  });
+  corpo += '</tbody></table></div>';
+  abrirModal(titulo, corpo);
+}
 
-// ==================================================================================
-// Render da aba VENDA FUTURA -- tabela À PARTE do dreTabela (nunca soma em RECEITAS/
-// DESPESAS/RESULTADO/RECEITA LÍQUIDA, ver comentário grande em _extrairRecebiveisStone).
-// Mesma dupla-expansão visual da DRE (guia > item, clicável, seta ▶/▼), reaproveitando o
-// mesmo `.clickable`/`.data` CSS já usado em toda a aba, mas com funções e estado
-// próprios (_vfExpandido) já que a estrutura de dados é diferente (bancos Stone e, no
-// futuro, prefeituras -- não subgrupo/centro de custo).
-const _vfExpandido = {}; // nome -> bool (estado de expandir/recolher, persiste entre re-renders)
-function _toggleVfGuia(nome){
-  _vfExpandido[nome] = !_vfExpandido[nome];
-  renderVendaFutura();
-}
-function _linhaGuiaVF(nome, total, nivel){
-  const aberto = !!_vfExpandido[nome];
-  const peso = nivel===0 ? 'font-weight:bold;' : 'font-weight:600;';
-  return '<tr class="clickable" onclick="_toggleVfGuia(\''+nome.replace(/'/g,"\\'")+'\')">'+
-    '<td style="padding-left:'+(nivel*18)+'px;"><span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span><span style="'+peso+'">'+nome+'</span></td>'+
-    '<td style="text-align:right;'+peso+'">'+_fmtBRL(total)+'</td></tr>';
-}
-function _linhaItemVF(nome, total, nivel, onclickCall, contagem){
-  const contadorHtml = (contagem!=null) ? ' <span style="color:var(--muted);">('+contagem+')</span>' : '';
-  return '<tr class="clickable" onclick="'+onclickCall+'">'+
-    '<td style="padding-left:'+(16+nivel*18)+'px;">'+nome+contadorHtml+'</td>'+
-    '<td style="text-align:right;">'+_fmtBRL(total)+'</td></tr>';
-}
-// Linha de convênio dentro do tópico CONVÊNIOS (Venda Futura) -- igual a
-// _linhaItemVF, mas com um botão "Baixar" embutido na célula de valor (pedido do
-// usuário em 2026-08-13, ver _abrirBaixaConvenioModal). event.stopPropagation() no
-// botão evita que o clique nele também dispare o onclick da linha (que abre o popup
-// de detalhe do convênio).
-function _linhaConvenioVF(nome, total, contagem){
-  const nomeEsc = nome.replace(/'/g,"\\'");
-  return '<tr class="clickable" onclick="_abrirVfPopupConvenio(\''+nomeEsc+'\')">'+
-    '<td style="padding-left:34px;">'+nome+' <span style="color:var(--muted);">('+contagem+')</span></td>'+
-    '<td style="text-align:right;">'+_fmtBRL(total)+
-      ' <button style="margin-left:8px;font-size:11px;padding:6px 12px;background:var(--red);color:#fff;border:none;border-radius:10px;font-weight:bold;cursor:pointer;" onclick="event.stopPropagation();_abrirBaixaConvenioModal(\''+nomeEsc+'\')">Baixar</button>'+
-    '</td></tr>';
-}
 // ==================================================================================
 // ABA ORÇAMENTO (2026-08-27, pedido dos sócios): Programado x Realizado, a partir da
 // "Planilha de Custos - v2.xlsx" (nossa Estrutura de Custo Padrão) enviada pelo usuário.
@@ -4239,224 +4030,34 @@ function renderOrcamento(){
   }
 }
 
-function renderVendaFutura(){
-  const tabela = document.getElementById('vfTabela');
-  if(!tabela) return;
-  // Correção 2026-08-10 (revertida no mesmo dia): tentamos filtrar Venda Futura pela
-  // competência selecionada na DRE, mas o usuário esclareceu que esse painel deve ser
-  // sempre uma foto do que está em aberto AGORA, de qualquer mês -- ele explicitamente
-  // já tem recebível de cartão previsto pra out/nov/dez, e quer ver tudo junto, sem
-  // precisar trocar seletor nenhum. A DRE trabalha em "competência" (mês de
-  // reconhecimento contábil); Venda Futura trabalha em "o que falta entrar", que por
-  // natureza atravessa vários meses ao mesmo tempo -- os dois conceitos não deveriam
-  // estar amarrados. Por isso esta função soma TUDO que está em DB.vendaFuturaCartao/
-  // DB.vendaFuturaConvenios, sem nenhum filtro de data.
-  //
-  // CARTÃO DE CRÉDITO -- soma o VALOR LÍQUIDO por terminal Stone (já filtrado só
-  // Aberto/Agendado, sem Balanceamento de Saldo, no próprio parser).
-  const bancos = Object.keys(DB.vendaFuturaCartao||{}).filter(b=> (DB.vendaFuturaCartao[b]||[]).length).sort((a,b)=> a.localeCompare(b,'pt-BR'));
-  const totalPorBanco = {};
-  let totalCartao = 0;
-  bancos.forEach(b=>{
-    const t = (DB.vendaFuturaCartao[b]||[]).reduce((s,r)=>s+r.valorLiquido,0);
-    totalPorBanco[b] = t;
-    totalCartao += t;
-  });
-
-  let html = '<thead><tr><th>VENDA FUTURA</th><th style="text-align:right;">TOTAL</th></tr></thead><tbody>';
-
-  html += _linhaGuiaVF('CARTÃO DE CRÉDITO', totalCartao, 0);
-  if(_vfExpandido['CARTÃO DE CRÉDITO']){
-    if(!bancos.length){
-      html += '<tr><td colspan="2" style="padding-left:16px;color:var(--muted);">Nenhum recebível de cartão carregado ainda.</td></tr>';
-    } else {
-      bancos.forEach(b=>{
-        const qtd = (DB.vendaFuturaCartao[b]||[]).length;
-        html += _linhaItemVF(b, totalPorBanco[b], 1, "_abrirVfPopupCartao('"+b.replace(/'/g,"\\'")+"')", qtd);
-      });
-    }
-  }
-
-  // CONVÊNIOS -- mesma lógica de CARTÃO DE CRÉDITO, mas por PREFEITURA/CONVÊNIO em vez
-  // de terminal Stone. Populado via "Importar Convênios (Venda Futura)" no rodapé, com
-  // um JSON exportado da base de Convênios do painel COMERCIAL (mesmo pipeline de
-  // precificação daquela aba -- REGRAS_VALOR_CONVENIO, mesclagem de escalas etc. --, só
-  // que rodado do lado de lá antes de exportar). Pedido dos sócios em 2026-08-10:
-  // "como na prática não recebemos nenhuma prefeitura de julho ainda, pode trazer TODAS
-  // pra Convênios" -- ou seja, por ora TODO convênio do mês entra aqui (não só uma
-  // lista seleta de "em aberto"); conforme forem sendo pagos (aparecendo no extrato
-  // bancário / DRE > RECEITAS > PREFEITURAS ou CORRENTISTA), o usuário avisa e a gente
-  // reimporta um JSON atualizado sem aquele convênio (ou sem os bilhetes já pagos).
-  // CONVÊNIOS -- mesma ideia: soma TUDO que está em DB.vendaFuturaConvenios, sem
-  // filtro de mês. Cada convênio pode acumular VÁRIOS meses ao mesmo tempo (ex.:
-  // PREFEITURA DE SÃO RAIMUNDO NONATO ainda não pagou julho, e agosto também já
-  // venceu sem pagamento -- os dois meses ficam juntos dentro do mesmo convênio, e o
-  // popup mostra as duas competências misturadas). Isso é o comportamento esperado
-  // (pedido do usuário 2026-08-10): a lista só encolhe quando ele avisa que um
-  // convênio pagou e a gente reimporta um JSON atualizado sem aqueles bilhetes -- ver
-  // importarVendaFuturaConvenios, que agora faz merge por convênio em vez de substituir
-  // a base inteira, exatamente pra permitir esse acúmulo sem apagar os outros convênios.
-  const convenios = Object.keys(DB.vendaFuturaConvenios||{}).filter(c=> (DB.vendaFuturaConvenios[c]||[]).length).sort((a,b)=> a.localeCompare(b,'pt-BR'));
-  const totalPorConvenio = {};
-  let totalConvenios = 0;
-  convenios.forEach(c=>{
-    const t = (DB.vendaFuturaConvenios[c]||[]).reduce((s,r)=>s+r.valorCobrado,0);
-    totalPorConvenio[c] = t;
-    totalConvenios += t;
-  });
-
-  html += _linhaGuiaVF('CONVÊNIOS', totalConvenios, 0);
-  if(_vfExpandido['CONVÊNIOS']){
-    if(!convenios.length){
-      html += '<tr><td colspan="2" style="padding-left:16px;color:var(--muted);">Nenhum convênio em aberto cadastrado ainda.</td></tr>';
-    } else {
-      convenios.forEach(c=>{
-        const qtd = (DB.vendaFuturaConvenios[c]||[]).length;
-        html += _linhaConvenioVF(c, totalPorConvenio[c], qtd);
-      });
-    }
-    html += '<tr><td colspan="2" style="padding-left:34px;"><a href="#" onclick="event.preventDefault();_abrirHistoricoBaixas();" style="font-size:12px;">Ver histórico de baixas</a></td></tr>';
-  }
-
-  html += '</tbody>';
-  tabela.innerHTML = html;
-
-  // TOTAL RECEBÍVEIS -- pedido dos sócios em 2026-08-10: soma CARTÃO DE CRÉDITO +
-  // CONVÊNIOS. Tabela SEPARADA (#vfTabelaTotal), fora da .scroll-box -- ver comentário
-  // grande no CSS explicando por que desistimos de position:sticky aqui.
-  const tabelaTotal = document.getElementById('vfTabelaTotal');
-  if(tabelaTotal) tabelaTotal.innerHTML = '<tbody><tr class="total-row"><td>TOTAL RECEBÍVEIS</td><td style="text-align:right;">'+_fmtBRL(totalCartao+totalConvenios)+'</td></tr></tbody>';
-}
-// Popup de detalhe dos recebíveis de UM terminal Stone -- mesmo padrão visual dos
-// demais popups da aba (cabeçalho clicável com setas de ordenação dentro de
-// .scroll-box). Colunas exatas pedidas pelos sócios em 2026-08-10: Banco, Data Venda,
-// Data Vencimento, Bandeira, Valor Bruto, Valor Líquido, Desconto, Status.
-let _vfModalSortCol='dataVenda', _vfModalSortDir=-1, _vfModalBancoAtual=null;
-function _abrirVfPopupCartao(banco){
-  _modalTipoAtual = 'vfCartao';
-  _vfModalBancoAtual = banco;
-  _renderVfModalCartao();
-}
-function _ordenarVfModal(col){
-  if(_vfModalSortCol===col) _vfModalSortDir*=-1; else { _vfModalSortCol=col; _vfModalSortDir=1; }
-  _renderVfModalCartao();
-}
-function _renderVfModalCartao(){
-  const banco = _vfModalBancoAtual;
-  const camposNumericos = ['valorBruto','valorLiquido','desconto'];
-  const itens = (DB.vendaFuturaCartao[banco]||[]).map(t=> Object.assign({banco}, t));
-  itens.sort((a,b)=> camposNumericos.includes(_vfModalSortCol)
-    ? _vfModalSortDir*(a[_vfModalSortCol]-b[_vfModalSortCol])
-    : _vfModalSortDir*String(a[_vfModalSortCol]||'').localeCompare(String(b[_vfModalSortCol]||'')));
-  const totalLiquido = itens.reduce((s,t)=>s+t.valorLiquido,0);
-  const totalBruto = itens.reduce((s,t)=>s+t.valorBruto,0);
-  const titulo = '<h3>'+banco+' — Recebíveis de Cartão (Aberto/Agendado)</h3>'+
-    '<div class="modal-actions"><button onclick="baixarCSVModal()">Baixar CSV</button><button class="pdf" onclick="baixarPDFModal()">Baixar PDF</button></div>'+
-    '<div class="modal-summary"><span class="rs-label">Lançamentos:</span>&nbsp;<span class="rs-valor">'+itens.length+'</span>&nbsp;&nbsp;'+
-    '<span class="rs-label">Bruto:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(totalBruto)+'</span>&nbsp;&nbsp;'+
-    '<span class="rs-label">Líquido:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(totalLiquido)+'</span></div>';
-  const cols = [
-    {key:'banco',label:'BANCO'},
-    {key:'dataVenda',label:'DATA VENDA'},
-    {key:'dataVencimento',label:'DATA VENCIMENTO'},
-    {key:'bandeira',label:'BANDEIRA'},
-    {key:'valorBruto',label:'VALOR BRUTO',right:true},
-    {key:'valorLiquido',label:'VALOR LÍQUIDO',right:true},
-    {key:'desconto',label:'DESCONTO',right:true},
-    {key:'status',label:'STATUS'},
-  ];
-  const seta = key => _vfModalSortCol===key ? (_vfModalSortDir===1?' &#9650;':' &#9660;') : '';
-  let corpo = '<div class="scroll-box"><table class="data" id="vfModalTabela"><thead><tr>'+
-    cols.map(c=>'<th'+(c.right?' style="text-align:right;"':'')+' onclick="_ordenarVfModal(\''+c.key+'\')">'+c.label+seta(c.key)+'</th>').join('')+
-    '</tr></thead><tbody>';
-  itens.forEach(t=>{
-    corpo += '<tr><td>'+t.banco+'</td><td>'+formatarDataBR(t.dataVenda)+'</td><td>'+formatarDataBR(t.dataVencimento)+'</td><td>'+(t.bandeira||'')+'</td>'+
-      '<td style="text-align:right;">'+_fmtBRL(t.valorBruto)+'</td><td style="text-align:right;">'+_fmtBRL(t.valorLiquido)+'</td>'+
-      '<td style="text-align:right;">'+_fmtBRL(t.desconto)+'</td><td>'+(t.status||'')+'</td></tr>';
-  });
-  corpo += '</tbody></table></div>';
-  abrirModal(titulo, corpo);
-}
-// Popup de detalhe de UM convênio/prefeitura -- mesmo padrão visual do popup de
-// CARTÃO DE CRÉDITO acima, mas com as colunas do bilhete individual (mesmo formato do
-// popup CONVÊNIOS do painel COMERCIAL, ver `_linhasModalCSV` de lá): Convênio, Data,
-// Origem, Destino, Passageiro, Bilhete, Valor Cobrado, Linha, Agência, Bilheteiro,
-// Status.
-let _vfModalConvSortCol='dataVenda', _vfModalConvSortDir=-1, _vfModalConvenioAtual=null;
-function _abrirVfPopupConvenio(nome){
-  _modalTipoAtual = 'vfConvenio';
-  _vfModalConvenioAtual = nome;
-  _renderVfModalConvenio();
-}
-function _ordenarVfModalConvenio(col){
-  if(_vfModalConvSortCol===col) _vfModalConvSortDir*=-1; else { _vfModalConvSortCol=col; _vfModalConvSortDir=1; }
-  _renderVfModalConvenio();
-}
-function _renderVfModalConvenio(){
-  const nome = _vfModalConvenioAtual;
-  const camposNumericos = ['valorCobrado'];
-  // Sem filtro de competência de propósito (ver comentário grande em renderVendaFutura,
-  // 2026-08-10) -- este popup pode mostrar VÁRIOS meses juntos pro mesmo convênio (ex.:
-  // julho e agosto ambos em aberto), que é exatamente o que o usuário quer ver: tudo
-  // que ainda falta receber daquele convênio, não importa de quando.
-  const itens = (DB.vendaFuturaConvenios[nome]||[]).map(t=> Object.assign({convenio:nome}, t));
-  itens.sort((a,b)=> camposNumericos.includes(_vfModalConvSortCol)
-    ? _vfModalConvSortDir*(a[_vfModalConvSortCol]-b[_vfModalConvSortCol])
-    : _vfModalConvSortDir*String(a[_vfModalConvSortCol]||'').localeCompare(String(b[_vfModalConvSortCol]||'')));
-  const total = itens.reduce((s,t)=>s+t.valorCobrado,0);
-  const titulo = '<h3>'+nome+' — Convênio em Aberto (Venda Futura)</h3>'+
-    '<div class="modal-actions"><button onclick="baixarCSVModal()">Baixar CSV</button><button class="pdf" onclick="baixarPDFModal()">Baixar PDF</button></div>'+
-    '<div class="modal-summary"><span class="rs-label">Bilhetes:</span>&nbsp;<span class="rs-valor">'+itens.length+'</span>&nbsp;&nbsp;'+
-    '<span class="rs-label">Total:</span>&nbsp;<span class="rs-valor">'+_fmtBRL(total)+'</span></div>';
-  const cols = [
-    {key:'convenio',label:'CONVÊNIO'},
-    {key:'dataVenda',label:'DATA'},
-    {key:'origem',label:'ORIGEM'},
-    {key:'destino',label:'DESTINO'},
-    {key:'passageiro',label:'PASSAGEIRO'},
-    {key:'bilhete',label:'BILHETE'},
-    {key:'valorCobrado',label:'VALOR COBRADO',right:true},
-    {key:'linha',label:'LINHA'},
-    {key:'agencia',label:'AGÊNCIA'},
-    {key:'bilheteiro',label:'BILHETEIRO'},
-    {key:'status',label:'STATUS'},
-  ];
-  const seta = key => _vfModalConvSortCol===key ? (_vfModalConvSortDir===1?' &#9650;':' &#9660;') : '';
-  let corpo = '<div class="scroll-box"><table class="data" id="vfModalConvTabela"><thead><tr>'+
-    cols.map(c=>'<th'+(c.right?' style="text-align:right;"':'')+' onclick="_ordenarVfModalConvenio(\''+c.key+'\')">'+c.label+seta(c.key)+'</th>').join('')+
-    '</tr></thead><tbody>';
-  itens.forEach(t=>{
-    corpo += '<tr><td>'+t.convenio+'</td><td>'+(t.dataVenda?formatarDataBR(t.dataVenda):'')+'</td><td>'+(t.origem||'')+'</td><td>'+(t.destino||'')+'</td>'+
-      '<td>'+(t.passageiro||'')+'</td><td>'+(t.bilhete||'')+'</td><td style="text-align:right;">'+_fmtBRL(t.valorCobrado)+'</td>'+
-      '<td>'+(t.linha||'')+'</td><td>'+(t.agencia||'')+'</td><td>'+(t.bilheteiro||'')+'</td><td>'+(t.status||'')+'</td></tr>';
-  });
-  corpo += '</tbody></table></div>';
-  abrirModal(titulo, corpo);
-}
-
 // ==================================================================================
-// Export CSV/PDF dos popups da aba DRE -- pedido dos sócios em 2026-08-10, mesma opção
-// já existente nos popups do painel COMERCIAL (ver _linhasModalCSV/baixarCSVGrupo/
+// Export CSV/PDF dos popups da aba DRE - Caixa -- pedido dos sócios em 2026-08-10, mesma
+// opção já existente nos popups do painel COMERCIAL (ver _linhasModalCSV/baixarCSVGrupo/
 // baixarPDFGrupo em "Painel Viação Sete.html"). Reconstrói as MESMAS linhas exibidas em
-// tela (mesma ordenação corrente de cada popup) a partir de _modalTipoAtual, em vez de
-// tentar ler o innerHTML da tabela -- evita duplicar formatação e garante que o export
-// bate com o que está na tela, inclusive depois do usuário clicar pra reordenar.
+// tela (mesma ordenação corrente do popup) a partir de _modalTipoAtual, em vez de tentar
+// ler o innerHTML da tabela -- evita duplicar formatação e garante que o export bate com
+// o que está na tela, inclusive depois do usuário clicar pra reordenar.
+// Simplificado em 2026-09-22 quando a aba "DRE - Simplificado" e a "Venda Futura" foram
+// excluídas em definitivo: só sobrou o tipo 'dreContabil'.
 function _tituloModalFinanceiroAtual(){
-  if(_modalTipoAtual==='dre' || _modalTipoAtual==='dreContabil'){
+  if(_modalTipoAtual==='dreContabil'){
     const { guia, subgrupo } = _dreModalAtual||{};
     return subgrupo+' - '+guia;
   }
-  if(_modalTipoAtual==='vfCartao') return (_vfModalBancoAtual||'')+' - Recebiveis de Cartao';
-  if(_modalTipoAtual==='vfConvenio') return (_vfModalConvenioAtual||'')+' - Convenio em Aberto';
+  if(_modalTipoAtual==='dreContabilGrupo'){
+    const { guia, grupo } = _dreGrupoModalAtual||{};
+    return grupo+' - '+guia;
+  }
   return 'Detalhamento';
 }
 function _linhasModalFinanceiroCSV(){
   if(_modalTipoAtual==='dreContabil' && _dreContabilPopupMesAno && _dreModalAtual){
-    const { guia, subgrupo } = _dreModalAtual;
+    const { guia, grupo, subgrupo } = _dreModalAtual;
     const { mes, ano } = _dreContabilPopupMesAno;
     const dados = _montarDREContabil(mes, ano);
     const g = dados[guia];
-    const itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
+    const gr = g && g.grupos[grupo];
+    const itens = (gr && gr.subgrupos[subgrupo] ? gr.subgrupos[subgrupo].itens : []).slice();
     itens.sort((a,b)=> _dreModalSortCol==='valor'
       ? _dreModalSortDir*(a.valor-b.valor)
       : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
@@ -4464,41 +4065,21 @@ function _linhasModalFinanceiroCSV(){
     itens.forEach(t=> linhas.push([formatarDataBR(t.data), t.banco||'', t.descricao||'', t.contraparte||'', (t.valor||0).toFixed(2).replace('.',',')]));
     return linhas;
   }
-  if(_modalTipoAtual==='dre' && _dreUltimoMesAno && _dreModalAtual){
-    const { guia, subgrupo } = _dreModalAtual;
-    const { mes, ano } = _dreUltimoMesAno;
-    const guias = _montarDRE(mes, ano);
-    const g = guias[guia];
-    const itens = (g && g.subgrupos[subgrupo] ? g.subgrupos[subgrupo].itens : []).slice();
-    itens.sort((a,b)=> _dreModalSortCol==='valor'
-      ? _dreModalSortDir*(a.valor-b.valor)
-      : _dreModalSortDir*String(a[_dreModalSortCol]||'').localeCompare(String(b[_dreModalSortCol]||'')));
-    const linhas = [['DATA','BANCO','DESCRIÇÃO','CONTRAPARTE','VALOR']];
-    itens.forEach(t=> linhas.push([formatarDataBR(t.data), t.banco||'', t.descricao||'', t.contraparte||'', (t.valor||0).toFixed(2).replace('.',',')]));
-    return linhas;
-  }
-  if(_modalTipoAtual==='vfCartao'){
-    const banco = _vfModalBancoAtual;
-    const camposNumericos = ['valorBruto','valorLiquido','desconto'];
-    const itens = (DB.vendaFuturaCartao[banco]||[]).map(t=> Object.assign({banco}, t));
-    itens.sort((a,b)=> camposNumericos.includes(_vfModalSortCol)
-      ? _vfModalSortDir*(a[_vfModalSortCol]-b[_vfModalSortCol])
-      : _vfModalSortDir*String(a[_vfModalSortCol]||'').localeCompare(String(b[_vfModalSortCol]||'')));
-    const linhas = [['BANCO','DATA VENDA','DATA VENCIMENTO','BANDEIRA','VALOR BRUTO','VALOR LÍQUIDO','DESCONTO','STATUS']];
-    itens.forEach(t=> linhas.push([t.banco, formatarDataBR(t.dataVenda), formatarDataBR(t.dataVencimento), t.bandeira||'',
-      (t.valorBruto||0).toFixed(2).replace('.',','), (t.valorLiquido||0).toFixed(2).replace('.',','), (t.desconto||0).toFixed(2).replace('.',','), t.status||'']));
-    return linhas;
-  }
-  if(_modalTipoAtual==='vfConvenio'){
-    const nome = _vfModalConvenioAtual;
-    const camposNumericos = ['valorCobrado'];
-    const itens = (DB.vendaFuturaConvenios[nome]||[]).map(t=> Object.assign({convenio:nome}, t));
-    itens.sort((a,b)=> camposNumericos.includes(_vfModalConvSortCol)
-      ? _vfModalConvSortDir*(a[_vfModalConvSortCol]-b[_vfModalConvSortCol])
-      : _vfModalConvSortDir*String(a[_vfModalConvSortCol]||'').localeCompare(String(b[_vfModalConvSortCol]||'')));
-    const linhas = [['CONVÊNIO','DATA','ORIGEM','DESTINO','PASSAGEIRO','BILHETE','VALOR COBRADO','LINHA','AGÊNCIA','BILHETEIRO','STATUS']];
-    itens.forEach(t=> linhas.push([t.convenio, t.dataVenda?formatarDataBR(t.dataVenda):'', t.origem||'', t.destino||'', t.passageiro||'', t.bilhete||'',
-      (t.valorCobrado||0).toFixed(2).replace('.',','), t.linha||'', t.agencia||'', t.bilheteiro||'', t.status||'']));
+  // Popup nível 1 (GRUPO): exporta a lista de SUBGRUPO/qtd/valor exibida em tela, não os
+  // lançamentos individuais (esses só existem no export do nível 2, acima).
+  if(_modalTipoAtual==='dreContabilGrupo' && _dreContabilPopupMesAno && _dreGrupoModalAtual){
+    const { guia, grupo } = _dreGrupoModalAtual;
+    const { mes, ano } = _dreContabilPopupMesAno;
+    const dados = _montarDREContabil(mes, ano);
+    const g = dados[guia];
+    const gr = g && g.grupos[grupo];
+    const subNomes = gr ? Object.keys(gr.subgrupos) : [];
+    let linhas2 = subNomes.map(sub=>({ subgrupo: sub, qtd: gr.subgrupos[sub].itens.length, total: gr.subgrupos[sub].total }));
+    linhas2.sort((a,b)=> _dreGrupoModalSortCol==='subgrupo'
+      ? _dreGrupoModalSortDir*String(a.subgrupo).localeCompare(String(b.subgrupo))
+      : _dreGrupoModalSortDir*(a[_dreGrupoModalSortCol]-b[_dreGrupoModalSortCol]));
+    const linhas = [['SUBGRUPO','QTD','VALOR']];
+    linhas2.forEach(l=> linhas.push([l.subgrupo, String(l.qtd), (l.total||0).toFixed(2).replace('.',',')]));
     return linhas;
   }
   return [[]];
@@ -4867,60 +4448,6 @@ document.getElementById('fileInputEspecie').addEventListener('change', async (ev
   ev.target.value = '';
 });
 
-// Upload dos relatórios "Recebimentos" da Stone (VENDA FUTURA > CARTÃO DE CRÉDITO) --
-// mesmo padrão de leitura .xls/.xlsx do listener principal (fileInput), mas full-replace
-// por terminal em vez de merge por dia (ver comentário acima de _extrairRecebiveisStone).
-document.getElementById('vfFileInput').addEventListener('change', async (ev)=>{
-  const statusEl = document.getElementById('vfUploadStatus');
-  const banco = document.getElementById('vfBancoSelect').value;
-  const arquivos = Array.from(ev.target.files);
-  if(!arquivos.length) return;
-  statusEl.textContent = 'Processando '+arquivos.length+' arquivo(s)...';
-  const todosRecebiveis = [];
-  const resultados = [];
-  try{
-    for(const file of arquivos){
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, {type:'array', cellDates:false});
-      let reconhecido = false;
-      for(const nomeAba of wb.SheetNames){
-        const ws = wb.Sheets[nomeAba];
-        _corrigirDimensaoPlanilha(ws);
-        const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
-        const extraido = _extrairRecebiveisStone(aoa);
-        if(extraido && extraido.length){
-          todosRecebiveis.push(...extraido);
-          resultados.push(file.name+': '+extraido.length+' recebíveis em aberto/agendado');
-          reconhecido = true;
-        }
-      }
-      if(!reconhecido) resultados.push(file.name+': arquivo não reconhecido (formato de recebíveis Stone não identificado)');
-    }
-    // Full-replace: cada upload deste terminal substitui TUDO que já estava carregado
-    // pra ele -- os relatórios da Stone já vêm cumulativos por período (ex.: o de agosto
-    // cobre 01-31/08 inteiro), então acumular lote sobre lote duplicaria linhas. Pra
-    // somar vários meses de uma vez, basta selecionar todos os arquivos do terminal
-    // juntos numa mesma seleção (o botão já aceita múltiplos arquivos).
-    DB.vendaFuturaCartao[banco] = todosRecebiveis;
-    const salvouOk = await saveDB();
-    let texto = resultados.join(' | ');
-    if(!salvouOk) texto += ' — ATENÇÃO: não foi possível salvar a base local.';
-    statusEl.textContent = texto;
-    atualizarTudo();
-  }catch(e){
-    console.error('Erro ao processar recebíveis Stone', e);
-    statusEl.textContent = 'ERRO ao processar arquivo(s): '+e.message;
-  }
-  ev.target.value = '';
-});
-
-document.getElementById('vfFileInputConvenios').addEventListener('change', async (ev)=>{
-  const file = ev.target.files[0];
-  if(!file) return;
-  await importarVendaFuturaConvenios(file);
-  ev.target.value = '';
-});
-
 function toggleControlesModoPublico(){
   document.getElementById('headerPublico').style.display = MODO_PUBLICO ? 'flex' : 'none';
   if(!MODO_PUBLICO) return;
@@ -4938,12 +4465,7 @@ function toggleControlesModoPublico(){
 function atualizarTudo(){
   _resolverTransferenciasEntreContas();
   renderBancos();
-  renderDRE();
   renderDREContabil();
-  // Venda Futura é independente da competência da DRE (ver comentário grande em
-  // renderVendaFutura, 2026-08-10) -- chamada em separado aqui, não dentro de
-  // renderDRE(), porque não deve reagir à troca do seletor COMPETÊNCIA.
-  renderVendaFutura();
   renderOrcamento();
   _carregarDadosComercial().then(renderOrcamento);
   _popularSelectLimparBanco();
