@@ -375,7 +375,21 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 .dre-mes-wrap{max-height:72vh;overflow:auto;border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-sm);margin-bottom:18px;background:#fff;}
 #dreContabilTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
 #dreContabilTabela th,#dreContabilTabela td{padding:6px 10px;border-bottom:1px solid var(--border);border-right:1px solid #eef0f4;}
-#dreContabilTabela thead th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;font-size:10.5px;text-align:center;z-index:2;border-right:1px solid rgba(255,255,255,.15);border-bottom:none;}
+/* Cabeçalho INTEIRO congelado (2026-09-24, pedido do usuário: "deixe congelado o
+   Cabeçalho inteiro"). TENTATIVA 1 (revertida): pôr "position:sticky;top:0" no
+   <thead> como um todo -- quebrou o corner top-left (1ª coluna, DISCRIMINAÇÃO, que
+   também precisa ficar congelada por baixo/left:0): o th:first-child fica DENTRO de
+   um ancestral sticky (o thead) que já tira o próprio thead do fluxo normal ao
+   grudar no topo, e isso faz o navegador perder a largura/posição horizontal desse
+   th específico (sumiu na tela, ver print do usuário). Solução final: cada th do
+   thead volta a ter seu PRÓPRIO position:sticky;top -- a 1ª linha (DISCRIMINAÇÃO/
+   meses/TOTAL ACUMULADO/MÉDIA MENSAL) com top:0, e a 2ª linha (R$/%/R$) com top
+   igual à ALTURA REAL da 1ª linha, medida via JS logo depois de montar a tabela
+   (ver renderDREContabil) -- não dá pra cravar um valor fixo em CSS porque a altura
+   da 1ª linha pode variar (zoom, fonte do navegador, etc.). As classes
+   "dre-thead-r1"/"dre-thead-r2" abaixo marcam qual linha é qual pro JS achar. */
+#dreContabilTabela thead th{position:sticky;background:var(--navy);color:#fff;font-weight:600;font-size:10.5px;text-align:center;z-index:2;border-right:1px solid rgba(255,255,255,.15);border-bottom:none;}
+#dreContabilTabela thead tr.dre-thead-r1 th{top:0;}
 /* Cantos arredondados do cabeçalho (2026-09-22, pedido do usuário): como o wrap usa
    overflow:auto (não hidden -- overflow:hidden quebraria o position:sticky, ver
    comentário grande acima), o arredondado não vem de clip automático -- é aplicado
@@ -2094,6 +2108,11 @@ const CONVENIO_REGRAS_TEXTO = [
   [/PORTO\s*AL/, 'PREFEITURA DE PORTO ALEGRE'],
   [/REDEN[CÇ][AÃ]O/, 'PREFEITURA DE REDENÇÃO DO GURGUÉIA'],
   [/MONTE\s*ALE/, 'PREFEITURA DE MONTE ALEGRE DO PIAUÍ'],
+  // Confirmado pelo usuário em 2026-09-24: "PIX RECEBIDO REM: P M M ALEGRE PIAUI FU"
+  // (Bradesco, 22/09/2026, R$20.000,00) também é Prefeitura de Monte Alegre do Piauí --
+  // "P M M ALEGRE" é abreviação de "Prefeitura Municipal de Monte Alegre", sem a palavra
+  // "MONTE" por extenso (só o "M"), então não batia com a regra ampla acima.
+  [/\bP\s*M\s*M\s*ALEGRE\b/, 'PREFEITURA DE MONTE ALEGRE DO PIAUÍ'],
   [/CURIMAT[AÁ]/, 'PREFEITURA DE CURIMATÁ'],
   [/AVEL(INO)?\s*LOPES/, 'PREFEITURA DE AVELINO LOPES'],
   [/DE\s*CORRENTE\b|MUN\s*CORRENTE/, 'PREFEITURA DE CORRENTE'],
@@ -3412,11 +3431,11 @@ function renderDREContabil(){
   // mesmo tom usado na linha de fechamento EBITDA (var(--green5)), pra diferenciar
   // visualmente do navy padrão dos meses.
   const estiloHeaderResumo = 'background:var(--green5);';
-  const thead = '<thead><tr><th>DISCRIMINAÇÃO</th>'+
+  const thead = '<thead><tr class="dre-thead-r1"><th>DISCRIMINAÇÃO</th>'+
     calc.map(c=>'<th colspan="2">'+MESES_PT[c.mes-1]+'/'+c.ano+'</th>').join('')+
     '<th colspan="2" class="dre-resumo-1a-col" style="'+estiloHeaderResumo+'border-left:2px solid #fff;">TOTAL ACUMULADO</th>'+
     '<th colspan="2" style="'+estiloHeaderResumo+'">MÉDIA MENSAL</th>'+
-    '</tr><tr><th></th>'+
+    '</tr><tr class="dre-thead-r2"><th></th>'+
     calc.map(()=>'<th>R$</th><th>%/R$</th>').join('')+
     '<th class="dre-resumo-1a-col" style="'+estiloHeaderResumo+'border-left:2px solid #fff;">R$</th><th style="'+estiloHeaderResumo+'">%/R$</th>'+
     '<th style="'+estiloHeaderResumo+'">R$</th><th style="'+estiloHeaderResumo+'">%/R$</th>'+
@@ -3472,6 +3491,17 @@ function renderDREContabil(){
 
   html += '</tbody>';
   tabela.innerHTML = html;
+  // Cabeçalho de 2 linhas 100% congelado (2026-09-24, pedido do usuário): a 2ª linha do
+  // thead (R$/%/R$) precisa de um "top" igual à ALTURA REAL da 1ª linha (DISCRIMINAÇÃO/
+  // meses/TOTAL ACUMULADO/MÉDIA MENSAL) pra grudar logo abaixo dela sem sobrepor -- não dá
+  // pra cravar isso em CSS porque a altura da 1ª linha pode variar (zoom, fonte do
+  // navegador). Medido aqui, depois de já ter montado a tabela no DOM.
+  const linhaHead1 = tabela.querySelector('thead tr.dre-thead-r1');
+  const linhaHead2 = tabela.querySelector('thead tr.dre-thead-r2');
+  if(linhaHead1 && linhaHead2){
+    const alturaHead1 = linhaHead1.getBoundingClientRect().height;
+    linhaHead2.querySelectorAll('th').forEach(th=> th.style.top = alturaHead1+'px');
+  }
 }
 // `mes`/`ano` (2026-09-22): agora cada célula clicada pertence a um mês diferente (tabela
 // mês a mês) -- guarda em _dreContabilPopupMesAno, separado de _dreContabilUltimoMesAno
