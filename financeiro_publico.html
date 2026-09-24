@@ -3230,6 +3230,14 @@ function _linhasGruposDREC(rubricaKey, porMes, vermelho){
   const nomesSet = new Set();
   porMes.forEach(m=> Object.keys(m.grupos||{}).forEach(n=>nomesSet.add(n)));
   const grupoNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  // Total acumulado da RUBRICA (soma de todos os meses do período mostrado) -- base do
+  // %/R$ das linhas de GRUPO (2026-09-24, pedido do usuário: "os GRUPOS DE CLASSIFICAÇÃO
+  // dos CENTRO DE CUSTOS também tenham o seu valor percentual em relação ao Centro de
+  // Custo"). Diferente do %/R$ das linhas de rubrica/fechamento (que é sobre a RECEITA
+  // LÍQUIDA), aqui a base é o total da própria rubrica (ex.: % da DIESEL dentro de DV),
+  // tanto nas células mensais (grupo do mês / rubrica do mesmo mês) quanto nas colunas de
+  // resumo (grupo acumulado / rubrica acumulada).
+  const rubricaTotalAcum = porMes.reduce((s,m)=>s+(m.total||0),0);
   grupoNomes.forEach(grupo=>{
     let cels = '<td style="padding-left:18px;'+cor+'">'+grupo+'</td>';
     let totalAcum = 0;
@@ -3238,23 +3246,27 @@ function _linhasGruposDREC(rubricaKey, porMes, vermelho){
       if(g){
         totalAcum += g.total||0;
         const qtdItens = Object.values(g.subgrupos||{}).reduce((s,sg)=>s+sg.itens.length,0);
-        cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilGrupoPopup(\''+rubricaKey+'\',\''+grupo.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+qtdItens+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(g.total)+'</td>';
+        const pctMes = m.total ? (g.total/m.total*100) : null;
+        cels += '<td class="dre-mes-r clickable" style="'+cor+'" onclick="_abrirDreContabilGrupoPopup(\''+rubricaKey+'\',\''+grupo.replace(/'/g,"\\'")+'\','+m.mes+','+m.ano+')" title="'+qtdItens+' lançamento(s) em '+MESES_PT[m.mes-1]+'/'+m.ano+'">'+_valDREC(g.total)+'</td>'+
+          '<td class="dre-mes-pct" style="'+cor+'">'+_pctDREC(pctMes)+'</td>';
       } else {
-        cels += '<td class="dre-mes-r" style="'+cor+'">-</td>';
+        cels += '<td class="dre-mes-r" style="'+cor+'">-</td>'+
+          '<td class="dre-mes-pct"></td>';
       }
-      cels += '<td class="dre-mes-pct"></td>';
     });
     // Colunas de resumo (2026-09-24, atualizado 2026-09-24: pedido do usuário -- "todos os
     // Centros de Custo acompanhem a planilha ACUMULADO e MEDIA") -- mostra a soma/média dos
     // meses do período pra este GRUPO também, igual às linhas de rubrica/fechamento; só o
     // popup de drill-down (onclick) continua de fora, por isso as 2 colunas de resumo nunca
-    // ganham a classe "clickable" nem o onclick que as células mensais têm acima. Sem %/R$
-    // aqui (mesmo padrão das células mensais desta linha, que também não mostram percentual).
+    // ganham a classe "clickable" nem o onclick que as células mensais têm acima. %/R$ aqui
+    // é sobre o acumulado da RUBRICA (ver rubricaTotalAcum acima) -- média idêntica ao
+    // acumulado porque dividir os dois pelo mesmo N não muda a proporção entre eles.
     const mediaAcum = porMes.length ? totalAcum/porMes.length : 0;
+    const pctAcum = rubricaTotalAcum ? (totalAcum/rubricaTotalAcum*100) : null;
     cels += '<td class="dre-mes-r dre-resumo dre-resumo-1a-col" style="'+cor+'">'+_valDREC(totalAcum)+'</td>'+
-      '<td class="dre-mes-pct dre-resumo"></td>'+
+      '<td class="dre-mes-pct dre-resumo" style="'+cor+'">'+_pctDREC(pctAcum)+'</td>'+
       '<td class="dre-mes-r dre-resumo" style="'+cor+'">'+_valDREC(mediaAcum)+'</td>'+
-      '<td class="dre-mes-pct dre-resumo"></td>';
+      '<td class="dre-mes-pct dre-resumo" style="'+cor+'">'+_pctDREC(pctAcum)+'</td>';
     html += '<tr>'+cels+'</tr>';
   });
   return html;
@@ -3440,7 +3452,7 @@ function renderDREContabil(){
 
   html += _linhaDREC('DP', 'DP (DESPESA PESSOAL)', pmDP, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DV', 'DV (DESPESA VEÍCULO)', pmDV, true, undefined, receitaLiquidaAcumulada);
-  html += _linhaDREC('DA', 'DA (DESPESA ADMINISTRATIVA)', pmDA, true, undefined, receitaLiquidaAcumulada);
+  html += _linhaDREC('DA', 'DA (DESPESA ADM)', pmDA, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DC', 'DC (DESPESA COMERCIAL)', pmDC, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('COMISSAO', 'COMISSÃO', pmComissao, true, undefined, receitaLiquidaAcumulada);
   html += _linhaDREC('DIR', 'DIR (DIRETORIA)', pmDIR, true, undefined, receitaLiquidaAcumulada);
