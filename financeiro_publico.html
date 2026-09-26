@@ -2968,13 +2968,22 @@ function _montarDRE(mes, ano){
     [['COMISSÃO DE AGÊNCIAS', ajusteComissao.agencias], ['COMISSÃO INTERNET', ajusteComissao.internet]].forEach(([subgrupo, valor])=>{
       if(!valor) return;
       const itemBase = { data: dataRepresentativa, banco: 'AJUSTE FISCAL (COMERCIAL)', descricao: subgrupo+' -- ajuste fiscal digitado (ver Painel Comercial > Agências)', contraparte: '', valor };
-      // GRUPO = o próprio SUBGRUPO aqui (já é específico o suficiente, só 2 nomes fixos).
+      // Lado RECEITA: GRUPO = "LINHAS" (2026-09-26, pedido do usuário: "posicione dentro
+      // do GRUPO DE CLASSIFICAÇÃO: LINHAS" -- tanto Comissão de Agências quanto Comissão
+      // Internet), em vez de virar 2 GRUPOs próprios com o mesmo nome do SUBGRUPO -- essa
+      // comissão é parte da receita de venda de passagem (Linhas), só entra separada aqui
+      // por causa do gross-up contábil. O SUBGRUPO continua com o nome específico
+      // (COMISSÃO DE AGÊNCIAS/COMISSÃO INTERNET), então ainda dá pra distinguir os 2 no
+      // popup de drill-down do GRUPO LINHAS -- só o agrupamento visual na tabela muda.
+      // Lado DESPESA (CUSTO COMERCIAL, logo abaixo) NÃO muda -- o usuário só pediu o
+      // lado RECEITA; a despesa espelhada continua virando GRUPO "COMISSÃO DE AGÊNCIAS"/
+      // "COMISSÃO INTERNET" ali, que _extrairGruposComissaoDREC puxa pra rubrica COMISSÃO.
       if(!guias['RECEITAS']) guias['RECEITAS'] = { tipo: 'receita', grupos: {}, total: 0 };
-      if(!guias['RECEITAS'].grupos[subgrupo]) guias['RECEITAS'].grupos[subgrupo] = { total: 0, subgrupos: {} };
-      if(!guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo]) guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo] = { total: 0, itens: [] };
-      guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo].total += valor;
-      guias['RECEITAS'].grupos[subgrupo].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
-      guias['RECEITAS'].grupos[subgrupo].total += valor;
+      if(!guias['RECEITAS'].grupos['LINHAS']) guias['RECEITAS'].grupos['LINHAS'] = { total: 0, subgrupos: {} };
+      if(!guias['RECEITAS'].grupos['LINHAS'].subgrupos[subgrupo]) guias['RECEITAS'].grupos['LINHAS'].subgrupos[subgrupo] = { total: 0, itens: [] };
+      guias['RECEITAS'].grupos['LINHAS'].subgrupos[subgrupo].total += valor;
+      guias['RECEITAS'].grupos['LINHAS'].subgrupos[subgrupo].itens.push(Object.assign({}, itemBase));
+      guias['RECEITAS'].grupos['LINHAS'].total += valor;
       guias['RECEITAS'].total += valor;
 
       if(!guias['CUSTO COMERCIAL']) guias['CUSTO COMERCIAL'] = { tipo: 'despesa', grupos: {}, total: 0 };
