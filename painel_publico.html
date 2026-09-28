@@ -2202,6 +2202,10 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // mas as viagens foram de fato em 25/09 (confirmado pelo usuário em 2026-09-26).
   '169638': '2026-09-25',
   '169345': '2026-09-25',
+  // Bilhete BARBARA RAYELI FERREIRA DE SOUSA (81111), Convênio Prefeitura de Ribeiro
+  // Gonçalves (URUCUI x RIBEIRO GONÇALVES): relatório gravou 28/09, mas a viagem foi
+  // de fato em 27/09 (confirmado pelo usuário em 2026-09-28).
+  '81111': '2026-09-27',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2322,6 +2326,11 @@ const EXCLUSOES_BILHETE = new Set([
   // VALE PEREIRA, FRANCISCA VALE N PEREIRA, FFERNANDA MARIA S COSTA, ROSANGELA DIAS DA
   // CAMARA) -- confirmado pelo usuário em 2026-09-16 pra exclusão definitiva.
   '157815', '161742', '161740', '158605', '159095',
+  // Bilhetes VITELBINO ELIAS DE MACEDO (170134) e MEILANA MARQUES LIMA (170135),
+  // Convênio Prefeitura de São Raimundo Nonato (MONTE ALEGRE DO PIAUI x TERESINA) --
+  // confirmado pelo usuário em 2026-09-28 como marcações erradas, exclusão definitiva
+  // sem alterar nenhuma regra de negócio.
+  '170134', '170135',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2649,6 +2658,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['CORRENTE','BARAO DE GRAJAU'], valor: 165.00 },
       // Confirmado pelo usuário em 2026-08-25.
       { cidades: ['CORRENTE','FLORIANO'], valor: 160.00 },
+      // Bilhete CLESIO RODRIGUES LIMA (170121), confirmado pelo usuário em 2026-09-28.
+      { cidades: ['TERESINA','BOM JESUS'], valor: 175.00 },
     ],
   },
   'PREFEITURA DE CURRAIS': {
