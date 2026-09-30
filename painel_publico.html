@@ -1780,6 +1780,56 @@ function parseVendasEmbarcadaAgencia(aoa, data){
   DB.vendasEmbarcadaAgencia[data] = rows;
 }
 
+// Segundo formato do mesmo relatório "Vendas Embarcada por Agência": um export
+// formatado ("Relatório de Venda por Agência (Passagem + LP)"), com bloco de título
+// nas 3 primeiras linhas e o cabeçalho de verdade (UF, PASSAG + LP, TX EMBARQ, TOTAL,
+// COMISSÃO LP+PASSAG, COMISSÃO EXC BAG, TOT FISIC LP+PAS etc.) só a partir da linha em
+// que aparece "PASSAG + LP" — diferente do formato original (parseVendasEmbarcadaAgencia
+// acima), que já vem com nomes de campo técnicos ("vlpasstot", "totgeral"...) na 1ª
+// linha. Confirmado pelo usuário em 2026-09-30 que ambos os formatos devem continuar
+// sendo aceitos (nenhum substitui o outro). Grava no MESMO DB.vendasEmbarcadaAgencia,
+// no mesmo formato de linha usado pelo parser original, para não duplicar lógica de
+// render/KPI. "TOT FISIC LP+PAS" (contagem física combinada) é o único total de
+// quantidade disponível nesse formato -- sem uma coluna dedicada só de LP, por isso é
+// usado tanto para qtdepasstot quanto para qtdepasslp (mantém "Bilhetes Emitidos" e
+// "Bilhetes Embarcados" com o mesmo número, em vez de zerar um dos dois).
+function parseVendasEmbarcadaAgenciaFormatada(aoa, data){
+  let headerRowIdx = -1;
+  for(let r=0;r<Math.min(aoa.length,10);r++){
+    const row = aoa[r]||[];
+    if(row.some(c=>typeof c==='string' && /PASSAG\s*\+\s*LP/i.test(c))){ headerRowIdx = r; break; }
+  }
+  if(headerRowIdx===-1) return;
+  const header = aoa[headerRowIdx];
+  const idx = re => header.findIndex(h=>typeof h==='string' && re.test(h.trim()));
+  const iUf = idx(/^UF$/i);
+  const iPasstot = idx(/PASSAG\s*\+\s*LP/i);
+  const iTxEmbarq = idx(/TX\s*EMBARQ/i);
+  const iTotal = idx(/^TOTAL$/i);
+  const iComissaoPassLp = idx(/COMISS[ÃA]O\s*LP\s*\+\s*PASSAG/i);
+  const iComissaoExcBag = idx(/COMISS[ÃA]O\s*EXC\s*BAG/i);
+  const iTotFisico = idx(/TOT\s*FISIC/i);
+  const rows=[];
+  for(let r=headerRowIdx+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const nome = row[1];
+    if(typeof nome!=='string' || !nome.trim()) continue;
+    // Linha de rodapé ("(Qtde Agencias): N)" / "TOTAIS --->") marca o fim dos dados --
+    // depois dela só vem linha em branco + carimbo do sistema gerador ("Ti-Sistema",
+    // com data/página de impressão), então usa break (não continue) pra não
+    // acabar incluindo esse carimbo como se fosse uma agência.
+    if(/Qtde Agencias/i.test(nome)) break;
+    const totFisico = cellNum(row[iTotFisico]);
+    rows.push({
+      nome: nome.trim(), uf: row[iUf]||'', vlpasstot: cellNum(row[iPasstot]),
+      vltxembarquetot: cellNum(row[iTxEmbarq]), totgeral: cellNum(row[iTotal]),
+      vlcomissaotot: cellNum(row[iComissaoPassLp]) + cellNum(row[iComissaoExcBag]),
+      qtdepasstot: totFisico, qtdepasslp: totFisico,
+    });
+  }
+  if(rows.length) DB.vendasEmbarcadaAgencia[data] = rows;
+}
+
 // =====================================================================
 // CONVÊNIOS: mapeamento fixo Bilheteiro -> Convênio (Prefeituras/Correntistas).
 // O relatório de origem ("Relatório Tipo Passagem"/RelatorioGratuidade, sheet
@@ -2028,6 +2078,24 @@ const REDIRECIONAMENTOS_BILHETE = {
   // mantém o bilheteiro original de venda (PREFSRN01).
   '163193': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFSRN01' },
   '163194': { convenio: 'PREFEITURA DE URUÇUÍ SAÚDE', bilheteiro: 'PREFSRN01' },
+  // 5 bilhetes (ALICE FERREIRA VERAS, GARDENIA RIBEIRO ROCHA FERREIRA x2, KATIELE
+  // RODRIGUES DA SILVA, RAIMUNDO FERREIRA JUNIOR), gravados sob PREFEITURA DE CURRAIS
+  // sem regra de valor cadastrada (BARAO DE GRAJAU x SAO RAIMUNDO NONATO e TERESINA x
+  // BARAO DE GRAJAU) -- confirmado pelo usuário em 2026-09-29 como pertencentes de
+  // fato à PREFEITURA DE SÃO RAIMUNDO NONATO, que já tem regra de valor pronta para
+  // essas rotas via o sinônimo BARAO DE GRAJAU->FLORIANO (FLORIANO x SAO RAIMUNDO
+  // NONATO = R$107,33; TERESINA x FLORIANO = R$90,00).
+  '80592': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  '80593': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  '169476': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  '169477': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  '169478': { convenio: 'PREFEITURA DE SÃO RAIMUNDO NONATO', bilheteiro: 'PREFSRN01' },
+  // Bilhete LOIDE SOUSA DA SILVA (171911), gravado sob PREFEITURA DE RIBEIRO
+  // GONÇALVES (SEBASTIAO LEAL x BAIXA GRANDE DO RIBEIRO, sem regra de valor
+  // cadastrada nesse contrato) -- confirmado pelo usuário em 2026-09-30 como
+  // pertencente de fato à FAZENDA RIBEIRÃO, que já tem regra pronta para essa rota
+  // (BAIXA GRANDE DO RIBEIRO x SEBASTIAO LEAL = R$80,00).
+  '171911': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'FAZRIB001' },
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -2206,6 +2274,17 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // Gonçalves (URUCUI x RIBEIRO GONÇALVES): relatório gravou 28/09, mas a viagem foi
   // de fato em 27/09 (confirmado pelo usuário em 2026-09-28).
   '81111': '2026-09-27',
+  // Bilhete RENATO FERREIRA GUIMARAES (171242), Convênio DPL Construções (ELISEU
+  // MARTINS x BOM JESUS): relatório gravou 29/09, mas a viagem foi de fato em 28/09
+  // (confirmado pelo usuário em 2026-09-29).
+  '171242': '2026-09-28',
+  // Bilhete RENATO FERREIRA GUIMARAES (172093), Convênio DPL Construções (ELISEU
+  // MARTINS x BOM JESUS), e bilhete LOIDE SOUSA DA SILVA (171911), Convênio Prefeitura
+  // de Ribeiro Gonçalves (SEBASTIAO LEAL x BAIXA GRANDE DO RIBEIRO): relatório gravou
+  // 30/09, mas as viagens foram de fato em 29/09 (confirmado pelo usuário em
+  // 2026-09-30).
+  '172093': '2026-09-29',
+  '171911': '2026-09-29',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2458,6 +2537,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
       { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      // Bilhete LORRANY NONATA DE SOUSA (170835), confirmado pelo usuário em
+      // 2026-09-30.
+      { cidades: ['AGUA BRANCA','URUCUI'], valor: 128.00 },
     ],
   },
   // Mesma regra de valor da Uruçuí Saúde, replicada para os demais contratos de
@@ -3519,6 +3601,10 @@ async function processarArquivo(file){
   if(tipo==='desconhecido' && header0.includes('vlpasstot') && header0.includes('totgeral')){
     tipo = 'vendasEmbarcadaAgencia';
   }
+  // 2º formato do mesmo relatório -- ver comentário em parseVendasEmbarcadaAgenciaFormatada.
+  if(tipo==='desconhecido' && aoa.slice(0,10).some(r=>r && r.some(c=>typeof c==='string' && /PASSAG\s*\+\s*LP/i.test(c)))){
+    tipo = 'vendasEmbarcadaAgenciaFmt';
+  }
   // "agencia" (Receita Diária por Agência) grava o campo "Período:" em MM/DD/AAAA —
   // ver comentário em tentarExtrairPeriodoData.
   const data = extrairPeriodoData(aoa, file.name, tipo==='agencia');
@@ -3529,6 +3615,7 @@ async function processarArquivo(file){
   else if(tipo==='encomendas'){ parseEncomendas(aoa, data); }
   else if(tipo==='embarcadoLinhas'){ parseEmbarcadoLinhas(aoa, data); recomputeLinhasParaData(data); }
   else if(tipo==='vendasEmbarcadaAgencia'){ parseVendasEmbarcadaAgencia(aoa, data); }
+  else if(tipo==='vendasEmbarcadaAgenciaFmt'){ parseVendasEmbarcadaAgenciaFormatada(aoa, data); }
   else if(tipo==='formaPagamento'){ parseFormaPagamento(aoa); }
   else if(tipo==='receitaPadrao'){ parseReceitaPadrao(aoa); }
   else if(tipo==='ocd'){ parseOCD(aoa); }
