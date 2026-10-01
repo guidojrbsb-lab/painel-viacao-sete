@@ -345,22 +345,22 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Viação Sete</span>
-    <h1 id="tituloAba">Visão Geral</h1>
+    <h1 id="tituloAba">Resumo Diário Consolidado</h1>
   </div>
 </header>
 <div class="layout">
   <nav class="sidebar" id="sidebar">
-    <button data-tab="visaogeral" class="active"><span class="ic">&#9635;</span>Visão Geral</button>
+    <button data-tab="indicadores" class="active"><span class="ic">&#128202;</span>Resumo Diário</button>
+    <button data-tab="visaogeral"><span class="ic">&#9635;</span>Visão Geral</button>
     <button data-tab="linhas"><span class="ic">&#8963;</span>Linhas</button>
     <button data-tab="linhasreal"><span class="ic">&#8963;</span>Linhas - Real</button>
     <button data-tab="agencias"><span class="ic">&#8962;</span>Agências</button>
     <button data-tab="seguro"><span class="ic">&#128737;</span>Seguro</button>
     <button data-tab="convenios"><span class="ic">&#128179;</span>Convênios</button>
     <button data-tab="encomendas"><span class="ic">&#128230;</span>Encomendas</button>
-    <button data-tab="indicadores"><span class="ic">&#128202;</span>Resumo Diário</button>
   </nav>
   <main>
-    <div class="panel filtro-box" id="filtrosPanel">
+    <div class="panel filtro-box" id="filtrosPanel" style="display:none">
       <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
       <div class="filters-grid">
         <div><label>DATA INÍCIO</label><input type="date" id="fDataIni"></div>
@@ -376,7 +376,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       </div>
     </div>
 
-    <section id="tab-visaogeral" class="tab">
+    <section id="tab-visaogeral" class="tab hidden">
       <h2 class="vg-topico-titulo">Receita</h2>
       <div class="kpi-row" id="vgReceitaRow"></div>
 
@@ -519,7 +519,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       <div class="panel"><h2>Ranking de Despachos Por Agência <span class="info-badge">clique no cabeçalho para ordenar · clique na linha para ver todos os despachos</span></h2><div class="scroll-box"><table class="data" id="ecRankingTable"></table></div></div>
     </section>
 
-    <section id="tab-indicadores" class="tab hidden">
+    <section id="tab-indicadores" class="tab">
       <div class="panel">
         <h2>Indicadores <span class="info-badge">valores calculados automaticamente a partir dos dados já carregados em todas as abas</span></h2>
         <div class="ind-topo">
@@ -845,10 +845,19 @@ function _reaplicarRedirecionamentosConvenio(){
     (DB.convenios[d]||[]).forEach(item=>{
       if(!item || !item.bilhete) return;
       const redirecionamento = REDIRECIONAMENTOS_BILHETE[item.bilhete];
-      if(!redirecionamento) return;
-      if(item.convenio !== redirecionamento.convenio || item.bilheteiro !== redirecionamento.bilheteiro){
-        item.convenio = redirecionamento.convenio;
-        item.bilheteiro = redirecionamento.bilheteiro;
+      if(redirecionamento){
+        if(item.convenio !== redirecionamento.convenio || item.bilheteiro !== redirecionamento.bilheteiro){
+          item.convenio = redirecionamento.convenio;
+          item.bilheteiro = redirecionamento.bilheteiro;
+          mudouAlgo = true;
+        }
+        return;
+      }
+      // Redirect só de convênio (ver REDIRECIONAMENTOS_CONVENIO_SOMENTE) -- não mexe
+      // no bilheteiro, só troca o convênio dos itens já salvos.
+      const novoConvenio = REDIRECIONAMENTOS_CONVENIO_SOMENTE[item.bilhete];
+      if(novoConvenio && item.convenio !== novoConvenio){
+        item.convenio = novoConvenio;
         mudouAlgo = true;
       }
     });
@@ -2097,6 +2106,33 @@ const REDIRECIONAMENTOS_BILHETE = {
   // (BAIXA GRANDE DO RIBEIRO x SEBASTIAO LEAL = R$80,00).
   '171911': { convenio: 'FAZENDA RIBEIRÃO', bilheteiro: 'FAZRIB001' },
 };
+// Mesma ideia de REDIRECIONAMENTOS_BILHETE, mas SÓ troca o convênio -- mantém o
+// bilheteiro original de venda de cada lançamento tal como já estava gravado (sem
+// precisar saber de cabeça se era PREFUUC03 ou PREFUUC07, por exemplo). Usado quando
+// o pedido é só "mover estes bilhetes de convênio X pra Y", sem informação de qual
+// bilheteiro vendeu cada um.
+const REDIRECIONAMENTOS_CONVENIO_SOMENTE = {
+  // Pedido do usuário em 2026-10-01: ÚNICA e EXCLUSIVAMENTE estes 10 bilhetes
+  // (popup "PREFEITURA DE URUÇUÍ ASSISTÊNCIA", Receita Total R$10.679,00/86 bilhetes)
+  // transferidos para PREFEITURA DE URUÇUÍ WSV -- transferência pontual de convênio,
+  // sem alteração de regra de negócio e sem mexer no bilheteiro de cada venda.
+  '166971': 'PREFEITURA DE URUÇUÍ WSV',
+  '166993': 'PREFEITURA DE URUÇUÍ WSV',
+  '166994': 'PREFEITURA DE URUÇUÍ WSV',
+  '167002': 'PREFEITURA DE URUÇUÍ WSV',
+  '167003': 'PREFEITURA DE URUÇUÍ WSV',
+  '167004': 'PREFEITURA DE URUÇUÍ WSV',
+  '167009': 'PREFEITURA DE URUÇUÍ WSV',
+  '167010': 'PREFEITURA DE URUÇUÍ WSV',
+  '167011': 'PREFEITURA DE URUÇUÍ WSV',
+  '167014': 'PREFEITURA DE URUÇUÍ WSV',
+  // Pedido do usuário em 2026-10-01 (2º lote): ÚNICO e EXCLUSIVAMENTE este bilhete
+  // (popup "PREFEITURA DE URUÇUÍ ASSISTÊNCIA", Receita Total R$9.399,00/76 bilhetes --
+  // já refletindo a transferência dos 10 bilhetes do lote anterior) transferido para
+  // PREFEITURA DE URUÇUÍ WSV -- mesma transferência pontual de convênio, sem alteração
+  // de regra de negócio.
+  '155108': 'PREFEITURA DE URUÇUÍ WSV',
+};
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
 // junção de escala, só corrige o caso específico onde a diferença era maior que isso).
@@ -2410,6 +2446,25 @@ const EXCLUSOES_BILHETE = new Set([
   // confirmado pelo usuário em 2026-09-28 como marcações erradas, exclusão definitiva
   // sem alterar nenhuma regra de negócio.
   '170134', '170135',
+  // 10 bilhetes do Convênio PREFEITURA DE URUÇUÍ ASSISTÊNCIA (MARCILENE DO SOCORRO,
+  // MARIA ANGELA SILVA, ALANNE DA SILVA, NILCE SOUSA DA SILVA, RICHARDSON RIBEIRO
+  // DUARTE, TERESINHA DE JESUS DA S DA COSTA, CLAUDIANA DA CONCEICAO, SALUSTIANO
+  // MARTINS DE MIRANDA, VALMIR FERREIRA GONCALVES, MARIA HELENA G DA SILVA) --
+  // confirmado pelo usuário em 2026-10-01 como marcações erradas, exclusão definitiva
+  // sem alterar nenhuma regra de negócio.
+  '75132', '155118', '155119', '155694', '155841', '156041', '156033', '156376', '156390', '156391',
+  // 10 bilhetes do Convênio PREFEITURA DE URUÇUÍ SAÚDE (MARINALVA SILVA, IASIAS
+  // CARVAALHO DE SOUSA, HELIO PEREIRA DIAS, CATARINA DIAS DOS SANTOS, PABLO HENRRIQUE
+  // BARBOSA DE SOUSA, CLEIDIANE BARBOSA DE SOUSA, KAMILLY VICTORYA GUIMARAES, EMILLY
+  // MARTINS DE SOUSA, FELIX MAURA MARTINS, RITA DE CASSIA PEREIRA) -- confirmado pelo
+  // usuário em 2026-10-01 como marcações erradas, exclusão definitiva sem alterar
+  // nenhuma regra de negócio.
+  '153007', '153008', '154144', '154145', '154330', '154331', '154333', '154392', '154393', '154488',
+  // 4 bilhetes do Convênio PREFEITURA DE URUÇUÍ SAÚDE (ERIVAM CARDOSO DOS SANTOS, ELIETE
+  // DIAS MOREIRA, LUIS PEREIRA DAMASCENO, CARLOS DAVID DE JESUS) -- confirmado pelo
+  // usuário em 2026-10-01 como marcações erradas, exclusão definitiva sem alterar
+  // nenhuma regra de negócio.
+  '154489', '154502', '154503', '154533',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2436,6 +2491,14 @@ const CORRECOES_VALOR_BILHETE = {
   // Prefeitura de São Raimundo Nonato: confirmado pelo usuário em 2026-09-18, R$135,17
   // -- ajuste pontual só deste bilhete, sem alterar a regra geral do convênio.
   '78840': 135.17,
+  // Bilhete GABRIELA VITORIA SOUSA (156761, Uruçuí x Teresina), Convênio Prefeitura de
+  // Uruçuí Assistência: relatório gravou R$128,00, mas o valor correto é R$94,00
+  // (confirmado pelo usuário em 2026-10-01).
+  '156761': 94.00,
+  // Bilhete TATIANE RODRIGUES (154534, Uruçuí x Teresina), Convênio Prefeitura de Uruçuí
+  // Saúde: relatório gravou R$128,00, mas o valor correto é R$146,00 (confirmado pelo
+  // usuário em 2026-10-01).
+  '154534': 146.00,
 };
 // Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
 // usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
@@ -3151,7 +3214,10 @@ function _extrairBrutosConvenio(aoa){
     if(convenioPorBilhete[bilheteStr]) continue; // já resolvido por uma linha anterior
     const bilheteiroCodOriginal = String(row[iBilheteiro]||'').trim().toUpperCase();
     const redirecionamento = REDIRECIONAMENTOS_BILHETE[bilheteStr];
-    const convenio = redirecionamento ? redirecionamento.convenio : MAPA_BILHETEIRO_CONVENIO[bilheteiroCodOriginal];
+    // REDIRECIONAMENTOS_CONVENIO_SOMENTE troca só o convênio, mantendo o bilheteiro
+    // que o próprio relatório trouxe pra esse bilhete (ver comentário na constante).
+    const convenioSomente = REDIRECIONAMENTOS_CONVENIO_SOMENTE[bilheteStr];
+    const convenio = redirecionamento ? redirecionamento.convenio : (convenioSomente || MAPA_BILHETEIRO_CONVENIO[bilheteiroCodOriginal]);
     if(!convenio) continue;
     convenioPorBilhete[bilheteStr] = {
       convenio, bilheteiro: redirecionamento ? redirecionamento.bilheteiro : bilheteiroCodOriginal,
@@ -4953,17 +5019,23 @@ function abrirModalGrupo(g){
   const usaModalLargo = g.tipoModal==='agencia' || g.tipoModal==='seguroDia' || g.tipoModal==='seguroRanking' || g.tipoModal==='convenio' || g.tipoModal==='encomendas';
   document.getElementById('modalBox').classList.toggle('modal-agencia', usaModalLargo);
   if(g.tipoModal==='seguroRanking'){
-    document.getElementById('modalResumo').innerHTML =
-      _resumoItem('Vendido', fmtR$(g.vendido))+
-      _resumoItem('Cancelado', fmtR$(g.cancelado))+
-      _resumoItem('Líquido', fmtR$(g.liquido))+
-      _resumoItem('Apólices Vendidas', fmtInt(g.apolices));
+    // resumoPares também é guardado em window._modalResumoPares (ver abaixo) --
+    // é o que baixarPDFGrupo() usa pra reproduzir ESTE MESMO cabeçalho no PDF,
+    // em vez do resumo fixo de "Linhas" que tinha antes.
+    const resumoPares = [
+      ['Vendido', fmtR$(g.vendido)],
+      ['Cancelado', fmtR$(g.cancelado)],
+      ['Líquido', fmtR$(g.liquido)],
+      ['Apólices Vendidas', fmtInt(g.apolices)],
+    ];
+    document.getElementById('modalResumo').innerHTML = resumoPares.map(p=>_resumoItem(p[0],p[1])).join('');
     let html = '<tr><th>DATA</th><th>STATUS</th>'+(g.temLocal?'<th>LOCAL DE VENDA</th>':'')+'<th>APÓLICES (QTD)</th><th>VENDIDO</th><th>CANCELADO</th><th>LÍQUIDO</th></tr>';
     g.itensPorDiaStatus.forEach(it=>{
       html += '<tr><td>'+formatarDataBR(it.data)+'</td><td>'+it.status+'</td>'+(g.temLocal?'<td>'+(it.agencia||'-')+'</td>':'')+'<td>'+fmtInt(it.apolices)+'</td><td>'+fmtR$(it.vendido)+'</td><td>'+fmtR$(it.cancelado)+'</td><td>'+fmtR$(it.liquido)+'</td></tr>';
     });
     tbl.innerHTML = html;
     window._modalGrupoAtual = g;
+    window._modalResumoPares = resumoPares;
     document.getElementById('modalOverlay').classList.remove('hidden');
     return;
   }
@@ -4971,11 +5043,17 @@ function abrirModalGrupo(g){
     const resumoAlerta = g.qtdSemRegra>0
       ? '<span><span class="rs-label">Trechos sem regra: </span><span class="rs-valor" style="color:var(--red);font-weight:800;">'+fmtInt(g.qtdSemRegra)+'</span></span>'
       : '';
+    const resumoPares = [
+      ['Receita Total', fmtR$(g.receitaTotal)],
+      ['Bilhetes Emitidos', fmtInt(g.qtdBilhetes)],
+    ];
+    if(g.qtdSemRegra>0) resumoPares.push(['Trechos sem regra', fmtInt(g.qtdSemRegra)]);
     document.getElementById('modalResumo').innerHTML =
       _resumoItem('Receita Total', fmtR$(g.receitaTotal))+
       _resumoItem('Bilhetes Emitidos', fmtInt(g.qtdBilhetes))+
       resumoAlerta;
     window._modalGrupoAtual = g;
+    window._modalResumoPares = resumoPares;
     _modalConvenioFiltros = {};
     _modalConvenioSortCol = 'dataVenda'; _modalConvenioSortDir = 1;
     _renderModalConvenioTabela(g);
@@ -4985,62 +5063,74 @@ function abrirModalGrupo(g){
   if(g.tipoModal==='seguroDia'){
     const vendido = g.itens.filter(x=>x.status==='Venda').reduce((s,x)=>s+(x.valorSeguro||0),0);
     const cancelado = g.itens.filter(x=>x.status==='Cancelamento').reduce((s,x)=>s+(x.valorSeguro||0),0);
-    document.getElementById('modalResumo').innerHTML =
-      _resumoItem('Vendido', fmtR$(vendido))+
-      _resumoItem('Cancelado', fmtR$(cancelado))+
-      _resumoItem('Líquido', fmtR$(vendido-cancelado))+
-      _resumoItem('Apólices Vendidas', fmtInt(g.itens.filter(x=>x.status==='Venda').length));
+    const resumoPares = [
+      ['Vendido', fmtR$(vendido)],
+      ['Cancelado', fmtR$(cancelado)],
+      ['Líquido', fmtR$(vendido-cancelado)],
+      ['Apólices Vendidas', fmtInt(g.itens.filter(x=>x.status==='Venda').length)],
+    ];
+    document.getElementById('modalResumo').innerHTML = resumoPares.map(p=>_resumoItem(p[0],p[1])).join('');
     let html = '<tr><th>DATA</th><th>STATUS DA VENDA</th><th>VALOR DO SEGURO</th><th>LINHA</th><th>LOCAL DA VENDA</th><th>VENDEDOR</th></tr>';
     g.itens.forEach(it=>{
       html += '<tr><td>'+formatarDataBR(g.data)+'</td><td>'+(it.status||'-')+'</td><td>'+fmtR$(it.valorSeguro)+'</td><td>'+(it.linha||'-')+'</td><td>'+(it.agencia||'-')+'</td><td>'+(it.vendedor||'-')+'</td></tr>';
     });
     tbl.innerHTML = html;
     window._modalGrupoAtual = g;
+    window._modalResumoPares = resumoPares;
     document.getElementById('modalOverlay').classList.remove('hidden');
     return;
   }
   if(g.tipoModal==='encomendas'){
-    document.getElementById('modalResumo').innerHTML =
-      _resumoItem('Valor Total', fmtR$(g.valorTotal))+
-      _resumoItem('Valor Recebido', fmtR$(g.valorRecebido))+
-      _resumoItem('Pendente', fmtR$(g.pendente))+
-      _resumoItem('Despachos', fmtInt(g.qtdDespachos));
+    const resumoPares = [
+      ['Valor Total', fmtR$(g.valorTotal)],
+      ['Valor Recebido', fmtR$(g.valorRecebido)],
+      ['Pendente', fmtR$(g.pendente)],
+      ['Despachos', fmtInt(g.qtdDespachos)],
+    ];
+    document.getElementById('modalResumo').innerHTML = resumoPares.map(p=>_resumoItem(p[0],p[1])).join('');
     window._modalGrupoAtual = g;
+    window._modalResumoPares = resumoPares;
     _renderModalEncomendasTabela(g);
     document.getElementById('modalOverlay').classList.remove('hidden');
     return;
   }
   if(g.tipoModal==='agencia'){
-    document.getElementById('modalResumo').innerHTML =
-      _resumoItem('Receita Total', fmtR$(g.receitaTotal))+
-      _resumoItem('Comissão Paga', fmtR$(g.comissao))+
-      _resumoItem('Receita de Passagens', fmtR$(g.tarifa))+
-      _resumoItem('Receita Embarcada', fmtR$(g.receitaEmbarcada))+
-      _resumoItem('Taxa de Embarque', fmtR$(g.embarqueTaxa))+
-      _resumoItem('Seguro Opcional', fmtR$(g.seguro))+
-      _resumoItem('Outras Receitas', fmtR$(g.outras))+
-      _resumoItem('Bilhetes Vendidos', fmtInt(g.qtdVendido))+
-      _resumoItem('Bilhetes Embarcados', fmtInt(g.qtdEmbarcados))+
-      _resumoItem('Bilhetes Anulados', fmtInt(g.qtdAnulado))+
-      _resumoItem('Bilhetes Devolvidos', fmtInt(g.qtdDevolvido));
+    const resumoPares = [
+      ['Receita Total', fmtR$(g.receitaTotal)],
+      ['Comissão Paga', fmtR$(g.comissao)],
+      ['Receita de Passagens', fmtR$(g.tarifa)],
+      ['Receita Embarcada', fmtR$(g.receitaEmbarcada)],
+      ['Taxa de Embarque', fmtR$(g.embarqueTaxa)],
+      ['Seguro Opcional', fmtR$(g.seguro)],
+      ['Outras Receitas', fmtR$(g.outras)],
+      ['Bilhetes Vendidos', fmtInt(g.qtdVendido)],
+      ['Bilhetes Embarcados', fmtInt(g.qtdEmbarcados)],
+      ['Bilhetes Anulados', fmtInt(g.qtdAnulado)],
+      ['Bilhetes Devolvidos', fmtInt(g.qtdDevolvido)],
+    ];
+    document.getElementById('modalResumo').innerHTML = resumoPares.map(p=>_resumoItem(p[0],p[1])).join('');
     let html = '<tr><th>DATA</th><th>RECEITA PASSAGENS</th><th>RECEITA EMBARCADA</th><th>TAXA DE EMBARQUE</th><th>SEGURO OPCIONAL</th><th>OUTRAS RECEITAS</th><th>RECEITA TOTAL</th><th>COMISSÃO PAGA</th><th>VENDIDOS</th><th>EMBARCADOS</th><th>ANULADOS</th><th>DEVOLVIDOS</th></tr>';
     g.itensPorDia.forEach(it=>{
       html += '<tr><td>'+formatarDataBR(it.data)+'</td><td>'+fmtR$(it.tarifa)+'</td><td>'+fmtR$(it.receitaEmbarcada)+'</td><td>'+fmtR$(it.embarqueTaxa)+'</td><td>'+fmtR$(it.seguro)+'</td><td>'+fmtR$(it.outras)+'</td><td>'+fmtR$(it.receitaTotal)+'</td><td>'+fmtR$(it.comissao)+'</td><td>'+fmtInt(it.qtdVendido)+'</td><td>'+fmtInt(it.qtdEmbarcados)+'</td><td>'+fmtInt(it.qtdAnulado)+'</td><td>'+fmtInt(it.qtdDevolvido)+'</td></tr>';
     });
     tbl.innerHTML = html;
     window._modalGrupoAtual = g;
+    window._modalResumoPares = resumoPares;
     document.getElementById('modalOverlay').classList.remove('hidden');
     return;
   }
-  document.getElementById('modalResumo').innerHTML =
-    _resumoItem('Receita Total', fmtR$(g.receitaTotal))+
-    _resumoItem('Km Rodado', fmtNum(g.kmRodado))+
-    _resumoItem('R$/Km', fmtR$(g.rkm))+
-    _resumoItem('Viagens', fmtInt(g.viagens))+
-    // Só a aba LINHAS - REAL marca esse campo (ver _montarGrupoLinhaReal) -- nos
-    // grupos normais da aba LINHAS (e de qualquer outra aba) ele é undefined, então
-    // esta linha extra nunca aparece fora da LINHAS - REAL.
-    (g.ajusteConvenioDelta!==undefined ? _resumoItem('Ajuste de Convênio (Delta)', fmtR$(g.ajusteConvenioDelta)) : '');
+  const resumoPares = [
+    ['Receita Total', fmtR$(g.receitaTotal)],
+    ['Km Rodado', fmtNum(g.kmRodado)],
+    ['R$/Km', fmtR$(g.rkm)],
+    ['Viagens', fmtInt(g.viagens)],
+  ];
+  // Só a aba LINHAS - REAL marca esse campo (ver _montarGrupoLinhaReal) -- nos
+  // grupos normais da aba LINHAS (e de qualquer outra aba) ele é undefined, então
+  // esta linha extra nunca aparece fora da LINHAS - REAL.
+  if(g.ajusteConvenioDelta!==undefined) resumoPares.push(['Ajuste de Convênio (Delta)', fmtR$(g.ajusteConvenioDelta)]);
+  document.getElementById('modalResumo').innerHTML = resumoPares.map(p=>_resumoItem(p[0],p[1])).join('');
+  window._modalResumoPares = resumoPares;
   let html;
   if(g.semClasse){
     html = '<tr><th>DATA</th><th>HORÁRIO</th><th>LINHA</th><th>SENTIDO</th><th>RECEITA TOTAL</th><th>KM RODADO</th><th>R$/KM</th></tr>';
@@ -5147,6 +5237,20 @@ function baixarPDFGrupo(){
   const titulo = _tituloModalGrupo(g);
   const linhasHtml = _linhasModalCSV(g).slice(1).map(l=>'<tr>'+l.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('');
   const cabecalho = '<tr>'+_linhasModalCSV(g)[0].map(v=>'<th>'+v+'</th>').join('')+'</tr>';
+  // Resumo do cabeçalho do PDF = EXATAMENTE o mesmo resumo já mostrado na tela do
+  // popup (window._modalResumoPares, montado por abrirModalGrupo() pra cada
+  // tipoModal -- agência, seguro, convênio, encomendas, linhas...). Antes esse
+  // resumo vinha hard-coded só com os campos de "Linha" (Receita Total/Km
+  // Rodado/R$/Km/Viagens), então no PDF de Agências (por ex.) saía um resumo
+  // errado, sem a Comissão Paga etc. O fallback abaixo é só rede de segurança
+  // caso algum popup futuro esqueça de preencher _modalResumoPares.
+  const resumoPares = window._modalResumoPares || [
+    ['Receita Total', fmtR$(g.receitaTotal)],
+    ['Km Rodado', fmtNum(g.kmRodado)],
+    ['R$/Km', fmtR$(g.rkm)],
+    ['Viagens', fmtInt(g.viagens)],
+  ];
+  const resumoTexto = resumoPares.map(p=>p[0]+': '+p[1]).join(' &nbsp;|&nbsp; ');
   const win = window.open('', '_blank');
   if(!win) return;
   win.document.write('<html><head><meta charset="UTF-8"><title>Detalhamento - '+titulo+'</title><style>'+
@@ -5156,7 +5260,7 @@ function baixarPDFGrupo(){
     '.resumo{margin-top:6px;font-size:13px;font-weight:bold;color:#132354;}'+
     '</style></head><body>'+
     '<h2>'+titulo+'</h2>'+
-    '<div class="resumo">Receita Total: '+fmtR$(g.receitaTotal)+' &nbsp;|&nbsp; Km Rodado: '+fmtNum(g.kmRodado)+' &nbsp;|&nbsp; R$/Km: '+fmtR$(g.rkm)+' &nbsp;|&nbsp; Viagens: '+fmtInt(g.viagens)+'</div>'+
+    '<div class="resumo">'+resumoTexto+'</div>'+
     '<table>'+cabecalho+linhasHtml+'</table>'+
     '</body></html>');
   win.document.close();
@@ -5383,11 +5487,14 @@ function renderAgencias(){
   rowVenda.appendChild(kpiCard('SEGURO OPCIONAL', fmtR$(seguroOpcional), pct(seguroOpcional), true));
   rowVenda.appendChild(kpiCard('OUTRAS RECEITAS', fmtR$(outrasReceitas), pct(outrasReceitas), true));
 
-  // Comissão das agências do canal Vendas Embarcada por Agência que estão na lista
-  // AGENCIAS_EMBARCADA_COMISSAO_AUTO (RECEITA EMBARCADA x 10%, ver comentário na
-  // constante) -- pedido explícito do usuário (2026-08-05) pra também entrar na caixa
-  // COMISSÃO DE AGÊNCIAS, não só na coluna acessória do ranking.
-  const comissaoEmbarcadaAuto = sum(ve.filter(x=>AGENCIAS_EMBARCADA_COMISSAO_AUTO.has(x.nome)), x=>(x.totgeral||0)*0.10);
+  // Comissão das agências do canal Vendas Embarcada por Agência = valor de comissão já
+  // apontado no próprio relatório (campo "vlcomissaotot", extraído pelos dois parsers --
+  // ver parseVendasEmbarcadaAgencia/parseVendasEmbarcadaAgenciaFormatada), somado sem
+  // filtro por agência. Substituiu a regra anterior (RECEITA EMBARCADA x 10%, restrita a
+  // uma lista fechada de 7 agências) a pedido do usuário em 2026-09-30: o relatório real
+  // não usa sempre 10% -- varia por agência --, então usar o valor de comissão do próprio
+  // relatório é mais fiel do que estimar um percentual fixo.
+  const comissaoEmbarcadaAuto = sum(ve, x=>x.vlcomissaotot||0);
   // 2026-08-20, correção de bug confirmada pelo usuário com o relatório real de 20/08:
   // a coluna "Comissão" do relatório Receita Diária por Agência já vem pronta e
   // SEPARADA por Tipo (PRESTACAO DE SERVICO / INTERNET / REQUISIÇÃO / PROPRIAS) -- não
@@ -5450,14 +5557,6 @@ function renderAgencias(){
 // largura de coluna no relatório de origem) já chegam aqui resolvidos para o nome
 // canônico completo — ver _resolverNomeAgencia — então não criam mais linha própria
 // no ranking, e sim somam na agência correta.
-// Agências do canal Vendas Embarcada por Agência para as quais a Comissão Paga é
-// calculada automaticamente (RECEITA EMBARCADA x 10%), já que esse relatório não traz
-// comissão própria -- pedido explícito do usuário (2026-08-05), restrito só a estas
-// agências (lista fechada). As demais agências do canal embarcada que não estão nesta
-// lista ficam mesmo sem comissão (R$ 0,00), de propósito.
-const AGENCIAS_EMBARCADA_COMISSAO_AUTO = new Set([
-  'EMB CAMPO LARGO', 'EMB HENRIQUE', 'EMB MATIAS', 'EMB MIGUEL ALVES', 'EMB PORTO', 'EMB RICARDO', 'EMB V7',
-]);
 let agRankingSortCol='receitaTotal', agRankingSortDir=-1;
 function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
   const porAgencia = {};
@@ -5494,10 +5593,11 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
     const a = getAg(x.nome, x.uf); if(!a) return;
     a.receitaEmbarcada += x.totgeral||0; a.qtdEmbarcados += x.qtdepasslp||0;
     const dd = diaDe(a, x.data); dd.receitaEmbarcada += x.totgeral||0; dd.qtdEmbarcados += x.qtdepasslp||0;
-    if(AGENCIAS_EMBARCADA_COMISSAO_AUTO.has(x.nome)){
-      const comissaoAuto = (x.totgeral||0) * 0.10;
-      a.comissao += comissaoAuto; dd.comissao += comissaoAuto;
-    }
+    // Comissão Paga = valor de comissão já apontado no próprio relatório
+    // ("vlcomissaotot"), não mais um percentual fixo estimado -- ver comentário em
+    // comissaoEmbarcadaAuto (Visão Geral da aba Agências).
+    const comissaoReal = x.vlcomissaotot||0;
+    a.comissao += comissaoReal; dd.comissao += comissaoReal;
   });
   seguroRows.forEach(x=>{
     const a = getAg(x.agencia, ''); if(!a) return;
