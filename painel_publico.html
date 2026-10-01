@@ -352,7 +352,6 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <nav class="sidebar" id="sidebar">
     <button data-tab="indicadores" class="active"><span class="ic">&#128202;</span>Resumo Diário</button>
     <button data-tab="visaogeral"><span class="ic">&#9635;</span>Visão Geral</button>
-    <button data-tab="linhas"><span class="ic">&#8963;</span>Linhas</button>
     <button data-tab="linhasreal"><span class="ic">&#8963;</span>Linhas - Real</button>
     <button data-tab="agencias"><span class="ic">&#8962;</span>Agências</button>
     <button data-tab="seguro"><span class="ic">&#128737;</span>Seguro</button>
@@ -400,19 +399,6 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
       <div class="kpi-row" id="kpiRow1" style="display:none"></div>
       <div class="kpi-row" id="kpiRow2" style="display:none"></div>
       <p class="pct-note" id="vgAvisoEmbarcado" style="display:none"></p>
-    </section>
-
-    <section id="tab-linhas" class="tab hidden">
-      <div class="kpi-row" id="kpiRow1Linhas"></div>
-      <div class="kpi-row" id="kpiRow2Linhas"></div>
-      <p class="pct-note" id="vgAvisoEmbarcadoLinhas"></p>
-      <div class="two-col">
-        <div class="panel"><h2>Análise de Linhas por Órgão Concedente <span class="info-badge">clique no cabeçalho para ordenar</span></h2><div id="orgaoGroups"></div></div>
-        <div class="col-stack">
-          <div class="panel"><h2>Ranking Geral de Linhas <span class="info-badge">clique no cabeçalho para ordenar</span></h2><div class="scroll-box"><table class="data" id="rankingLinhasTable"></table></div></div>
-          <div class="panel"><h2>Calendário — R$/Km por dia</h2><div id="calendariosLinhas"></div></div>
-        </div>
-      </div>
     </section>
 
         <!-- LINHAS - REAL: indicador adicional isolado (pedido dos sócios, 2026-08-30) --
@@ -3820,7 +3806,7 @@ const FILTRO_GRUPOS = {
 };
 function _dispararMudancaFiltro(id){
   const grupo = FILTRO_GRUPOS[id];
-  if(grupo==='visaogeral'){ renderVisaoGeral(); renderLinhas(); renderLinhasReal(); }
+  if(grupo==='visaogeral'){ renderVisaoGeral(); renderLinhasReal(); }
   else if(grupo==='agencias') renderAgencias();
   else if(grupo==='seguro') renderSeguro();
   else if(grupo==='convenios') renderConvenios();
@@ -4218,12 +4204,6 @@ function renderVisaoGeral(){
   }
   const porDia = {};
   for(const d in porDiaBruto){ porDia[d] = { r: porDiaBruto[d].embarque+porDiaBruto[d].tarifa, k: porDiaBruto[d].km }; }
-
-  // O calendário e o relatório "Receita Total Diária" saíram da Visão Geral
-  // (pedido dos sócios, 2026-08-05, substituídos pelos tópicos RECEITA/
-  // PASSAGEIRO/INDICADORES abaixo) -- mas o calendário continua existindo na
-  // aba LINHAS, então essa cópia permanece.
-  renderCalendarios(porDia, 'calendariosLinhas'); // cópia na aba Linhas (ver comentário em renderCalendarios)
 
   // Aviso: se o filtro de Classe estiver restrito a CONVENCIONAL e não houver nenhum
   // dado do relatório "Embarcado Linhas" (linhas PI-112) carregado no período, os
@@ -5274,14 +5254,6 @@ document.getElementById('orgaoGroupsReal').addEventListener('click', e=>{
 document.getElementById('rankingLinhasTableReal').addEventListener('click', e=>{
   const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
   abrirModalGrupo(_linhasRealGrupos[+tr.dataset.idx]);
-});
-document.getElementById('orgaoGroups').addEventListener('click', e=>{
-  const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
-  abrirModalGrupo(_linhasGrupos[+tr.dataset.idx]);
-});
-document.getElementById('rankingLinhasTable').addEventListener('click', e=>{
-  const tr = e.target.closest('tr[data-idx]'); if(!tr) return;
-  abrirModalGrupo(_linhasGrupos[+tr.dataset.idx]);
 });
 
 // =====================================================================
@@ -6725,7 +6697,6 @@ function atualizarTudo(){
   _conveniosPorDiaCache = null;
   popularFiltros();
   renderVisaoGeral();
-  renderLinhas();
   renderLinhasReal();
   renderAgencias();
   renderSeguro();
@@ -6736,7 +6707,6 @@ function atualizarTudo(){
 
 const TITULOS_ABA = {
   visaogeral: 'Visão Geral',
-  linhas: 'Receita Total de Linhas',
   linhasreal: 'Receita de Linhas — Valor Real (Convênios)',
   agencias: 'Receita Total de Vendas',
   seguro: 'Receita de Seguro Opcional - Capemisa',
@@ -6763,7 +6733,7 @@ document.getElementById('sidebar').addEventListener('click', e=>{
 // Agência, UF, Tipo, Local, Status, Forma) disparam a atualização diretamente pelo próprio
 // componente de checkbox (construirMSF -> _dispararMudancaFiltro). Aqui só faltam as datas.
 ['fDataIni','fDataFim'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', ()=>{ renderVisaoGeral(); renderLinhas(); renderLinhasReal(); });
+  document.getElementById(id).addEventListener('change', ()=>{ renderVisaoGeral(); renderLinhasReal(); });
 });
 ['agDataIni','agDataFim'].forEach(id=>{
   document.getElementById(id).addEventListener('change', renderAgencias);
