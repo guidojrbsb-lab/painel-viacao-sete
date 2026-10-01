@@ -250,12 +250,35 @@ const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','N
 // abaixo) -- assim o painel funciona mesmo em upload de só 1 mês, onde as
 // células de TOTAL/EBTDA/RL da própria planilha podem não refletir só
 // aquele mês.
+// Nomes atualizados em 2026-10-01 (planilha "DRE_BANDEIRA_atualizado.xlsx") -- tinham
+// que bater, letra por letra (depois do trim), com o texto da Coluna A da planilha de
+// origem, porque é assim que o parser identifica a qual grupo cada rubrica pertence.
+// Antes eram só as siglas ('DP','DV','ADM','DIR','FINANC','Investimento'); agora a
+// planilha traz o nome por extenso.
 const GRUPOS_RECEITA = ['RECEITA'];
-const GRUPOS_DESPESA_OP = ['IMPOSTO','DP','DV','ADM','DIR'];
-const GRUPOS_FINANC = ['FINANC'];
-const GRUPOS_EXTRA = ['EXTRA'];
-const GRUPOS_INVESTIMENTO = ['Investimento'];
-const GRUPOS_IGNORAR = ['EBTDA','RL','CAIXA MÊS','CAIXA MES']; // linhas derivadas, nunca armazenadas
+const GRUPOS_DESPESA_OP = ['IMPOSTO','DP (Desp. Pessoal)','DV (Desp Veículos)','ADM / Financ','Diretoria'];
+const GRUPOS_FINANC = ['Financiamentos'];
+const GRUPOS_EXTRA = ['Gastos Extra Operação'];
+const GRUPOS_INVESTIMENTO = ['Outros'];
+// "Custo Total" é um total já pré-calculado pela própria planilha (equivalente à linha
+// "TOTAL DESPESAS OPERACIONAIS" que este painel já recalcula sozinho) -- ignorado pelo
+// mesmo motivo de EBTDA/RL/CAIXA MÊS: nunca fica como fonte de verdade, sempre recalculado.
+const GRUPOS_IGNORAR = ['EBTDA','RL','CAIXA MÊS','CAIXA MES','Custo Total']; // linhas derivadas, nunca armazenadas
+// Paleta de cores por Centro de Custo, extraída da própria planilha (cor de fundo da
+// célula de cada grupo na Coluna A) -- pedido do usuário em 2026-10-01. "forte" vai na
+// célula do grupo (Discriminação), sempre visível (recolhido ou aberto); "suave" é a
+// mesma cor só que mais clara, aplicada nas rubricas quando o grupo está expandido.
+const CORES_GRUPO = {
+  'RECEITA':               { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
+  'IMPOSTO':               { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
+  'DP (Desp. Pessoal)':    { forte:'#002060', suave:'#d6dced', texto:'#fff' },
+  'DV (Desp Veículos)':    { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
+  'ADM / Financ':          { forte:'#0F9ED5', suave:'#d4eefa', texto:'#fff' },
+  'Diretoria':             { forte:'#7030A0', suave:'#ebdcf2', texto:'#fff' },
+  'Financiamentos':        { forte:'#002060', suave:'#d6dced', texto:'#fff' },
+  'Gastos Extra Operação': { forte:'#FF0000', suave:'#ffd9d9', texto:'#fff' },
+  'Outros':                { forte:'#E8E8E8', suave:'#f6f6f6', texto:'#1b2432' },
+};
 function cellNum(v){
   if(v===undefined||v===null||v==='') return null;
   if(typeof v==='number') return isNaN(v) ? null : v;
@@ -376,7 +399,10 @@ function _calculoMes(mes){
 // Sem "R$" e sem casas decimais (arredondado) -- pedido do usuário, 2026-09-30,
 // pra ganhar espaço horizontal na tabela (colunas de mês mais estreitas).
 function fmtR$(v){ return (v<0?'-':'') + Math.round(Math.abs(v||0)).toLocaleString('pt-BR'); }
-function fmtPct(v){ if(!isFinite(v)) return '-'; return Math.round(v*100).toLocaleString('pt-BR')+'%'; }
+// 2 casas decimais (pedido do usuário, 2026-10-01, igual ao Excel) -- usado só nas
+// linhas/KPIs de % do EBTDA e do Lucro Líquido (os 2 únicos lugares que chamam fmtPct()
+// neste painel).
+function fmtPct(v){ if(!isFinite(v)) return '-'; return (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})+'%'; }
 // ======================================================================
 // FILTRO DE PERÍODO
 // ======================================================================
@@ -391,6 +417,15 @@ function _popularFiltroMeses(){
   if(meses.includes(valFimAntes)) selFim.value = valFimAntes; else if(meses.length) selFim.value = meses[meses.length-1];
 }
 let _dreGruposRecolhidos = new Set();
+// Todos os grupos (nas 5 categorias que entram na DRE) começam recolhidos sempre que a
+// página é aberta/atualizada -- pedido do usuário em 2026-10-01: "para que o usuário vá
+// abrindo conta a conta de acordo com a necessidade". Chamado 1x no boot, antes do
+// primeiro render; depois disso, _toggleGrupo() já cuida do estado normalmente (abrir/
+// fechar não se perde entre cliques dentro da mesma sessão de página).
+function _recolherTodosGruposNoBoot(){
+  [...GRUPOS_RECEITA, ...GRUPOS_DESPESA_OP, ...GRUPOS_FINANC, ...GRUPOS_EXTRA, ...GRUPOS_INVESTIMENTO]
+    .forEach(g=>_dreGruposRecolhidos.add(g));
+}
 function _toggleGrupo(grupo){
   if(_dreGruposRecolhidos.has(grupo)) _dreGruposRecolhidos.delete(grupo); else _dreGruposRecolhidos.add(grupo);
   renderDRE();
@@ -402,7 +437,7 @@ function renderDRE(){
   const todosMeses = _todosMeses();
   if(!todosMeses.length){
     document.getElementById('dreTabela').querySelector('thead').innerHTML = '';
-    document.getElementById('dreTabela').querySelector('tbody').innerHTML = '<tr><td style="text-align:center;padding:20px;color:#9aa1af;">Nenhum dado carregado ainda. Use "Carregar planilha DRE (.xlsx)" no rodapé.</td></tr>';
+    document.getElementById('dreTabela').querySelector('tbody').innerHTML = '<tr><td style="text-align:center;padding:20px;color:#9aa1af;">Nenhum dado publicado ainda. Assim que a planilha DRE for carregada no painel administrativo, os números aparecem aqui automaticamente.</td></tr>';
     document.getElementById('dreResumoKpis').innerHTML = '';
     return;
   }
@@ -444,12 +479,18 @@ function renderDRE(){
   function linhaGrupo(grupo, label){
     const recolhido = _dreGruposRecolhidos.has(grupo);
     const seta = '<span class="seta">&#9660;</span>';
-    let html = '<tr class="dre-grupo'+(recolhido?' recolhido':'')+'" onclick="_toggleGrupo(\''+grupo.replace(/'/g,"\\'")+'\')"><td>'+seta+' '+(label||grupo)+'</td>'+
+    const cor = CORES_GRUPO[grupo];
+    // Cor do Centro de Custo (igual à planilha) só na célula da Discriminação -- "forte"
+    // na linha do grupo (sempre, recolhido ou aberto), "suave" (mesma cor, mais clara)
+    // nas rubricas quando o grupo está expandido. Pedido do usuário, 2026-10-01.
+    const estiloGrupoTd = cor ? ' style="background:'+cor.forte+';color:'+cor.texto+';"' : '';
+    let html = '<tr class="dre-grupo'+(recolhido?' recolhido':'')+'" onclick="_toggleGrupo(\''+grupo.replace(/'/g,"\\'")+'\')"><td'+estiloGrupoTd+'>'+seta+' '+(label||grupo)+'</td>'+
       linhaValores(m=>_valorGrupoMes(grupo,m))+'</tr>';
     const bloco = DB.dreEstrutura.find(b=>b.grupo===grupo);
     if(bloco){
+      const estiloSubgrupoTd = cor ? ' style="background:'+cor.suave+';"' : '';
       bloco.subgrupos.forEach(sg=>{
-        html += '<tr class="dre-subgrupo'+(recolhido?' oculto':'')+'"><td>'+sg+'</td>'+
+        html += '<tr class="dre-subgrupo'+(recolhido?' oculto':'')+'"><td'+estiloSubgrupoTd+'>'+sg+'</td>'+
           linhaValores(m=>(DB.dreValores[grupo+'|'+sg]||{})[m]||0)+'</tr>';
       });
     }
@@ -506,6 +547,7 @@ function atualizarTudo(){
 }
 (async function(){
   await loadDB();
+  _recolherTodosGruposNoBoot();
   atualizarTudo();
 })();
 </script>
