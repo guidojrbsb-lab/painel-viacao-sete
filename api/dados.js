@@ -43,8 +43,7 @@
 //   um Blob Store ao projeto -- não precisa criar essa na mão.)
 import { put, head, del } from '@vercel/blob';
 
-const SETORES_VALIDOS = new Set(['comercial', 'financeiro', 'operacao', 'manutencao']);
-
+const SETORES_VALIDOS = new Set(['comercial', 'financeiro', 'operacao', 'manutencao', 'bandeira']);
 function caminhoDoSetor(setor) {
   return 'dados/' + setor + '.json';
 }
