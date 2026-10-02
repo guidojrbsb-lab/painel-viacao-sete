@@ -96,13 +96,13 @@ table.data tr:nth-child(even) td{background:#fafbfc;}
    RECEITA (grupo e subgrupos) segue a mesma regra -- azul na linha toda, não só
    na Discriminação -- igual à RECEITA LÍQUIDA (pedido do usuário). */
 tr.dre-grupo{cursor:pointer;}
-tr.dre-grupo td{background:#fff;font-weight:800;border-top:1.5px solid var(--border-strong);}
+#dreTabela tr.dre-grupo td{background:#fff;font-weight:800;border-top:1.5px solid var(--border-strong);}
 tr.dre-grupo.dre-cor-azul td{color:var(--azul);}
 tr.dre-grupo.dre-cor-vermelho td{color:var(--red);}
-tr.dre-grupo:hover td{background:#f7f8fa;}
+#dreTabela tr.dre-grupo:hover td{background:#f7f8fa;}
 tr.dre-grupo td:first-child .seta{display:inline-block;width:12px;transition:transform .15s;font-size:10px;}
 tr.dre-grupo.recolhido td:first-child .seta{transform:rotate(-90deg);}
-tr.dre-subgrupo td{background:#fff;}
+#dreTabela tr.dre-subgrupo td{background:#fff;}
 tr.dre-subgrupo td:first-child{padding-left:28px;color:var(--muted);}
 tr.dre-subgrupo.dre-cor-azul td{color:var(--azul);}
 tr.dre-subgrupo.dre-cor-vermelho td{color:var(--red);}
@@ -110,24 +110,28 @@ tr.dre-subgrupo.oculto{display:none;}
 /* RECEITA LÍQUIDA (Receita - Impostos, linha nova): mesmo padrão visual da
    linha RECEITA -- fundo branco, texto azul em negrito -- confirmado com o
    usuário (Opção B), para não competir com o amarelo do EBITDA/RL. */
-tr.dre-receita-liquida td{background:#fff;font-weight:800;color:var(--azul);border-top:1.5px solid var(--border-strong);}
-tr.dre-total-op td{background:#fff;color:var(--red);font-weight:800;border-top:1.5px solid var(--border-strong);}
+#dreTabela tr.dre-receita-liquida td{background:#fff;font-weight:800;color:var(--azul);border-top:1.5px solid var(--border-strong);}
+#dreTabela tr.dre-total-op td{background:#fff;color:var(--red);font-weight:800;border-top:1.5px solid var(--border-strong);}
 /* Amarelo vivo (#FFFF00) pedido pelo usuário em 2026-10-01, pra bater com o tom do
    Excel de referência -- substitui o amarelo claro (#fff6da) anterior. Vale pro
    EBTDA/RL e pra linha de % logo abaixo (mesmo bloco visual na planilha de
-   referência). */
-tr.dre-ebtda td,tr.dre-rl td{background:#ffff00;font-weight:800;color:#000;border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
-tr.dre-pct td{background:#ffff00;color:#000;font-size:11px;font-weight:700;}
+   referência). Prefixado com #dreTabela (2026-10-01, correção): a listra zebra
+   "table.data tr:nth-child(even) td" tem 2 classes (.data + :nth-child) contra 1
+   (.dre-ebtda) e ganhava a disputa de especificidade sempre que a linha caía numa
+   posição par, apagando o amarelo de volta pra quase-branco (#fafbfc) -- causa raiz
+   do "já publiquei e continua branco". Com o ID na frente, essas linhas sempre ganham. */
+#dreTabela tr.dre-ebtda td,#dreTabela tr.dre-rl td{background:#ffff00;font-weight:800;color:#000;border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
+#dreTabela tr.dre-pct td{background:#ffff00;color:#000;font-size:11px;font-weight:700;}
 /* Bloco "POSIÇÃO DE CAIXA" (Investimento + CAIXA MÊS) -- fundo branco
    também (pedido do usuário, 2026-10-01: "todo fundo da planilha em
    branco" vale pra essas linhas também, já que não foram citadas como
    exceção). Mantém só a faixa dourada acima como separador visual do bloco. */
-tr.dre-bloco-titulo td{background:#fff;color:var(--ink);font-weight:800;letter-spacing:.4px;text-transform:uppercase;font-size:11px;padding:10px 8px;border-top:3px solid var(--dourado);}
+#dreTabela tr.dre-bloco-titulo td{background:#fff;color:var(--ink);font-weight:800;letter-spacing:.4px;text-transform:uppercase;font-size:11px;padding:10px 8px;border-top:3px solid var(--dourado);}
 /* Essa linha tem 1 td só (colspan=todas as colunas) -- precisa ignorar o
    sticky/min-width/max-width do primeiro-filho (ver #dreTabela acima),
    senão o colspan fica visualmente espremido em 200px. */
 #dreTabela tr.dre-bloco-titulo td{position:static;min-width:0;max-width:none;width:auto;text-align:left;}
-tr.dre-caixa-mes td{background:#fff;font-weight:800;color:var(--ink);border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
+#dreTabela tr.dre-caixa-mes td{background:#fff;font-weight:800;color:var(--ink);border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
 .dre-resumo{border-left:2px solid var(--border);}
 /* Qualquer número negativo em todo o painel fica vermelho (pedido do usuário,
    2026-10-01) -- span próprio (ver fmtR$/fmtPct), sempre ganha da cor herdada da
