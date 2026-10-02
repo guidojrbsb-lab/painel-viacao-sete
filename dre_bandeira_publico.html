@@ -111,7 +111,7 @@ tr.dre-subgrupo.oculto{display:none;}
    linha RECEITA -- fundo branco, texto azul em negrito -- confirmado com o
    usuário (Opção B), para não competir com o amarelo do EBITDA/RL. */
 tr.dre-receita-liquida td{background:#fff;font-weight:800;color:var(--azul);border-top:1.5px solid var(--border-strong);}
-tr.dre-total-op td{background:#fff;color:var(--ink);font-weight:800;border-top:1.5px solid var(--border-strong);}
+tr.dre-total-op td{background:#fff;color:var(--red);font-weight:800;border-top:1.5px solid var(--border-strong);}
 /* Amarelo vivo (#FFFF00) pedido pelo usuário em 2026-10-01, pra bater com o tom do
    Excel de referência -- substitui o amarelo claro (#fff6da) anterior. Vale pro
    EBTDA/RL e pra linha de % logo abaixo (mesmo bloco visual na planilha de
@@ -547,7 +547,7 @@ function renderDRE(){
   corpo += '<tr class="dre-receita-liquida"><td>RECEITA LÍQUIDA</td>'+linhaValores(m=>calc[m].receitaMenosImposto)+'</tr>';
   // Demais despesas operacionais (DP, DV, ADM, DIR) + total combinado
   GRUPOS_DESPESA_OP.slice(1).forEach(g=> corpo += linhaGrupo(g));
-  corpo += '<tr class="dre-total-op"><td>TOTAL DESPESAS OPERACIONAIS</td>'+linhaValores(m=>calc[m].totalDespesaOpSemImposto)+'</tr>';
+  corpo += '<tr class="dre-total-op"><td>CUSTO TOTAL</td>'+linhaValores(m=>calc[m].totalDespesaOpSemImposto)+'</tr>';
   // EBTDA
   corpo += '<tr class="dre-ebtda"><td>EBTDA</td>'+linhaValores(m=>calc[m].ebtda)+'</tr>';
   corpo += '<tr class="dre-pct"><td>%</td>'+meses.map(m=>'<td>'+pct(calc[m].ebtda,calc[m].receitaMenosImposto)+'</td>').join('')+
