@@ -92,17 +92,19 @@ table.data tr:nth-child(even) td{background:#fafbfc;}
    "fundo branco" pedida explicitamente. Atualização 2026-10-01 (2): nas
    rubricas em VERMELHO, a cor passa a valer pra linha toda -- rubrica E
    todos os valores numéricos, tanto na linha do grupo quanto nas linhas de
-   subgrupo abaixo dele (pedido explícito do usuário). RECEITA/RECEITA
-   LÍQUIDA continuam com azul só na coluna Discriminação (não pedido). */
+   subgrupo abaixo dele (pedido explícito do usuário). Atualização 2026-10-01 (3):
+   RECEITA (grupo e subgrupos) segue a mesma regra -- azul na linha toda, não só
+   na Discriminação -- igual à RECEITA LÍQUIDA (pedido do usuário). */
 tr.dre-grupo{cursor:pointer;}
 tr.dre-grupo td{background:#fff;font-weight:800;border-top:1.5px solid var(--border-strong);}
-tr.dre-grupo.dre-cor-azul td:first-child{color:var(--azul);}
+tr.dre-grupo.dre-cor-azul td{color:var(--azul);}
 tr.dre-grupo.dre-cor-vermelho td{color:var(--red);}
 tr.dre-grupo:hover td{background:#f7f8fa;}
 tr.dre-grupo td:first-child .seta{display:inline-block;width:12px;transition:transform .15s;font-size:10px;}
 tr.dre-grupo.recolhido td:first-child .seta{transform:rotate(-90deg);}
 tr.dre-subgrupo td{background:#fff;}
 tr.dre-subgrupo td:first-child{padding-left:28px;color:var(--muted);}
+tr.dre-subgrupo.dre-cor-azul td{color:var(--azul);}
 tr.dre-subgrupo.dre-cor-vermelho td{color:var(--red);}
 tr.dre-subgrupo.oculto{display:none;}
 /* RECEITA LÍQUIDA (Receita - Impostos, linha nova): mesmo padrão visual da
