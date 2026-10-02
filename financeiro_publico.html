@@ -352,6 +352,14 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 .modal-actions button:hover{background:var(--navy-dark);}
 .modal-actions button.pdf{background:var(--red);}
 .modal-actions button.pdf:hover{background:var(--red-dark);}
+/* Botões Exportar CSV/PDF do tópico CONVÊNIOS (aba Bancos) -- pedido dos sócios,
+   2026-10-02: mesmo visual dos botões de popup (.modal-actions), mas soltos no corpo
+   da página (tabela já fica direto na tela, sem popup, ver renderConvenios()). */
+.export-actions{display:flex;gap:8px;margin:0 0 10px;}
+.export-actions button{background:var(--navy);color:#fff;border:none;padding:7px 14px;border-radius:var(--radius-sm);font-size:11.5px;font-weight:700;cursor:pointer;transition:background .15s;}
+.export-actions button:hover{background:var(--navy-dark);}
+.export-actions button.pdf{background:var(--red);}
+.export-actions button.pdf:hover{background:var(--red-dark);}
 /* Aba BANCOS (pedido dos sócios, 2026-08-07): caixas menores no geral -- KPIs
    compactos e tabelas/painéis com menos respiro -- pra caber RECEITAS/DESPESAS lado
    a lado e, mais abaixo, o novo tópico TRANSFERÊNCIA ENTRE CONTAS (ENTRADAS/SAÍDAS
@@ -564,6 +572,10 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
            painel Comercial) por ainda não bater com nenhum convênio cadastrado. -->
       <div class="vg-topico-titulo">CONVÊNIOS (PREFEITURAS E CORRENTISTAS)</div>
       <div class="vg-subtopico-titulo">RECEBIDOS</div>
+      <div class="export-actions">
+        <button onclick="baixarCSVConvenios()">Baixar CSV</button>
+        <button class="pdf" onclick="baixarPDFConvenios()">Baixar PDF</button>
+      </div>
       <div class="panel">
         <div class="scroll-box">
           <table class="data" id="bcTabelaConvenios"><thead></thead><tbody></tbody></table>
@@ -4300,6 +4312,49 @@ function renderConvenios(){
   }
   html += '</tbody>';
   tbl.innerHTML = html;
+}
+// Export CSV/PDF do tópico CONVÊNIOS (aba Bancos) -- pedido dos sócios, 2026-10-02.
+// Reconstrói a MESMA lista/ordenação exibida em tela (ver renderConvenios(), que usa
+// _identificarPagamentosConvenio() + _cvBancosSort) em vez de ler o innerHTML da
+// tabela, mesmo princípio já usado nos exports de popup (_linhasModalFinanceiroCSV).
+function _linhasConveniosExport(){
+  const achados = _identificarPagamentosConvenio().slice();
+  const s = _cvBancosSort;
+  achados.sort((a,b)=>{
+    if(s.col==='valor') return s.dir*(a.valor-b.valor);
+    return s.dir*String(a[s.col]||'').localeCompare(String(b[s.col]||''));
+  });
+  const linhas = [['BANCO','DESCRIÇÃO DO CLIENTE','CONVÊNIO','DATA','VALOR (R$)']];
+  achados.forEach(a=> linhas.push([a.banco, a.quemPagou, a.convenio, formatarDataBR(a.data), (a.valor||0).toFixed(2).replace('.',',')]));
+  return linhas;
+}
+function baixarCSVConvenios(){
+  const linhas = _linhasConveniosExport();
+  const csv = linhas.map(l=>l.join(';')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'convenios_prefeituras_correntistas.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function baixarPDFConvenios(){
+  const linhas = _linhasConveniosExport();
+  const cabecalho = '<tr>'+linhas[0].map(v=>'<th>'+v+'</th>').join('')+'</tr>';
+  const linhasHtml = linhas.slice(1).map(l=>'<tr>'+l.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('');
+  const win = window.open('', '_blank');
+  if(!win) return;
+  win.document.write('<html><head><meta charset="UTF-8"><title>Convênios (Prefeituras e Correntistas)</title><style>'+
+    'body{font-family:Arial,sans-serif;padding:24px;color:#1b2432;}h2{color:#132354;margin-bottom:4px;}'+
+    'table{width:100%;border-collapse:collapse;font-size:12px;margin-top:14px;}'+
+    'th{background:#132354;color:#fff;padding:6px 8px;text-align:left;}td{padding:6px 8px;border-bottom:1px solid #e2e6ee;}'+
+    '</style></head><body>'+
+    '<h2>Convênios (Prefeituras e Correntistas) — Recebidos</h2>'+
+    '<table>'+cabecalho+linhasHtml+'</table>'+
+    '</body></html>');
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 350);
 }
 // Popups de detalhe (Receitas/Despesas e Transferência Entre Contas) -- pedido dos
 // sócios em 2026-08-07: cabeçalho clicável com setas de ordenação, e cabeçalho +
