@@ -129,6 +129,10 @@ tr.dre-bloco-titulo td{background:#fff;color:var(--ink);font-weight:800;letter-s
 #dreTabela tr.dre-bloco-titulo td{position:static;min-width:0;max-width:none;width:auto;text-align:left;}
 tr.dre-caixa-mes td{background:#fff;font-weight:800;color:var(--ink);border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
 .dre-resumo{border-left:2px solid var(--border);}
+/* Qualquer número negativo em todo o painel fica vermelho (pedido do usuário,
+   2026-10-01) -- span próprio (ver fmtR$/fmtPct), sempre ganha da cor herdada da
+   célula (azul da Receita, preto do EBTDA/RL amarelo etc.), sem precisar de !important. */
+.valor-neg{color:var(--red);}
 #uploadBar{position:fixed;bottom:0;left:148px;right:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:50;}
 #uploadBar .btn{background:var(--azul);color:#fff;border:none;padding:9px 16px;border-radius:var(--radius-sm);font-weight:700;font-size:12.5px;cursor:pointer;transition:background .15s;}
 #uploadBar .btn:hover{background:var(--azul-mid);}
@@ -424,11 +428,22 @@ function _calculoMes(mes){
 }
 // Sem "R$" e sem casas decimais (arredondado) -- pedido do usuário, 2026-09-30,
 // pra ganhar espaço horizontal na tabela (colunas de mês mais estreitas).
-function fmtR$(v){ return (v<0?'-':'') + Math.round(Math.abs(v||0)).toLocaleString('pt-BR'); }
+// Negativo sempre em vermelho (pedido do usuário, 2026-10-01: "em todo o painel qual
+// número que esteja negativo, deixe a fonte em vermelho") -- span próprio, então ganha
+// de qualquer cor herdada da célula/linha (azul da Receita, amarelo do EBTDA/RL etc.).
+function fmtR$(v){
+  const n = '-' + Math.round(Math.abs(v||0)).toLocaleString('pt-BR');
+  const p = Math.round(Math.abs(v||0)).toLocaleString('pt-BR');
+  return v<0 ? '<span class="valor-neg">'+n+'</span>' : p;
+}
 // 2 casas decimais (pedido do usuário, 2026-10-01, igual ao Excel) -- usado só nas
 // linhas/KPIs de % do EBTDA e do Lucro Líquido (os 2 únicos lugares que chamam fmtPct()
-// neste painel).
-function fmtPct(v){ if(!isFinite(v)) return '-'; return (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})+'%'; }
+// neste painel). Negativo em vermelho, mesma regra do fmtR$() acima.
+function fmtPct(v){
+  if(!isFinite(v)) return '-';
+  const s = (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})+'%';
+  return v<0 ? '<span class="valor-neg">'+s+'</span>' : s;
+}
 // ======================================================================
 // FILTRO DE PERÍODO
 // ======================================================================
