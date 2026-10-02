@@ -81,28 +81,52 @@ table.data tr:nth-child(even) td{background:#fafbfc;}
 .scroll-box{overflow:auto;max-height:70vh;border-radius:var(--radius-md);}
 /* Linha de GRUPO (RECEITA, DP, DV, ADM, DIR, FINANC, EXTRA, Investimento):
    clicável, expande/recolhe as linhas de SUBGRUPO abaixo -- mesma UX de
-   "grupo expansível" já usada no DRE-Caixa do Financeiro. */
+   "grupo expansível" já usada no DRE-Caixa do Financeiro.
+   Regra de cores revisada em 2026-10-01 (pedido do usuário, mais próxima do
+   DRE da Viação Sete): fundo BRANCO em toda a planilha -- nada mais de
+   verde/azul/roxo/cinza por Centro de Custo. Na coluna Discriminação, só o
+   TEXTO muda: RECEITA e RECEITA LÍQUIDA em azul (.dre-grupo-azul), as demais
+   rubricas (IMPOSTO, DP, DV, ADM/Financ, Diretoria, Financiamentos, Gastos
+   Extra, Outros) em vermelho (.dre-grupo-vermelho). Só EBITDA e RL (Lucro
+   Líquido) continuam com destaque amarelo -- essa foi a única exceção ao
+   "fundo branco" pedida explicitamente. Atualização 2026-10-01 (2): nas
+   rubricas em VERMELHO, a cor passa a valer pra linha toda -- rubrica E
+   todos os valores numéricos, tanto na linha do grupo quanto nas linhas de
+   subgrupo abaixo dele (pedido explícito do usuário). RECEITA/RECEITA
+   LÍQUIDA continuam com azul só na coluna Discriminação (não pedido). */
 tr.dre-grupo{cursor:pointer;}
-tr.dre-grupo td{background:var(--azul-soft);font-weight:800;color:var(--azul-dark);border-top:1.5px solid var(--border-strong);}
-tr.dre-grupo:hover td{background:#dfeaf5;}
+tr.dre-grupo td{background:#fff;font-weight:800;border-top:1.5px solid var(--border-strong);}
+tr.dre-grupo.dre-cor-azul td:first-child{color:var(--azul);}
+tr.dre-grupo.dre-cor-vermelho td{color:var(--red);}
+tr.dre-grupo:hover td{background:#f7f8fa;}
 tr.dre-grupo td:first-child .seta{display:inline-block;width:12px;transition:transform .15s;font-size:10px;}
 tr.dre-grupo.recolhido td:first-child .seta{transform:rotate(-90deg);}
+tr.dre-subgrupo td{background:#fff;}
 tr.dre-subgrupo td:first-child{padding-left:28px;color:var(--muted);}
+tr.dre-subgrupo.dre-cor-vermelho td{color:var(--red);}
 tr.dre-subgrupo.oculto{display:none;}
-tr.dre-total-op td{background:var(--ink);color:#fff;font-weight:800;border-top:2px solid var(--dourado);}
-tr.dre-ebtda td,tr.dre-rl td{background:#fff6da;font-weight:800;color:#6b5100;border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
-tr.dre-pct td{background:#fff6da;color:#8a6d00;font-size:11px;font-weight:700;}
-/* Bloco "POSIÇÃO DE CAIXA" (Investimento + CAIXA MÊS) -- pedido do usuário:
-   entra na mesma tela/estrutura do DRE, mas destacado visualmente como um
-   bloco à parte (fundo azul-marinho + faixa dourada acima), não misturado
-   com as linhas normais de receita/despesa. */
-tr.dre-bloco-titulo td{background:var(--azul-dark);color:#fff;font-weight:800;letter-spacing:.4px;text-transform:uppercase;font-size:11px;padding:10px 8px;border-top:3px solid var(--dourado);}
+/* RECEITA LÍQUIDA (Receita - Impostos, linha nova): mesmo padrão visual da
+   linha RECEITA -- fundo branco, texto azul em negrito -- confirmado com o
+   usuário (Opção B), para não competir com o amarelo do EBITDA/RL. */
+tr.dre-receita-liquida td{background:#fff;font-weight:800;color:var(--azul);border-top:1.5px solid var(--border-strong);}
+tr.dre-total-op td{background:#fff;color:var(--ink);font-weight:800;border-top:1.5px solid var(--border-strong);}
+/* Amarelo vivo (#FFFF00) pedido pelo usuário em 2026-10-01, pra bater com o tom do
+   Excel de referência -- substitui o amarelo claro (#fff6da) anterior. Vale pro
+   EBTDA/RL e pra linha de % logo abaixo (mesmo bloco visual na planilha de
+   referência). */
+tr.dre-ebtda td,tr.dre-rl td{background:#ffff00;font-weight:800;color:#000;border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
+tr.dre-pct td{background:#ffff00;color:#000;font-size:11px;font-weight:700;}
+/* Bloco "POSIÇÃO DE CAIXA" (Investimento + CAIXA MÊS) -- fundo branco
+   também (pedido do usuário, 2026-10-01: "todo fundo da planilha em
+   branco" vale pra essas linhas também, já que não foram citadas como
+   exceção). Mantém só a faixa dourada acima como separador visual do bloco. */
+tr.dre-bloco-titulo td{background:#fff;color:var(--ink);font-weight:800;letter-spacing:.4px;text-transform:uppercase;font-size:11px;padding:10px 8px;border-top:3px solid var(--dourado);}
 /* Essa linha tem 1 td só (colspan=todas as colunas) -- precisa ignorar o
    sticky/min-width/max-width do primeiro-filho (ver #dreTabela acima),
    senão o colspan fica visualmente espremido em 200px. */
 #dreTabela tr.dre-bloco-titulo td{position:static;min-width:0;max-width:none;width:auto;text-align:left;}
-tr.dre-caixa-mes td{background:var(--dourado-soft);font-weight:800;color:var(--azul-dark);border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
-.dre-resumo{border-left:2px solid #fff;}
+tr.dre-caixa-mes td{background:#fff;font-weight:800;color:var(--ink);border-top:2px solid var(--dourado);border-bottom:2px solid var(--dourado);}
+.dre-resumo{border-left:2px solid var(--border);}
 #uploadBar{position:fixed;bottom:0;left:148px;right:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:50;}
 #uploadBar .btn{background:var(--azul);color:#fff;border:none;padding:9px 16px;border-radius:var(--radius-sm);font-weight:700;font-size:12.5px;cursor:pointer;transition:background .15s;}
 #uploadBar .btn:hover{background:var(--azul-mid);}
@@ -264,21 +288,16 @@ const GRUPOS_INVESTIMENTO = ['Outros'];
 // "TOTAL DESPESAS OPERACIONAIS" que este painel já recalcula sozinho) -- ignorado pelo
 // mesmo motivo de EBTDA/RL/CAIXA MÊS: nunca fica como fonte de verdade, sempre recalculado.
 const GRUPOS_IGNORAR = ['EBTDA','RL','CAIXA MÊS','CAIXA MES','Custo Total']; // linhas derivadas, nunca armazenadas
-// Paleta de cores por Centro de Custo, extraída da própria planilha (cor de fundo da
-// célula de cada grupo na Coluna A) -- pedido do usuário em 2026-10-01. "forte" vai na
-// célula do grupo (Discriminação), sempre visível (recolhido ou aberto); "suave" é a
-// mesma cor só que mais clara, aplicada nas rubricas quando o grupo está expandido.
-const CORES_GRUPO = {
-  'RECEITA':               { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
-  'IMPOSTO':               { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
-  'DP (Desp. Pessoal)':    { forte:'#002060', suave:'#d6dced', texto:'#fff' },
-  'DV (Desp Veículos)':    { forte:'#00B050', suave:'#d7f2e3', texto:'#fff' },
-  'ADM / Financ':          { forte:'#0F9ED5', suave:'#d4eefa', texto:'#fff' },
-  'Diretoria':             { forte:'#7030A0', suave:'#ebdcf2', texto:'#fff' },
-  'Financiamentos':        { forte:'#002060', suave:'#d6dced', texto:'#fff' },
-  'Gastos Extra Operação': { forte:'#FF0000', suave:'#ffd9d9', texto:'#fff' },
-  'Outros':                { forte:'#E8E8E8', suave:'#f6f6f6', texto:'#1b2432' },
-};
+// Regra de cores revisada em 2026-10-01 (pedido do usuário, pra deixar o DRE Bandeira
+// o mais próximo possível do DRE-Caixa da Viação Sete): a paleta colorida por Centro de
+// Custo (CORES_GRUPO, uma cor de fundo por grupo) foi REMOVIDA -- fundo branco em toda
+// a planilha agora. Em vez de cor de fundo, só o TEXTO da linha de grupo muda: RECEITA
+// fica azul (mesma regra da linha RECEITA LÍQUIDA, nova), e todos os grupos de despesa/
+// financiamento/extra/investimento ficam vermelho. EBITDA e RL (Lucro Líquido) são a
+// única exceção ao fundo branco -- continuam em amarelo, como já eram.
+function _corTextoGrupo(grupo){
+  return GRUPOS_RECEITA.includes(grupo) ? 'dre-cor-azul' : 'dre-cor-vermelho';
+}
 function cellNum(v){
   if(v===undefined||v===null||v==='') return null;
   if(typeof v==='number') return isNaN(v) ? null : v;
@@ -394,7 +413,12 @@ function _calculoMes(mes){
   // Receita Total já descontada do grupo IMPOSTO (ISS) daquele mês -- não
   // é "sobre a receita bruta".
   const receitaMenosImposto = totalReceita - _somaGrupos(['IMPOSTO'], mes);
-  return { totalReceita, totalDespesaOp, ebtda, totalFinanc, totalExtra, rl, totalInvestimento, caixaMes, receitaMenosImposto };
+  // TOTAL DESPESAS OPERACIONAIS exibido na linha de totalização não deve repetir o
+  // IMPOSTO -- ele já foi deduzido uma vez na linha RECEITA LÍQUIDA logo acima.
+  // totalDespesaOp (com Imposto) continua intacto p/ o cálculo do EBTDA (pedido do
+  // usuário, 2026-10-01): Receita - DP - DV - ADM - DIR, sem contar Imposto 2x.
+  const totalDespesaOpSemImposto = totalDespesaOp - _somaGrupos(['IMPOSTO'], mes);
+  return { totalReceita, totalDespesaOp, totalDespesaOpSemImposto, ebtda, totalFinanc, totalExtra, rl, totalInvestimento, caixaMes, receitaMenosImposto };
 }
 // Sem "R$" e sem casas decimais (arredondado) -- pedido do usuário, 2026-09-30,
 // pra ganhar espaço horizontal na tabela (colunas de mês mais estreitas).
@@ -479,18 +503,16 @@ function renderDRE(){
   function linhaGrupo(grupo, label){
     const recolhido = _dreGruposRecolhidos.has(grupo);
     const seta = '<span class="seta">&#9660;</span>';
-    const cor = CORES_GRUPO[grupo];
-    // Cor do Centro de Custo (igual à planilha) só na célula da Discriminação -- "forte"
-    // na linha do grupo (sempre, recolhido ou aberto), "suave" (mesma cor, mais clara)
-    // nas rubricas quando o grupo está expandido. Pedido do usuário, 2026-10-01.
-    const estiloGrupoTd = cor ? ' style="background:'+cor.forte+';color:'+cor.texto+';"' : '';
-    let html = '<tr class="dre-grupo'+(recolhido?' recolhido':'')+'" onclick="_toggleGrupo(\''+grupo.replace(/'/g,"\\'")+'\')"><td'+estiloGrupoTd+'>'+seta+' '+(label||grupo)+'</td>'+
+    // Sem mais cor de fundo por Centro de Custo (removida em 2026-10-01) -- só a classe
+    // de cor de texto (azul pra Receita, vermelho pras demais rubricas) na célula da
+    // Discriminação, sempre visível (recolhido ou aberto). Ver _corTextoGrupo().
+    const classeCorGrupo = _corTextoGrupo(grupo);
+    let html = '<tr class="dre-grupo '+classeCorGrupo+(recolhido?' recolhido':'')+'" onclick="_toggleGrupo(\''+grupo.replace(/'/g,"\\'")+'\')"><td>'+seta+' '+(label||grupo)+'</td>'+
       linhaValores(m=>_valorGrupoMes(grupo,m))+'</tr>';
     const bloco = DB.dreEstrutura.find(b=>b.grupo===grupo);
     if(bloco){
-      const estiloSubgrupoTd = cor ? ' style="background:'+cor.suave+';"' : '';
       bloco.subgrupos.forEach(sg=>{
-        html += '<tr class="dre-subgrupo'+(recolhido?' oculto':'')+'"><td'+estiloSubgrupoTd+'>'+sg+'</td>'+
+        html += '<tr class="dre-subgrupo '+classeCorGrupo+(recolhido?' oculto':'')+'"><td>'+sg+'</td>'+
           linhaValores(m=>(DB.dreValores[grupo+'|'+sg]||{})[m]||0)+'</tr>';
       });
     }
@@ -500,19 +522,25 @@ function renderDRE(){
   let corpo = '';
   // RECEITA
   GRUPOS_RECEITA.forEach(g=> corpo += linhaGrupo(g));
-  // Despesas operacionais (IMPOSTO, DP, DV, ADM, DIR) + total combinado
-  GRUPOS_DESPESA_OP.forEach(g=> corpo += linhaGrupo(g));
-  corpo += '<tr class="dre-total-op"><td>TOTAL DESPESAS OPERACIONAIS</td>'+linhaValores(m=>calc[m].totalDespesaOp)+'</tr>';
+  // IMPOSTO, depois a linha calculada RECEITA LÍQUIDA (Receita - Impostos) -- pedido do
+  // usuário em 2026-10-01, inserida logo abaixo de Impostos, antes das demais despesas
+  // operacionais (DP, DV, ADM, DIR). Mesmo padrão visual da linha RECEITA (fundo branco,
+  // texto azul), confirmado com o usuário.
+  corpo += linhaGrupo('IMPOSTO');
+  corpo += '<tr class="dre-receita-liquida"><td>RECEITA LÍQUIDA</td>'+linhaValores(m=>calc[m].receitaMenosImposto)+'</tr>';
+  // Demais despesas operacionais (DP, DV, ADM, DIR) + total combinado
+  GRUPOS_DESPESA_OP.slice(1).forEach(g=> corpo += linhaGrupo(g));
+  corpo += '<tr class="dre-total-op"><td>TOTAL DESPESAS OPERACIONAIS</td>'+linhaValores(m=>calc[m].totalDespesaOpSemImposto)+'</tr>';
   // EBTDA
   corpo += '<tr class="dre-ebtda"><td>EBTDA</td>'+linhaValores(m=>calc[m].ebtda)+'</tr>';
-  corpo += '<tr class="dre-pct"><td>% sobre Receita Líq. Impostos</td>'+meses.map(m=>'<td>'+pct(calc[m].ebtda,calc[m].receitaMenosImposto)+'</td>').join('')+
+  corpo += '<tr class="dre-pct"><td>%</td>'+meses.map(m=>'<td>'+pct(calc[m].ebtda,calc[m].receitaMenosImposto)+'</td>').join('')+
     '<td class="dre-resumo">'+pct(somaEBTDA, meses.reduce((s,m)=>s+calc[m].receitaMenosImposto,0))+'</td><td class="dre-resumo">-</td></tr>';
   // FINANC / EXTRA
   GRUPOS_FINANC.forEach(g=> corpo += linhaGrupo(g));
   GRUPOS_EXTRA.forEach(g=> corpo += linhaGrupo(g));
   // RL (Lucro)
   corpo += '<tr class="dre-rl"><td>RL (Lucro Líquido)</td>'+linhaValores(m=>calc[m].rl)+'</tr>';
-  corpo += '<tr class="dre-pct"><td>% sobre Receita Líq. Impostos</td>'+meses.map(m=>'<td>'+pct(calc[m].rl,calc[m].receitaMenosImposto)+'</td>').join('')+
+  corpo += '<tr class="dre-pct"><td>%</td>'+meses.map(m=>'<td>'+pct(calc[m].rl,calc[m].receitaMenosImposto)+'</td>').join('')+
     '<td class="dre-resumo">'+pct(somaRL, meses.reduce((s,m)=>s+calc[m].receitaMenosImposto,0))+'</td><td class="dre-resumo">-</td></tr>';
   // Posição de Caixa (destacado, mas dentro da mesma tabela)
   corpo += '<tr class="dre-bloco-titulo"><td colspan="'+(meses.length+3)+'">Posição de Caixa</td></tr>';
