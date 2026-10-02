@@ -472,7 +472,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Viação Sete</span>
-    <h1 id="tituloAba">Bancos</h1>
+    <h1 id="tituloAba">DRE - Caixa</h1>
   </div>
 </header>
 <div class="layout">
@@ -483,24 +483,24 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          leva class="tab" (visível por padrão) e o JS alterna a classe "hidden" -- NÃO usar
          "tab-content"/"active" (não existe CSS pra essas classes, ficaria tudo visível ao
          mesmo tempo assim que houver mais de uma aba). -->
-    <button data-tab="bancos" class="active"><span class="ic">&#127974;</span>Bancos</button>
     <!-- DRE - CAIXA (2026-08-16, renomeada de "DRE - Contábil" em 2026-09-22 quando a aba
          "DRE - Simplificado" foi excluída em definitivo a pedido dos sócios): estrutura
          societária clássica -- Receita Bruta > Impostos > Receita Líquida > despesas
          agrupadas em DP/DV/DA/DC > EBITDA > DF/Financiamentos > Lucro Líquido, com % sobre
          Receita Líquida em cada linha. Lê a base de lançamentos já classificados
          (DB.bancos/DB.especie/DB.classificacao) via _montarDRE/_montarDREContabil. -->
-    <button data-tab="dre-contabil"><span class="ic">&#128200;</span>DRE - Caixa</button>
+    <button data-tab="dre-contabil" class="active"><span class="ic">&#128200;</span>DRE - Caixa</button>
     <!-- ORÇAMENTO (2026-08-27): Programado x Realizado a partir da Estrutura de Custo
          Padrão anexada pelo usuário. Ver bloco de comentário grande no script, logo
          antes de renderOrcamento(). -->
     <button data-tab="orcamento"><span class="ic">&#128176;</span>Orçamento</button>
+    <button data-tab="bancos"><span class="ic">&#127974;</span>Bancos</button>
   </nav>
   <main>
     <!-- ABA BANCOS: consolida os extratos de todas as contas (Itaú, PagSeguro, Santander
          Matriz/Filial, Stone x5) num único relatório de Receita x Despesa por banco.
          Pedido dos sócios em 2026-08-06 (1ª demanda do setor Financeiro). -->
-    <section class="tab" id="tab-bancos">
+    <section class="tab hidden" id="tab-bancos">
       <div class="panel filtro-box" id="filtrosPanelBancos">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid" style="grid-template-columns:repeat(3,1fr);">
@@ -602,7 +602,7 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
          DRE - Simplificado, e também do filtro MÊS INÍCIO/TÉRMINO acima, que é só de exibição
          da tabela). Escondida no modo público (toggleControlesModoPublico), já que saveDB() é
          no-op lá -- não faz sentido deixar o campo editável. -->
-    <section class="tab hidden" id="tab-dre-contabil">
+    <section class="tab" id="tab-dre-contabil">
       <div class="panel filtro-box" id="filtrosPanelDreContabil">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid" style="grid-template-columns:220px 220px;">
@@ -779,6 +779,7 @@ function _normalizarFinanceiro(){
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   _reaplicarReclassificacoesBancoPontual();
   _removerDuplicatasStoneNaoIdentificado();
+  _reaplicarExclusoesLancamentoBanco();
 }
 // Correção 2026-08-16: o usuário confirmou que o mapeamento CONTA->banco em
 // _extrairSantander estava invertido desde o início (CONTA 130049081 é a FILIAL, não a
@@ -878,6 +879,41 @@ function _removerDuplicatasStoneNaoIdentificado(){
       return !temPar;
     });
     if(restantes.length !== lista.length) DB.bancos[dia] = restantes;
+  });
+  return mudouAlgo;
+}
+// Exclusão permanente de lançamentos bancários específicos, pontuais -- pedido do
+// usuário em 2026-09-30 (popup "TICKET — DP — AGOSTO/2026" da DRE - Caixa): esses 4
+// lançamentos de 03/08/2026 (2x SANTANDER FILIAL "PAGAMENTO DE BOLETO OUTROS BANCOS
+// TICKET SERVICOS SA", 1x PAGSEGURO "Pagamento de conta" p/ Ticket Servicos Sa, 1x
+// STONE PI "Pagamento" p/ ALELO) devem sair do relatório definitivamente. Pedido
+// explícito do usuário: "Não mude regra, só retire do relatório" -- por isso NÃO mexe
+// em nenhuma CENTRO_CUSTO_REGRAS/SUBGRUPO_CENTRO_CUSTO nem na detecção de banco, só
+// remove esses 4 lançamentos específicos de DB.bancos (mesmo padrão idempotente de
+// RECLASSIFICACOES_BANCO_PONTUAL acima: banco + data + valor + contraparte/descrição,
+// pra não arriscar acertar outro lançamento parecido por engano). Roda a cada load.
+const EXCLUSOES_LANCAMENTO_BANCO = [
+  { banco: 'SANTANDER FILIAL', data: '2026-08-03', valor: 1700.00, descricaoContains: 'TICKET SERVICOS SA' },
+  { banco: 'SANTANDER FILIAL', data: '2026-08-03', valor: 40133.34, descricaoContains: 'TICKET SERVICOS SA' },
+  { banco: 'PAGSEGURO', data: '2026-08-03', valor: 9000.00, contraparte: 'Ticket Servicos Sa' },
+  { banco: 'STONE PI', data: '2026-08-03', valor: 14433.34, contraparte: 'ALELO' },
+];
+function _reaplicarExclusoesLancamentoBanco(){
+  let mudouAlgo = false;
+  EXCLUSOES_LANCAMENTO_BANCO.forEach(regra=>{
+    const lista = DB.bancos[regra.data] || [];
+    const restantes = lista.filter(t=>{
+      if(t.banco !== regra.banco) return true;
+      if(Math.abs(t.valor - regra.valor) > 0.005) return true;
+      if(regra.contraparte!==undefined && (t.contraparte||'').trim() !== regra.contraparte) return true;
+      if(regra.descricaoContains!==undefined && !String(t.descricao||'').toUpperCase().includes(regra.descricaoContains.toUpperCase())) return true;
+      mudouAlgo = true;
+      return false;
+    });
+    if(restantes.length !== lista.length){
+      DB.bancos[regra.data] = restantes;
+      if(!DB.bancos[regra.data].length) delete DB.bancos[regra.data];
+    }
   });
   return mudouAlgo;
 }
