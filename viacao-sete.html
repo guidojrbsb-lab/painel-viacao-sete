@@ -41,72 +41,47 @@
     letter-spacing:-.2px;
   }
   .subtitulo{ color:#c7cee3; font-size:14px; text-align:center; margin:0 0 44px; }
-  .areas{
-    display:flex; flex-direction:row; gap:32px; flex-wrap:nowrap; justify-content:center;
-    max-width:1180px;
+  footer{ margin-top:48px; color:#8b93ad; font-size:12px; text-align:center; }
+
+  /* Redesign 2026-10-01: DRE ao lado do organograma INDICADORES (fixo, sem clique),
+     todos os botões (DRE + 4 setores) no mesmo tamanho (.hub-card). */
+  .hub-linha{
+    display:flex; flex-direction:row; align-items:flex-end; gap:36px;
+    justify-content:center; flex-wrap:wrap; max-width:1180px;
   }
-  a.area-card{
-    background:#fff; border-radius:var(--radius-lg); width:260px; padding:34px 22px 28px;
-    display:flex; flex-direction:column; align-items:center; gap:18px;
+  .hub-card{
+    background:#fff; border-radius:var(--radius-lg); width:170px; padding:26px 16px 22px;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
     text-decoration:none; box-shadow:var(--shadow-md);
     border-top:4px solid var(--navy); transition:transform .15s, box-shadow .15s;
   }
-  a.area-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); }
-  a.area-card.indisponivel{ border-top-color:#9aa3b8; }
-  .area-nome{ font-size:18.5px; font-weight:800; color:var(--navy); text-align:center; letter-spacing:.4px; }
-  .area-icone{
-    width:86px; height:86px; border-radius:var(--radius-md); background:var(--navy);
+  .hub-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+  .hub-card.indisponivel{ border-top-color:#9aa3b8; cursor:default; }
+  .hub-icone{
+    width:64px; height:64px; border-radius:var(--radius-md); background:var(--navy);
     display:flex; align-items:center; justify-content:center;
   }
-  a.area-card.indisponivel .area-icone{ background:#5b6478; }
-  .area-icone svg{ width:46px; height:46px; stroke:#fff; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .area-tag{ font-size:11.5px; font-weight:700; color:var(--muted-soft); letter-spacing:.5px; }
-  .area-tag.ativo{ color:var(--navy); }
-  footer{ margin-top:48px; color:#8b93ad; font-size:12px; text-align:center; }
+  .hub-card.indisponivel .hub-icone{ background:#5b6478; }
+  .hub-icone svg{ width:34px; height:34px; stroke:#fff; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .hub-nome{ font-size:15px; font-weight:800; color:var(--navy); text-align:center; letter-spacing:.3px; }
+  .hub-tag{ font-size:10.5px; font-weight:700; color:var(--muted-soft); letter-spacing:.4px; }
+  .hub-tag.ativo{ color:var(--navy); }
 
-  /* Card INDICADORES: nao navega, so abre/fecha o organograma abaixo (pedido do
-     usuario em 2026-10-01). Reaproveita o visual de area-card, so troca o cursor
-     e some com a seta ao expandir. */
-  .area-card.indicadores-trigger{ cursor:pointer; user-select:none; border:none; }
-  .area-card.indicadores-trigger .area-nome{ color:#fff; }
-  .area-card.indicadores-trigger .area-tag{ color:#fff; }
-  .area-card.indicadores-trigger .area-tag.ativo{ color:#fff; }
-  .area-card.indicadores-trigger .seta-expand{ display:inline-block; margin-left:5px; font-size:11px; transition:transform .2s; }
-  .area-card.indicadores-trigger.aberto{ box-shadow:var(--shadow-lg); }
-  .area-card.indicadores-trigger.aberto .seta-expand{ transform:rotate(180deg); }
-
-  /* Organograma que expande abaixo do card INDICADORES: cabeca fixa (o proprio
-     card) + filhos menores (COMERCIAL/OPERACAO/MANUTENCAO/ADMINISTRATIVO) com
-     linhas de conexao, no estilo organograma. Acordeao: empurra o rodape pra
-     baixo, sem sobrepor nada. */
-  .org-chart{
-    max-width:1180px; width:100%; overflow:hidden;
-    max-height:0; opacity:0; margin-top:0;
-    transition:max-height .3s ease, opacity .25s ease, margin-top .3s ease;
+  /* Organograma INDICADORES: cabeca fixa (icone + texto, sem clique) + linhas
+     de conexao + fileira dos 4 setores (mesmo .hub-card dos demais botoes). */
+  .org-grupo{ display:flex; flex-direction:column; align-items:center; }
+  .org-cabeca{ display:flex; flex-direction:column; align-items:center; gap:7px; margin-bottom:2px; }
+  .org-cabeca-icone{
+    width:50px; height:50px; border-radius:11px; background:var(--navy);
+    display:flex; align-items:center; justify-content:center;
   }
-  .org-chart.aberto{ max-height:300px; opacity:1; margin-top:30px; }
-  .org-chart-linha-topo{ width:2px; height:18px; background:rgba(255,255,255,.35); margin:0 auto; }
-  .org-chart-linha-horizontal{ height:2px; background:rgba(255,255,255,.35); max-width:600px; margin:0 auto; }
-  .org-chart-filhos{ display:flex; flex-direction:row; gap:18px; justify-content:center; flex-wrap:wrap; padding-top:0; }
+  .org-cabeca-icone svg{ width:26px; height:26px; stroke:#fff; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .org-cabeca-texto{ color:#fff; font-size:15px; font-weight:800; letter-spacing:.3px; }
+  .org-chart-linha-topo{ width:2px; height:16px; background:rgba(255,255,255,.35); margin:0 auto; }
+  .org-chart-linha-horizontal{ height:2px; background:rgba(255,255,255,.35); align-self:stretch; }
+  .org-chart-filhos{ display:flex; flex-direction:row; gap:18px; justify-content:center; flex-wrap:wrap; }
   .org-chart-item{ display:flex; flex-direction:column; align-items:center; }
   .org-stem{ width:2px; height:14px; background:rgba(255,255,255,.35); }
-  .org-card{
-    background:#fff; border-radius:var(--radius-md); width:140px; padding:16px 10px 14px;
-    display:flex; flex-direction:column; align-items:center; gap:9px;
-    text-decoration:none; box-shadow:var(--shadow-md);
-    border-top:3px solid var(--navy); transition:transform .15s, box-shadow .15s;
-  }
-  .org-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow-lg); }
-  .org-card.indisponivel{ border-top-color:#9aa3b8; cursor:default; }
-  .org-icone{
-    width:46px; height:46px; border-radius:9px; background:var(--navy);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .org-card.indisponivel .org-icone{ background:#5b6478; }
-  .org-icone svg{ width:24px; height:24px; stroke:#fff; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .org-nome{ font-size:12px; font-weight:800; color:var(--navy); text-align:center; letter-spacing:.2px; }
-  .org-tag{ font-size:9px; font-weight:700; color:var(--muted-soft); letter-spacing:.4px; }
-  .org-tag.ativo{ color:var(--navy); }
 </style>
 </head>
 <body>
@@ -118,89 +93,80 @@
 <h1>PAINEL DE INDICADORES VIAÇÃO SETE</h1>
 <p class="subtitulo">Selecione a área que deseja consultar</p>
 
-<div class="areas">
+<div class="hub-linha">
 
-  <a class="area-card" href="financeiro_publico.html">
-    <div class="area-icone">
+  <a class="hub-card" href="financeiro_publico.html">
+    <div class="hub-icone">
       <!-- cifrão: DRE -->
       <svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6.5c0-1.9-2.2-3-5-3s-5 1.2-5 3 2.2 2.7 5 3 5 1.1 5 3-2.2 3-5 3-5-1.1-5-3"/></svg>
     </div>
-    <div class="area-nome">DRE</div>
-    <div class="area-tag ativo">DISPONÍVEL</div>
+    <div class="hub-nome">DRE</div>
+    <div class="hub-tag ativo">DISPONÍVEL</div>
   </a>
 
-  <div class="area-card indicadores-trigger" id="indicadoresTrigger" onclick="toggleIndicadoresOrg()">
-    <div class="area-icone">
-      <!-- organograma: INDICADORES -->
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><line x1="12" y1="7.2" x2="12" y2="12"/><line x1="12" y1="12" x2="5" y2="16.8"/><line x1="12" y1="12" x2="12" y2="16.8"/><line x1="12" y1="12" x2="19" y2="16.8"/></svg>
-    </div>
-    <div class="area-nome">INDICADORES</div>
-    <div class="area-tag ativo">VER SETORES<span class="seta-expand">&#9662;</span></div>
-  </div>
+  <div class="org-grupo">
 
-</div>
-
-<div class="org-chart" id="orgChartIndicadores">
-  <div class="org-chart-linha-topo"></div>
-  <div class="org-chart-linha-horizontal"></div>
-  <div class="org-chart-filhos">
-
-    <div class="org-chart-item">
-      <div class="org-stem"></div>
-      <a class="org-card" href="painel_publico.html">
-        <div class="org-icone">
-          <svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3.2" height="8"/><rect x="10.4" y="7" width="3.2" height="13"/><rect x="14.8" y="3" width="3.2" height="17"/></svg>
-        </div>
-        <div class="org-nome">COMERCIAL</div>
-        <div class="org-tag ativo">DISPONÍVEL</div>
-      </a>
-    </div>
-
-    <div class="org-chart-item">
-      <div class="org-stem"></div>
-      <a class="org-card" href="operacao_publico.html">
-        <div class="org-icone">
-          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="16" y1="5" x2="16" y2="11"/><circle cx="7.5" cy="19" r="1.6"/><circle cx="16.5" cy="19" r="1.6"/></svg>
-        </div>
-        <div class="org-nome">OPERAÇÃO</div>
-        <div class="org-tag ativo">DISPONÍVEL</div>
-      </a>
-    </div>
-
-    <div class="org-chart-item">
-      <div class="org-stem"></div>
-      <a class="org-card" href="manutencao_publico.html">
-        <div class="org-icone">
-          <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
-        </div>
-        <div class="org-nome">MANUTENÇÃO</div>
-        <div class="org-tag ativo">DISPONÍVEL</div>
-      </a>
-    </div>
-
-    <div class="org-chart-item">
-      <div class="org-stem"></div>
-      <div class="org-card indisponivel">
-        <div class="org-icone">
-          <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
-        </div>
-        <div class="org-nome">ADMINISTRATIVO</div>
-        <div class="org-tag">EM CONSTRUÇÃO</div>
+    <div class="org-cabeca">
+      <div class="org-cabeca-icone">
+        <!-- organograma: INDICADORES (fixo, nao navega) -->
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/><line x1="12" y1="7.2" x2="12" y2="12"/><line x1="12" y1="12" x2="5" y2="16.8"/><line x1="12" y1="12" x2="12" y2="16.8"/><line x1="12" y1="12" x2="19" y2="16.8"/></svg>
       </div>
+      <div class="org-cabeca-texto">INDICADORES</div>
     </div>
 
+    <div class="org-chart-linha-topo"></div>
+    <div class="org-chart-linha-horizontal"></div>
+    <div class="org-chart-filhos">
+
+      <div class="org-chart-item">
+        <div class="org-stem"></div>
+        <a class="hub-card" href="painel_publico.html">
+          <div class="hub-icone">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="12" width="3.2" height="8"/><rect x="10.4" y="7" width="3.2" height="13"/><rect x="14.8" y="3" width="3.2" height="17"/></svg>
+          </div>
+          <div class="hub-nome">COMERCIAL</div>
+          <div class="hub-tag ativo">DISPONÍVEL</div>
+        </a>
+      </div>
+
+      <div class="org-chart-item">
+        <div class="org-stem"></div>
+        <a class="hub-card" href="operacao_publico.html">
+          <div class="hub-icone">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="12" rx="2"/><line x1="3" y1="11" x2="21" y2="11"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="16" y1="5" x2="16" y2="11"/><circle cx="7.5" cy="19" r="1.6"/><circle cx="16.5" cy="19" r="1.6"/></svg>
+          </div>
+          <div class="hub-nome">OPERAÇÃO</div>
+          <div class="hub-tag ativo">DISPONÍVEL</div>
+        </a>
+      </div>
+
+      <div class="org-chart-item">
+        <div class="org-stem"></div>
+        <a class="hub-card" href="manutencao_publico.html">
+          <div class="hub-icone">
+            <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg>
+          </div>
+          <div class="hub-nome">MANUTENÇÃO</div>
+          <div class="hub-tag ativo">DISPONÍVEL</div>
+        </a>
+      </div>
+
+      <div class="org-chart-item">
+        <div class="org-stem"></div>
+        <div class="hub-card indisponivel">
+          <div class="hub-icone">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
+          </div>
+          <div class="hub-nome">ADMINISTRATIVO</div>
+          <div class="hub-tag">EM CONSTRUÇÃO</div>
+        </div>
+      </div>
+
+    </div>
   </div>
+
 </div>
 
 <footer>Viação Sete &middot; Painel de Indicadores</footer>
-
-<script>
-function toggleIndicadoresOrg(){
-  var trigger = document.getElementById('indicadoresTrigger');
-  var chart = document.getElementById('orgChartIndicadores');
-  var aberto = chart.classList.toggle('aberto');
-  trigger.classList.toggle('aberto', aberto);
-}
-</script>
 </body>
 </html>
