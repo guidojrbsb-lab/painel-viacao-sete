@@ -550,6 +550,14 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <button class="secondary" onclick="limparBase()">Limpar base local</button>
     <button class="secondary" onclick="limparDadosAbaAtual()">Limpar dados desta aba</button>
     <button class="secondary" onclick="limparBaseDoMes()">Limpar base do mês</button>
+    <!-- Limpar base por período/dia específico (2026-10-03, pedido do usuário): mesmo
+         conceito de limparBaseDoMes() (apaga em TODAS as coleções/abas de uma vez), mas
+         com granularidade de DIA em vez de mês inteiro -- cobre tanto um único dia
+         (preenchendo Início e Fim iguais) quanto um intervalo qualquer de dias, mesmo
+         que atravesse mais de um mês. Ver limparBasePeriodo(). -->
+    <input type="date" id="limparPeriodoIni" title="Data inicial a apagar" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;">
+    <input type="date" id="limparPeriodoFim" title="Data final a apagar" style="padding:7px 8px;border-radius:10px;border:1px solid var(--navy);color:var(--navy);font-size:12px;">
+    <button class="secondary" onclick="limparBasePeriodo()">Limpar base (dia/período)</button>
     <button class="secondary" onclick="limparBaseReceitaPadrao()">Limpar base - Embarcada + Fretamento</button>
     <button class="secondary" onclick="exportarBaseCompleta()">Exportar base (para link público)</button>
   </span>
@@ -1328,6 +1336,35 @@ async function limparBaseDoMes(){
   atualizarTudo();
   let texto = 'Base de '+anoMes+' apagada em todas as abas ('+diasApagados+' registros de dia removidos). Os demais meses continuam intactos. Agora é só recarregar os relatórios desse mês de novo.';
   if(!salvouOk) texto += ' ATENÇÃO: mesmo depois da limpeza, não foi possível salvar a base local -- pode ser necessário apagar mais um mês antigo.';
+  document.getElementById('uploadStatus').textContent = texto;
+}
+
+// Igual a limparBaseDoMes() (apaga em TODAS as coleções/abas do painel de uma vez só),
+// mas com granularidade de DIA em vez de mês inteiro -- usa os campos de data
+// #limparPeriodoIni/#limparPeriodoFim. Cobre tanto um único dia (Início = Fim) quanto
+// qualquer intervalo de dias, mesmo atravessando mais de um mês. Pedido do usuário em
+// 2026-10-03, como complemento ao "Limpar base do mês" (que continua existindo para
+// quem só quer digitar MM/AAAA e apagar o mês todo de uma vez).
+async function limparBasePeriodo(){
+  const elIni = document.getElementById('limparPeriodoIni');
+  const elFim = document.getElementById('limparPeriodoFim');
+  const di = elIni ? elIni.value : '';
+  const df = elFim ? elFim.value : '';
+  if(!di || !df){ alert('Preencha os dois campos de data (Início e Fim) antes de limpar. Para apagar um único dia, preencha os dois campos com a mesma data.'); return; }
+  if(di > df){ alert('A data de início não pode ser depois da data de fim.'); return; }
+  const todasColecoes = [...new Set(Object.values(GRUPOS_LIMPEZA_ABA).flatMap(g=>g.colecoes))];
+  const rotuloPeriodo = (di===df) ? formatarDataBR(di) : (formatarDataBR(di)+' a '+formatarDataBR(df));
+  if(!confirm('Isso vai apagar TODOS os dados de '+rotuloPeriodo+' em TODAS as abas do painel (Visão Geral, Linhas, Agências, Seguro, Convênios, Encomendas, Indicadores). Os demais dias não são afetados. Essa ação não pode ser desfeita. Confirma?')) return;
+  let diasApagados = 0;
+  todasColecoes.forEach(k=>{
+    if(!DB[k]) return;
+    Object.keys(DB[k]).forEach(d=>{ if(d>=di && d<=df){ delete DB[k][d]; diasApagados++; } });
+  });
+  const salvouOk = await saveDB();
+  _resetarFiltrosPeriodoParaUltimoDado();
+  atualizarTudo();
+  let texto = 'Base de '+rotuloPeriodo+' apagada em todas as abas ('+diasApagados+' registros de dia removidos). Os demais dias continuam intactos. Agora é só recarregar os relatórios desse período de novo.';
+  if(!salvouOk) texto += ' ATENÇÃO: mesmo depois da limpeza, não foi possível salvar a base local -- pode ser necessário apagar mais algum período antigo.';
   document.getElementById('uploadStatus').textContent = texto;
 }
 
