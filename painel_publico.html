@@ -2328,6 +2328,10 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // 2026-09-30).
   '172093': '2026-09-29',
   '171911': '2026-09-29',
+  // Bilhete EDIMAR PEREIRA DA SILVA (82437), Convênio Fazenda Progresso (URUCUI x
+  // RIBEIRO GONÇALVES): relatório gravou 02/10, mas a viagem foi de fato em 01/10
+  // (confirmado pelo usuário em 2026-10-02).
+  '82437': '2026-10-01',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2472,6 +2476,12 @@ const EXCLUSOES_BILHETE = new Set([
   // usuário em 2026-10-01 como marcações erradas, exclusão definitiva sem alterar
   // nenhuma regra de negócio.
   '154489', '154502', '154503', '154533',
+  // Bilhete AURENITA DA SILVA RIBEIRO, Convênio PREFEITURA DE CORRENTE (CORRENTE x
+  // BRASÍLIA) -- confirmado pelo usuário em 2026-10-02 pra exclusão definitiva, sem
+  // alterar nenhuma regra de negócio. Já tinha um ajuste pontual de valor em
+  // CORRECOES_VALOR_BILHETE (R$180,00); mantido ali como histórico -- a exclusão aqui
+  // acontece antes da precificação, então o bilhete nem chega a ser calculado.
+  '151512',
 ]);
 // Correção pontual do VALOR COBRADO de um bilhete específico (SEM escala, um único
 // lançamento), confirmada pelo usuário -- NÃO altera nenhuma regra de negócio em
@@ -2506,6 +2516,23 @@ const CORRECOES_VALOR_BILHETE = {
   // Saúde: relatório gravou R$128,00, mas o valor correto é R$146,00 (confirmado pelo
   // usuário em 2026-10-01).
   '154534': 146.00,
+  // Bilhete SIRLANDIA PAESLANDIM DE SOUZA (155024, Ribeiro Gonçalves x Teresina),
+  // Convênio Prefeitura de Ribeiro Gonçalves: relatório gravou R$195,00, mas o valor
+  // correto é R$155,00 (confirmado pelo usuário em 2026-10-02) -- ajuste pontual só
+  // deste bilhete, sem alterar a regra geral do convênio.
+  '155024': 155.00,
+  // Bilhete MARCOS BARREIRA DE SOUSA (156717/75452, mesclado por escala, Teresina x
+  // Monte Alegre do Piauí), Convênio Prefeitura de Monte Alegre do Piauí: relatório
+  // gravou R$187,50, mas o valor correto é R$12,50 (confirmado pelo usuário em
+  // 2026-10-02) -- ajuste pontual só deste bilhete, sem alterar a regra geral do
+  // convênio. Chave no formato mesclado (ver _mesclarEscalasConvenio), igual ao que
+  // aparece na coluna BILHETE do popup.
+  '156717/75452': 12.50,
+  // Bilhete KARLA PATRICIA SORIANO DE SOUSA (155078, Redenção do Gurgueia x Teresina),
+  // Convênio Prefeitura de Redenção do Gurguéia: valor correto é R$115,00 (confirmado
+  // pelo usuário em 2026-10-02) -- ajuste pontual só deste bilhete, sem alterar a regra
+  // geral do convênio (que continua R$215,00 pra Set/2026 em diante).
+  '155078': 115.00,
 };
 // Escalas mescladas MANUALMENTE, uma a uma por par de bilhetes -- usado quando o
 // usuário pede pra juntar dois bilhetes específicos num único lançamento de escala com
@@ -2728,6 +2755,10 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-08-26 (ida e volta -- `cidades` já cobre os dois
       // sentidos automaticamente).
       { cidades: ['TERESINA','FLORIANO'], valor: 90.00 },
+      // Bilhetes NEURANE RIBEIRO VITALINO (171147) e WANDERSON PEREIRA DO NASCIMENTO
+      // (172041), confirmados pelo usuário em 2026-10-03.
+      { cidades: ['AMARANTE','JERUMENHA'], valor: 60.00 },
+      { cidades: ['DEMERVAL LOBAO','JERUMENHA'], valor: 100.00 },
     ],
   },
   // O convênio se chama "Porto Alegre", mas a rota combinada usa o nome da cidade de
@@ -2750,7 +2781,10 @@ const REGRAS_VALOR_CONVENIO = {
     sinonimosCidade: { 'TIMON': 'TERESINA', 'SOBRADINHO': 'BRASILIA', 'PLANALTINA': 'BRASILIA', 'TAGUATINGA': 'BRASILIA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
-      { cidades: ['TERESINA','REDENCAO DO GURGUEIA'], valor: 240.00 },
+      // Confirmado pelo usuário em 2026-10-02: reajuste pra R$215,00 (ida e volta)
+      // a partir de Setembro/2026; mantém R$240,00 pros lançamentos de Jul/Ago já feitos.
+      { cidades: ['TERESINA','REDENCAO DO GURGUEIA'], valor: 240.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','REDENCAO DO GURGUEIA'], valor: 215.00, vigenciaDesde: '2026-09-01' },
       { cidades: ['TERESINA','BOM JESUS'], valor: 240.00 },
       { cidades: ['REDENCAO DO GURGUEIA','BRASILIA'], valor: 240.00 },
       { cidades: ['REDENCAO DO GURGUEIA','FLORIANO'], valor: 130.00 },
@@ -2934,6 +2968,9 @@ const REGRAS_VALOR_CONVENIO = {
       // Bilhete MICAEL DIAS GOMES (164915), confirmado pelo usuário em 2026-09-18 (ida
       // e volta, R$80,00).
       { cidades: ['CORRENTE', 'CRISTINO CASTRO'], valor: 80.00 },
+      // Bilhete FRANCISCO MENDES DA SILVA (174619), confirmado pelo usuário em
+      // 2026-10-03.
+      { cidades: ['COLONIA DO GURGUEIA', 'TERESINA'], valor: 150.00 },
     ],
   },
   // Tabela de trechos enviada pelo usuário (planilha "FAZENDA PROGRESSO 2026.xlsx").
@@ -2967,6 +3004,10 @@ const REGRAS_VALOR_CONVENIO = {
       // Bilhetes DANIEL DE OLIVEIRA VIEIRA (164884) e ADRIANO DE SOUSA BRITO (164959),
       // confirmado pelo usuário em 2026-09-21.
       { cidades: ['SEBASTIAO LEAL', 'TERESINA'], valor: 145.00 },
+      // Bilhete EDIMAR PEREIRA DA SILVA (82437), confirmado pelo usuário em 2026-10-02.
+      { cidades: ['URUCUI', 'RIBEIRO GONCALVES'], valor: 50.00 },
+      // Bilhete JARDEL DA SILVA BARROS (82582), confirmado pelo usuário em 2026-10-03.
+      { cidades: ['FAZENDA PROGRESSO', 'SEBASTIAO LEAL'], valor: 20.00 },
     ],
   },
 };
@@ -2980,7 +3021,7 @@ function _cidadeBase(nome){
 // segundo caso -- usado para pintar de vermelho no Ranking e no Popup de Convênios,
 // pra o usuário identificar sozinho trechos ainda não combinados, sem precisar mandar
 // o arquivo pra análise manual.
-function _valorCobradoConvenio(convenio, origemRaw, destinoRaw, valorOriginal){
+function _valorCobradoConvenio(convenio, origemRaw, destinoRaw, valorOriginal, dataServico){
   const regra = REGRAS_VALOR_CONVENIO[convenio];
   if(!regra) return {valor: valorOriginal, semRegra: true};
   const sin = regra.sinonimosCidade || {};
@@ -2988,7 +3029,10 @@ function _valorCobradoConvenio(convenio, origemRaw, destinoRaw, valorOriginal){
   const cO = norm(_cidadeBase(origemRaw)), cD = norm(_cidadeBase(destinoRaw));
   for(const r of regra.rotas){
     const [a,b] = r.cidades;
-    if((cO===a && cD===b) || (cO===b && cD===a)) return {valor: r.valor, semRegra: false};
+    if(!((cO===a && cD===b) || (cO===b && cD===a))) continue;
+    if(r.vigenciaDesde && (!dataServico || dataServico < r.vigenciaDesde)) continue;
+    if(r.vigenciaAte && (!dataServico || dataServico > r.vigenciaAte)) continue;
+    return {valor: r.valor, semRegra: false};
   }
   return {valor: valorOriginal, semRegra: true};
 }
@@ -3166,7 +3210,7 @@ function _precificarConvenio(itens, convenio, regra){
     if(it.valorCobradoManual!==undefined){
       return Object.assign({}, it, { valorCobrado: it.valorCobradoManual, semRegra: false });
     }
-    const res = _valorCobradoConvenio(convenio, it.origem, it.destino, it.valorOriginal);
+    const res = _valorCobradoConvenio(convenio, it.origem, it.destino, it.valorOriginal, it.dataVenda);
     return Object.assign({}, it, {
       valorCobrado: res.valor,
       semRegra: res.semRegra,
