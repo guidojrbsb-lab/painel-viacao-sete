@@ -2176,6 +2176,10 @@ const REDIRECIONAMENTOS_CONVENIO_SOMENTE = {
   // PREFEITURA DE URUÇUÍ WSV -- mesma transferência pontual de convênio, sem alteração
   // de regra de negócio.
   '155108': 'PREFEITURA DE URUÇUÍ WSV',
+  // Pedido do usuário em 2026-10-03: bilhete ANIVALDO RODRIGUES DE OLIVERIRA (popup
+  // "PREFEITURA DE URUÇUÍ SAÚDE", trecho TERESINA-AVELINO LOPES VIA BERTOLÍNIA) estava
+  // marcado sem regra de valor nesse convênio -- transferido pra PREFEITURA DE CURIMATÁ.
+  '174756': 'PREFEITURA DE CURIMATÁ',
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -2708,6 +2712,8 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
       { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      // Bilhete ISABEL HELAYNE GUIMARAES (174195), confirmado pelo usuário em 2026-10-03.
+      { cidades: ['URUCUI','LANDRI SALES'], valor: 50.00 },
     ],
   },
   'PREFEITURA DE URUÇUÍ WSV': {
