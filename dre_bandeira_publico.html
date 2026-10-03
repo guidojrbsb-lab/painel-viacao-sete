@@ -490,6 +490,16 @@ function renderDRE(){
   const mesFim = document.getElementById('dreMesFim').value || todosMeses[todosMeses.length-1];
   const meses = todosMeses.filter(m=> m>=mesIni && m<=mesFim);
   const calc = {}; meses.forEach(m=> calc[m]=_calculoMes(m));
+  // MÉDIA (2026-10-03, pedido do usuário): não divide mais pela quantidade de meses
+  // exibidos na tabela (que pode incluir meses futuros/correntes ainda sem dado real,
+  // como Out/Nov/Dez aparecendo com 0) -- divide pela quantidade de MESES FECHADOS dentro
+  // do período filtrado, ou seja, meses estritamente anteriores ao mês corrente (hoje ==
+  // Outubro/2026 -> meses fechados vão até Setembro/2026). "AAAA-MM" compara certo como
+  // string. Fallback pra meses.length evita divisão por zero se o período filtrado for só
+  // mês corrente/futuro.
+  const _hojeDRE = new Date();
+  const _mesAtualDRE = _hojeDRE.getFullYear()+'-'+String(_hojeDRE.getMonth()+1).padStart(2,'0');
+  const mesesFechadosQtd = meses.filter(m=> m < _mesAtualDRE).length || meses.length;
 
   // --- KPIs de resumo (acumulado do período filtrado) ---
   const somaReceita = meses.reduce((s,m)=>s+calc[m].totalReceita,0);
@@ -511,13 +521,13 @@ function renderDRE(){
 
   function linhaValores(valoresPorMes){
     let tds = '';
-    let soma=0, qtd=0;
+    let soma=0;
     meses.forEach(m=>{
       const v = valoresPorMes(m);
       tds += '<td>'+fmtR$(v)+'</td>';
-      soma += v; qtd++;
+      soma += v;
     });
-    const media = qtd ? soma/qtd : 0;
+    const media = mesesFechadosQtd ? soma/mesesFechadosQtd : 0;
     tds += '<td class="dre-resumo">'+fmtR$(soma)+'</td><td class="dre-resumo">'+fmtR$(media)+'</td>';
     return tds;
   }
