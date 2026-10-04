@@ -43,7 +43,10 @@
 //   um Blob Store ao projeto -- não precisa criar essa na mão.)
 import { put, head, del } from '@vercel/blob';
 
-const SETORES_VALIDOS = new Set(['comercial', 'financeiro', 'operacao', 'manutencao', 'bandeira']);
+// bandeira = DRE da Bandeira; bandeira_operacao/bandeira_manutencao/bandeira_administrativo =
+// painéis INDICADORES de cada setor da Bandeira (2026-10-04).
+const SETORES_VALIDOS = new Set(['comercial', 'financeiro', 'operacao', 'manutencao', 'bandeira', 'bandeira_operacao', 'bandeira_manutencao', 'bandeira_administrativo']);
+
 function caminhoDoSetor(setor) {
   return 'dados/' + setor + '.json';
 }
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
 
   const setor = String(req.query.setor || '').toLowerCase();
   if (!SETORES_VALIDOS.has(setor)) {
-    res.status(400).json({ erro: 'Parâmetro "setor" inválido. Use: comercial, financeiro, operacao ou manutencao.' });
+    res.status(400).json({ erro: 'Parâmetro "setor" inválido. Use: comercial, financeiro, operacao, manutencao, bandeira, bandeira_operacao, bandeira_manutencao ou bandeira_administrativo.' });
     return;
   }
   const caminho = caminhoDoSetor(setor);
