@@ -49,6 +49,17 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
 #uploadBar .btn.btn-perigo:hover{background:var(--red-soft);}
 #uploadStatus{font-size:11.5px;color:var(--muted);flex-basis:100%;}
 .info-badge{display:inline-block;background:var(--azul-soft);color:var(--azul-dark);font-size:11px;font-weight:700;padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:12px;}
+.ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+.ind-filtro > label{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;}
+#anoMS{position:relative;}
+#anoBtn{background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;min-width:150px;text-align:left;}
+#anoBtn:hover{border-color:var(--azul);background:var(--azul-soft);}
+#anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:170px;padding:6px 0;}
+#anoMenu.aberto{display:block;}
+#anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:var(--ink);cursor:pointer;}
+#anoMenu label:hover{background:var(--azul-soft);}
+#anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);margin-top:4px;padding:7px 14px 3px;font-size:11px;}
+#anoMenu .ms-rod a{color:var(--azul);font-weight:700;text-decoration:none;}
 .scroll-box{overflow:auto;max-height:72vh;border:1px solid var(--border);border-radius:var(--radius-md);background:#fff;}
 #indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
 #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
@@ -78,6 +89,10 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
     <section class="tab" id="tab-indicadores">
       <div class="panel">
         <h2>Indicadores - Manutenção</h2>
+        <div class="ind-filtro" id="indFiltro" style="display:none">
+          <label>Ano</label>
+          <div id="anoMS"><button type="button" id="anoBtn" onclick="_anoToggle(event)"></button><div id="anoMenu"></div></div>
+        </div>
         <span class="info-badge" id="indFonte" style="display:none"></span>
         <div class="scroll-box"><table id="indTabela"></table></div>
       </div>
@@ -252,8 +267,22 @@ function _fmtCel(c){
 }
 // HTML da tabela espelhando a planilha (cores/negrito/vermelho vêm do LAYOUT embutido, que foi
 // copiado célula a célula da planilha original; linhas novas sem entrada no LAYOUT caem na zebra).
-function _montarHtmlTabela(db, layout){
-  const meses=db.meses||[], res=db.resumo||[]; const ncols=1+meses.length+res.length;
+// Anos presentes nos meses da base ('2025','2026',...).
+function _anosDoDb(db){ const s=new Set(); (db.meses||[]).forEach(k=>s.add(k.slice(0,4))); return Array.from(s).sort(); }
+// Colunas de resumo à direita (.2025/.2026/%) acompanham o filtro de ano: a coluna de um ano só
+// aparece se esse ano estiver selecionado; a coluna sem ano no título (ex.: "%", variação entre os
+// anos) só aparece quando TODOS os anos citados nas outras colunas de resumo estão selecionados.
+function _resVisiveis(res, anos){
+  const idx=res.map((_,i)=>i); if(!anos) return idx;
+  const comAno=res.map(t=>{ const m=String(t).match(/(\d{4})/); return m?m[1]:null; });
+  const vis=res.map((t,i)=> comAno[i] ? anos.indexOf(comAno[i])>=0 : null);
+  const todos=comAno.every((a,i)=>!a || vis[i]);
+  return idx.filter(i=> vis[i]===null ? (!comAno.some(Boolean) || todos) : vis[i]);
+}
+function _montarHtmlTabela(db, layout, anos){
+  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
+  const resAll=db.resumo||[]; const resIdx=_resVisiveis(resAll, anos);
+  const ncols=1+meses.length+resIdx.length;
   let h='', zebra=0;
   (db.linhas||[]).forEach(L=>{
     if(L.gap){ h+='<tr class="gap"><td colspan="'+ncols+'"></td></tr>'; return; }
@@ -261,7 +290,7 @@ function _montarHtmlTabela(db, layout){
       zebra=0;
       h+='<tr class="ind-h"><td class="lab" style="background:#002060">'+_esc(L.rot)+'</td>'+
         meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('')+
-        res.map(t=>'<td style="background:#002060">'+_esc(t)+'</td>').join('')+'</tr>';
+        resIdx.map(i=>'<td style="background:#002060">'+_esc(resAll[i])+'</td>').join('')+'</tr>';
       return;
     }
     const est=layout[L.k]||{};
@@ -269,22 +298,62 @@ function _montarHtmlTabela(db, layout){
     const st='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'')+(est.r?';color:#ff0000':'');
     let tds='<td class="lab" style="'+st+'">'+_esc(L.rot)+'</td>';
     meses.forEach(k=>{ const c=L.c[k]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
-    res.forEach((t,i)=>{ const c=L.c['R'+i]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
+    resIdx.forEach(i=>{ const c=L.c['R'+i]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
     h+='<tr>'+tds+'</tr>';
   });
   return h;
 }
 // ==PURE-END==
 
-function renderIndicadores(){
+// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente (2026), se existir na base; senão o
+// último ano disponível. A seleção vale só para a sessão da página (ao reabrir volta ao padrão).
+let ANOS_SEL = null;
+function _anosDisponiveis(){ return _anosDoDb(DB); }
+function _garantirAnosSel(){
+  const disp = _anosDisponiveis();
+  if(!disp.length){ ANOS_SEL = []; return disp; }
+  const validos = (ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
+  if(validos.length){ ANOS_SEL = validos; return disp; }
+  const atual = String(new Date().getFullYear());
+  ANOS_SEL = [ disp.indexOf(atual)>=0 ? atual : disp[disp.length-1] ];
+  return disp;
+}
+function _renderFiltroAno(){
+  const disp = _garantirAnosSel();
+  const box = document.getElementById('indFiltro');
+  if(!disp.length){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  const ord = ANOS_SEL.slice().sort();
+  document.getElementById('anoBtn').textContent = (ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', ')) + ' ▾';
+  document.getElementById('anoMenu').innerHTML =
+    disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="_anoMarcar(this)"> '+a+'</label>').join('')+
+    '<div class="ms-rod"><a href="#" onclick="return _anoTodos()">Todos</a><a href="#" onclick="return _anoAtual()">Ano atual</a></div>';
+}
+function _anoMarcar(cb){
+  const a = cb.value;
+  if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); }
+  else {
+    if(ANOS_SEL.length<=1){ cb.checked = true; return; }   // sempre fica pelo menos 1 ano selecionado
+    ANOS_SEL = ANOS_SEL.filter(x=>x!==a);
+  }
+  renderIndicadores(true);
+}
+function _anoTodos(){ ANOS_SEL = _anosDisponiveis().slice(); renderIndicadores(true); return false; }
+function _anoAtual(){ ANOS_SEL = null; renderIndicadores(true); return false; }
+function _anoToggle(ev){ ev.stopPropagation(); document.getElementById('anoMenu').classList.toggle('aberto'); }
+document.addEventListener('click', e=>{ const m=document.getElementById('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
+function renderIndicadores(manterMenu){
   const tab = document.getElementById('indTabela');
   const fonte = document.getElementById('indFonte');
   if(!DB.linhas.length){
+    document.getElementById('indFiltro').style.display = 'none';
     tab.innerHTML = '<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.</td></tr></tbody>';
     fonte.style.display = 'none';
     return;
   }
-  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT)+'</tbody>';
+  _renderFiltroAno();
+  if(manterMenu===true) document.getElementById('anoMenu').classList.add('aberto');
+  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, ANOS_SEL)+'</tbody>';
   if(DB.atualizadoEm){
     const d = new Date(DB.atualizadoEm);
     fonte.textContent = 'Fonte: planilha INDICADORES - BANDEIRA (aba '+(DB.aba||'Manutenção')+') - atualizado em '+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
