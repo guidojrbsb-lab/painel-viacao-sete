@@ -65,6 +65,8 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
 #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
 #indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
 #indTabela td.txt{text-align:center;}
+#indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
+#indTabela td.sp i{display:block;width:31px;height:1px;}
 #indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
 #indTabela tr.ind-h td.lab{text-align:left;}
 #indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
@@ -175,6 +177,7 @@ async function saveDB(){
 }
 const ABAS_ACEITAS = ["adm", "administrativo"];
 const LAYOUT = {"0|motorista|1":{"f":"D2DEEF"},"0|manutencao|1":{"f":"EAEFF7"},"0|operacao|1":{"f":"D2DEEF"},"0|adm|1":{"f":"EAEFF7"},"0|total|1":{"f":"D2DEEF","b":1},"0|frota (ope )|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|f.u. (10% frota reserva)|1":{"f":"D2DEEF","b":1},"0|jovem aprendiz|1":{"f":"D2DEEF"},"0|pj|1":{"f":"EAEFF7"},"1|funcionarios total|1":{"f":"EAEFF7"},"1|fu total|1":{"f":"D2DEEF"},"1|salarios - relacao nominal|1":{"f":"EAEFF7"},"1|dobro / folga trabalhada|1":{"f":"D2DEEF"},"1|feriado/hora extra|1":{"f":"EAEFF7"},"1|outros (peric/insal/adic not)|1":{"f":"D2DEEF"},"1|descontos (avaria/multa)|1":{"f":"EAEFF7","r":1},"1|inss - funcionario|1":{"f":"D2DEEF","r":1},"1|inss - desonerado|1":{"f":"EAEFF7"},"1|fgts|1":{"f":"D2DEEF"},"1|consignado|1":{"f":"EAEFF7"},"1|beneficios (ticket 355,00)|1":{"f":"D2DEEF"},"1|custo folha total|1":{"f":"EAEFF7"},"1|% encargos/beneficio|1":{"f":"D2DEEF"},"1|custo total pj|1":{"f":"EAEFF7"},"1|demissao|1":{"f":"D2DEEF"},"1|faltas|1":{"f":"EAEFF7"},"1|atestad0s - dias|1":{"f":"D2DEEF"},"1|processo trabalhistas|1":{"f":"EAEFF7"},"1|trabalhista novos|1":{"f":"D2DEEF"},"1|trabalhista acordo|1":{"f":"EAEFF7"},"1|processos civel|1":{"f":"D2DEEF"},"1|civeis novos|1":{"f":"EAEFF7"},"1|civeis acordos|1":{"f":"D2DEEF"},"2|asos vencidos|1":{"f":"D2DEEF"},"2|resolucao 789 vencidas|1":{"f":"EAEFF7"},"2|cnh vencidas|1":{"f":"D2DEEF"},"2|pgr|1":{"f":"EAEFF7","r":1},"2|pcmso|1":{"f":"D2DEEF","r":1},"3|crf - caixa economica|1":{"f":"D2DEEF"},"3|cnd - inss e divida uniao|1":{"f":"EAEFF7"},"3|cnd - debitos estaduais|1":{"f":"D2DEEF"},"3|serasa / spc|1":{"f":"EAEFF7"},"3|falencia e concordata|1":{"f":"D2DEEF"},"3|cnd - debitos municipais|1":{"f":"EAEFF7"},"3|cndt - trabalhista|1":{"f":"D2DEEF"},"3|licenca operacional - lo|1":{"f":"EAEFF7"},"3|atestado de bombeiro|1":{"f":"D2DEEF"},"4|treinamento func|1":{"f":"D2DEEF","r":1},"4|pcd (% por lei)|1":{"f":"EAEFF7","r":1},"4|jovem aprendiz (% por lei)|1":{"f":"D2DEEF","r":1}};
+const AGG = {"0|motorista|1":{"t":"A","z":"0"},"0|manutencao|1":{"t":"A","z":"0"},"0|operacao|1":{"t":"A","z":"0"},"0|adm|1":{"t":"A","z":"0"},"0|total|1":{"t":"E","e":"(V(\"0|motorista|1\")+V(\"0|manutencao|1\")+V(\"0|operacao|1\")+V(\"0|adm|1\"))","r":["0|adm|1","0|manutencao|1","0|motorista|1","0|operacao|1"],"z":"0"},"0|frota (ope )|1":{"t":"A","z":"0"},"0|frota reserva|1":{"t":"A","z":"0"},"0|f.u. (10% frota reserva)|1":{"t":"E","e":"V(\"0|total|1\")/(V(\"0|frota (ope )|1\")*1.1)","r":["0|frota (ope )|1","0|total|1"],"z":"0.00"},"0|jovem aprendiz|1":{"t":"A","z":"0"},"0|pj|1":{"t":"A","z":"0"},"1|funcionarios total|1":{"t":"A","z":"0"},"1|fu total|1":{"t":"A","z":"0.00"},"1|salarios - relacao nominal|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|dobro / folga trabalhada|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|feriado/hora extra|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|outros (peric/insal/adic not)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|descontos (avaria/multa)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - funcionario|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - desonerado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|fgts|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|consignado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|beneficios (ticket 355,00)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|custo folha total|1":{"t":"E","e":"(V(\"1|salarios - relacao nominal|1\")+V(\"1|dobro / folga trabalhada|1\")+V(\"1|feriado/hora extra|1\")+V(\"1|outros (peric/insal/adic not)|1\")+V(\"1|descontos (avaria/multa)|1\")+V(\"1|inss - funcionario|1\")+V(\"1|inss - desonerado|1\")+V(\"1|fgts|1\")+V(\"1|consignado|1\")+V(\"1|beneficios (ticket 355,00)|1\"))","r":["1|beneficios (ticket 355,00)|1","1|consignado|1","1|descontos (avaria/multa)|1","1|dobro / folga trabalhada|1","1|feriado/hora extra|1","1|fgts|1","1|inss - desonerado|1","1|inss - funcionario|1","1|outros (peric/insal/adic not)|1","1|salarios - relacao nominal|1"],"z":"#,##0_ ;\\-#,##0\\ "},"1|% encargos/beneficio|1":{"t":"E","e":"V(\"1|custo folha total|1\")/V(\"1|salarios - relacao nominal|1\")-1","r":["1|custo folha total|1","1|salarios - relacao nominal|1"],"z":"0%"},"1|custo total pj|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|demissao|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|faltas|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|atestad0s - dias|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processo trabalhistas|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista acordo|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processos civel|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis acordos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"2|asos vencidos|1":{"t":"L","z":"General"},"2|resolucao 789 vencidas|1":{"t":"L","z":"#,##0"},"2|cnh vencidas|1":{"t":"L","z":"#,##0"},"2|pgr|1":null,"2|pcmso|1":null,"3|crf - caixa economica|1":null,"3|cnd - inss e divida uniao|1":null,"3|cnd - debitos estaduais|1":null,"3|serasa / spc|1":null,"3|falencia e concordata|1":null,"3|cnd - debitos municipais|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|cndt - trabalhista|1":null,"3|licenca operacional - lo|1":null,"3|atestado de bombeiro|1":null,"4|treinamento func|1":{"t":"A","z":"0%"},"4|pcd (% por lei)|1":{"t":"A","z":"0%"},"4|jovem aprendiz (% por lei)|1":{"t":"A","z":"0%"}};
 
 // ==PURE-BEGIN==
 const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -269,36 +272,85 @@ function _fmtCel(c){
 // copiado célula a célula da planilha original; linhas novas sem entrada no LAYOUT caem na zebra).
 // Anos presentes nos meses da base ('2025','2026',...).
 function _anosDoDb(db){ const s=new Set(); (db.meses||[]).forEach(k=>s.add(k.slice(0,4))); return Array.from(s).sort(); }
-// Colunas de resumo à direita (.2025/.2026/%) acompanham o filtro de ano: a coluna de um ano só
-// aparece se esse ano estiver selecionado; a coluna sem ano no título (ex.: "%", variação entre os
-// anos) só aparece quando TODOS os anos citados nas outras colunas de resumo estão selecionados.
-function _resVisiveis(res, anos){
-  const idx=res.map((_,i)=>i); if(!anos) return idx;
-  const comAno=res.map(t=>{ const m=String(t).match(/(\d{4})/); return m?m[1]:null; });
-  const vis=res.map((t,i)=> comAno[i] ? anos.indexOf(comAno[i])>=0 : null);
-  const todos=comAno.every((a,i)=>!a || vis[i]);
-  return idx.filter(i=> vis[i]===null ? (!comAno.some(Boolean) || todos) : vis[i]);
+// ---- Colunas de resumo AUTOMÁTICAS por ano. Cada linha tem uma regra (AGG, copiada das fórmulas da
+// planilha): S=soma dos meses do ano, A=média, L=último mês preenchido, E=expressão sobre outras linhas
+// (razões/totais). Só entram os meses do ano até o último mês preenchido (corte) e células vazias/erro
+// são ignoradas. Uma coluna por ano marcado + coluna(s) "%" comparando os anos.
+function _cortes(db){
+  const cnt={}; (db.linhas||[]).forEach(L=>{ if(!L.c) return; (db.meses||[]).forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && c.v!==0 && !_ehFmtData(c.z)) cnt[k]=(cnt[k]||0)+1; }); });
+  const cut={}; (db.meses||[]).forEach(k=>{ if((cnt[k]||0)>=3){ const a=k.slice(0,4); if(!cut[a]||k>cut[a]) cut[a]=k; } });
+  return cut;
 }
-function _montarHtmlTabela(db, layout, anos){
-  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
-  const resAll=db.resumo||[]; const resIdx=_resVisiveis(resAll, anos);
-  const ncols=1+meses.length+resIdx.length;
-  let h='', zebra=0;
+function _specLinha(L, agg){
+  if(agg && Object.prototype.hasOwnProperty.call(agg, L.k)) return agg[L.k];
+  let z=null, ok=false;   // linha nova (não existia no layout): soma, ou média se o formato for %
+  Object.keys(L.c||{}).forEach(k=>{ const c=L.c[k]; if(/^\d{4}-\d{2}$/.test(k) && c && typeof c.v==='number' && !_ehFmtData(c.z)){ ok=true; z=c.z; } });
+  return ok ? {t:(String(z||'').indexOf('%')>=0?'A':'S'), z:z||'General'} : null;
+}
+function _agregar(db, agg, ano, cut){
+  const R={}, ms=(db.meses||[]).filter(k=>k.slice(0,4)===ano && (!cut[ano] || k<=cut[ano])), ex=[];
   (db.linhas||[]).forEach(L=>{
+    if(!L.k) return; const a=_specLinha(L, agg); if(!a) return;
+    if(a.t==='E'){ ex.push([L.k,a]); return; }
+    const ns=[]; ms.forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && !_ehFmtData(c.z)) ns.push(c.v); });
+    if(!ns.length){ R[L.k]=null; return; }
+    const sm=ns.reduce((x,y)=>x+y,0);
+    R[L.k] = a.t==='S' ? sm : a.t==='A' ? sm/ns.length : ns[ns.length-1];
+  });
+  const V=k=>(R[k]==null||isNaN(R[k]))?0:R[k];
+  for(let p=0;p<4;p++) ex.forEach(([k,a])=>{
+    if((a.r||[]).every(q=>R[q]==null)){ R[k]=null; return; }
+    try{ const x=new Function('V','return '+a.e)(V); R[k]=isFinite(x)?x:NaN; }catch(e){ R[k]=NaN; }
+  });
+  return R;
+}
+function _fmtRes(x, z){ if(x==null) return ''; if(typeof x!=='number'||isNaN(x)) return '-'; return _fmtCel({v:x, z:z||'General'}); }
+function _montarHtmlTabela(db, layout, agg, anos){
+  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
+  const lin=db.linhas||[], cut=_cortes(db);
+  const anosRes=(anos||_anosDoDb(db)).slice().sort();
+  const RES=anosRes.map(a=>_agregar(db, agg, a, cut));
+  const pares=[]; for(let i=1;i<anosRes.length;i++) pares.push([i-1,i]);
+  const nPct=pares.length, nRes=anosRes.length+nPct;
+  const ncols=1+meses.length+1+nRes;
+  // blocos que têm pelo menos uma linha com resumo mostram o cabeçalho das colunas de resumo
+  const temRes=[]; let bi=-1;
+  lin.forEach(L=>{ if(L.h){ bi++; temRes[bi]=false; } else if(L.k && bi>=0 && _specLinha(L,agg)) temRes[bi]=true; });
+  let h='', zebra=0, bloco=-1;
+  lin.forEach(L=>{
     if(L.gap){ h+='<tr class="gap"><td colspan="'+ncols+'"></td></tr>'; return; }
     if(L.h){
-      zebra=0;
+      zebra=0; bloco++;
       h+='<tr class="ind-h"><td class="lab" style="background:#002060">'+_esc(L.rot)+'</td>'+
-        meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('')+
-        resIdx.map(i=>'<td style="background:#002060">'+_esc(resAll[i])+'</td>').join('')+'</tr>';
-      return;
+        meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('');
+      if(temRes[bloco]){
+        h+='<td class="sp" style="background:#fff"><i></i></td>'+anosRes.map(a=>'<td style="background:#002060">.'+a+'</td>').join('')+
+          pares.map(p=>'<td style="background:#002060">%'+(nPct>1?' '+anosRes[p[1]].slice(2)+'/'+anosRes[p[0]].slice(2):'')+'</td>').join('');
+      }
+      h+='</tr>'; return;
     }
     const est=layout[L.k]||{};
     const fill=('f' in est) ? est.f : (zebra%2 ? 'D2DEEF' : 'EAEFF7'); zebra++;
-    const st='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'')+(est.r?';color:#ff0000':'');
+    const base='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'');
+    const st=base+(est.r?';color:#ff0000':'');
     let tds='<td class="lab" style="'+st+'">'+_esc(L.rot)+'</td>';
     meses.forEach(k=>{ const c=L.c[k]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
-    resIdx.forEach(i=>{ const c=L.c['R'+i]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
+    if(temRes[bloco]){
+      const sp=_specLinha(L,agg);
+      tds+='<td class="sp" style="background:#fff"><i></i></td>';
+      anosRes.forEach((a,i)=>{ tds+='<td style="'+st+'">'+(sp?_esc(_fmtRes(RES[i][L.k], sp.z)):'')+'</td>'; });
+      pares.forEach(p=>{
+        let t='', cor='';
+        if(sp){
+          const x=RES[p[0]][L.k], y=RES[p[1]][L.k];
+          if(x!=null && y!=null){
+            if(isNaN(x)||isNaN(y)||x===0){ t='-'; }
+            else { const d=y/x-1; if(!isFinite(d)) t='-'; else { t=_fmtNum(d,'0%'); cor=d<0?';color:#ff0000':';color:#000000'; } }
+          }
+        }
+        tds+='<td style="'+base+cor+'">'+_esc(t)+'</td>';
+      });
+    }
     h+='<tr>'+tds+'</tr>';
   });
   return h;
@@ -353,7 +405,7 @@ function renderIndicadores(manterMenu){
   }
   _renderFiltroAno();
   if(manterMenu===true) document.getElementById('anoMenu').classList.add('aberto');
-  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, ANOS_SEL)+'</tbody>';
+  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, AGG, ANOS_SEL)+'</tbody>';
   if(DB.atualizadoEm){
     const d = new Date(DB.atualizadoEm);
     fonte.textContent = 'Fonte: planilha INDICADORES - BANDEIRA (aba '+(DB.aba||'ADM')+') - atualizado em '+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});

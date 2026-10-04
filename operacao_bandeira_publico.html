@@ -65,6 +65,8 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
 #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
 #indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
 #indTabela td.txt{text-align:center;}
+#indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
+#indTabela td.sp i{display:block;width:31px;height:1px;}
 #indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
 #indTabela tr.ind-h td.lab{text-align:left;}
 #indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
@@ -175,6 +177,7 @@ async function saveDB(){
 }
 const ABAS_ACEITAS = ["operacao"];
 const LAYOUT = {"0|share|1":{"f":"EAEFF7","b":1},"0|frota operacao|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|frota total|1":{"f":"D2DEEF"},"0|frota operacao real|1":{"f":"EAEFF7"},"0|receita total|1":{"f":"D2DEEF"},"0|receita catraca|1":{"f":"EAEFF7"},"0|receita subsidio|1":{"f":"D2DEEF"},"0|% subsidio|1":{"f":"EAEFF7"},"0|pt|1":{"f":"D2DEEF"},"0|peq|1":{"f":"EAEFF7"},"0|km total|1":{"f":"D2DEEF"},"0|km util|1":{"f":"EAEFF7"},"0|km morto|1":{"f":"D2DEEF"},"0|% km morto|1":{"f":"EAEFF7"},"0|pmm|1":{"f":"D2DEEF"},"0|ipk|1":{"f":"EAEFF7"},"0|ipk eq|1":{"f":"D2DEEF"},"0|r$/km c/ subsidio|1":{"f":"EAEFF7"},"0|r$/veic c/ subsidio|1":{"f":"D2DEEF"},"0|viagens|1":{"f":"EAEFF7"},"0|pas/viag|1":{"f":"D2DEEF"},"0|viagens atrasada|1":{"f":"EAEFF7"},"0|% viagens adiantado|1":{"f":"D2DEEF"},"0|cumprimento de frota (%)|1":{"f":"EAEFF7"},"0|cumprimento de viagens (%)|1":{"f":"D2DEEF"},"0|acidentes|1":{"f":"EAEFF7","b":1},"0|com culpa|1":{"f":"D2DEEF"},"0|sem culpa|1":{"f":"EAEFF7"},"0|adv escrita|1":{"f":"D2DEEF"},"0|suspensao|1":{"f":"EAEFF7"},"0|demissao|1":{"f":"D2DEEF"},"0|multas|1":{"f":"EAEFF7"},"0|% cobranca de multa|1":{"f":"D2DEEF"},"0|avaria|1":{"f":"EAEFF7"},"0|cobranca de avaria|1":{"f":"D2DEEF"},"0|motorista bafometro|1":{"f":"EAEFF7"},"0|rendimento|1":{"f":"D2DEEF"},"0|%gratuidade|1":{"f":"EAEFF7","b":1},"0|idoso 60|1":{"f":"D2DEEF"},"0|idoso|1":{"f":"EAEFF7"},"0|funcionario|1":{"f":"D2DEEF"},"0|%subsidio|1":{"f":"EAEFF7","b":1},"0|pne|1":{"f":"D2DEEF"},"0|acao social|1":{"f":"EAEFF7"},"0|% estudante|1":{"f":"D2DEEF"},"0|% pagantes|1":{"f":"EAEFF7"}};
+const AGG = {"0|share|1":{"t":"A","z":"0.00%"},"0|frota operacao|1":{"t":"S","z":"#,##0.0"},"0|frota reserva|1":{"t":"S","z":"#,##0.0"},"0|frota total|1":{"t":"E","e":"V(\"0|frota operacao|1\")+V(\"0|frota reserva|1\")","r":["0|frota operacao|1","0|frota reserva|1"],"z":"#,##0"},"0|frota operacao real|1":{"t":"S","z":"#,##0.0"},"0|receita total|1":{"t":"E","e":"V(\"0|receita catraca|1\")+V(\"0|receita subsidio|1\")","r":["0|receita catraca|1","0|receita subsidio|1"],"z":"#,##0"},"0|receita catraca|1":{"t":"S","z":"#,##0"},"0|receita subsidio|1":{"t":"S","z":"#,##0"},"0|% subsidio|1":{"t":"E","e":"V(\"0|receita subsidio|1\")/V(\"0|receita total|1\")","r":["0|receita subsidio|1","0|receita total|1"],"z":"0.00%"},"0|pt|1":{"t":"S","z":"#,##0"},"0|peq|1":{"t":"S","z":"#,##0"},"0|km total|1":{"t":"S","z":"#,##0"},"0|km util|1":{"t":"S","z":"#,##0"},"0|km morto|1":{"t":"S","z":"#,##0"},"0|% km morto|1":{"t":"E","e":"V(\"0|km morto|1\")/V(\"0|km total|1\")","r":["0|km morto|1","0|km total|1"],"z":"0.00%"},"0|pmm|1":{"t":"E","e":"V(\"0|km total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|km total|1"],"z":"#,##0"},"0|ipk|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|pt|1"],"z":"#,##0.00"},"0|ipk eq|1":{"t":"E","e":"V(\"0|peq|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|peq|1"],"z":"#,##0.00"},"0|r$/km c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|receita total|1"],"z":"#,##0.00"},"0|r$/veic c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|receita total|1"],"z":"#,##0"},"0|viagens|1":{"t":"S","z":"#,##0"},"0|pas/viag|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|viagens|1\")","r":["0|pt|1","0|viagens|1"],"z":"#,##0.00"},"0|viagens atrasada|1":{"t":"A","z":"0.00%"},"0|% viagens adiantado|1":{"t":"A","z":"0.00%"},"0|cumprimento de frota (%)|1":{"t":"A","z":"0.00%"},"0|cumprimento de viagens (%)|1":{"t":"A","z":"0.00%"},"0|acidentes|1":{"t":"S","z":"#,##0"},"0|com culpa|1":{"t":"S","z":"#,##0"},"0|sem culpa|1":{"t":"S","z":"#,##0"},"0|adv escrita|1":{"t":"S","z":"#,##0"},"0|suspensao|1":{"t":"S","z":"#,##0"},"0|demissao|1":{"t":"S","z":"#,##0"},"0|multas|1":{"t":"S","z":"#,##0"},"0|% cobranca de multa|1":{"t":"A","z":"0%"},"0|avaria|1":{"t":"S","z":"#,##0"},"0|cobranca de avaria|1":{"t":"A","z":"0.00%"},"0|motorista bafometro|1":{"t":"A","z":"0.00%"},"0|rendimento|1":{"t":"A","z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|%gratuidade|1":{"t":"E","e":"V(\"0|idoso 60|1\")+V(\"0|idoso|1\")","r":["0|idoso 60|1","0|idoso|1"],"z":"0.00%"},"0|idoso 60|1":{"t":"A","z":"0.00%"},"0|idoso|1":{"t":"A","z":"0.00%"},"0|funcionario|1":{"t":"A","z":"0.00%"},"0|%subsidio|1":{"t":"E","e":"(V(\"0|pne|1\")+V(\"0|acao social|1\"))","r":["0|acao social|1","0|pne|1"],"z":"0.00%"},"0|pne|1":{"t":"A","z":"0.00%"},"0|acao social|1":{"t":"A","z":"0.00%"},"0|% estudante|1":{"t":"A","z":"0.00%"},"0|% pagantes|1":{"t":"A","z":"0.00%"}};
 
 // ==PURE-BEGIN==
 const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -269,36 +272,85 @@ function _fmtCel(c){
 // copiado célula a célula da planilha original; linhas novas sem entrada no LAYOUT caem na zebra).
 // Anos presentes nos meses da base ('2025','2026',...).
 function _anosDoDb(db){ const s=new Set(); (db.meses||[]).forEach(k=>s.add(k.slice(0,4))); return Array.from(s).sort(); }
-// Colunas de resumo à direita (.2025/.2026/%) acompanham o filtro de ano: a coluna de um ano só
-// aparece se esse ano estiver selecionado; a coluna sem ano no título (ex.: "%", variação entre os
-// anos) só aparece quando TODOS os anos citados nas outras colunas de resumo estão selecionados.
-function _resVisiveis(res, anos){
-  const idx=res.map((_,i)=>i); if(!anos) return idx;
-  const comAno=res.map(t=>{ const m=String(t).match(/(\d{4})/); return m?m[1]:null; });
-  const vis=res.map((t,i)=> comAno[i] ? anos.indexOf(comAno[i])>=0 : null);
-  const todos=comAno.every((a,i)=>!a || vis[i]);
-  return idx.filter(i=> vis[i]===null ? (!comAno.some(Boolean) || todos) : vis[i]);
+// ---- Colunas de resumo AUTOMÁTICAS por ano. Cada linha tem uma regra (AGG, copiada das fórmulas da
+// planilha): S=soma dos meses do ano, A=média, L=último mês preenchido, E=expressão sobre outras linhas
+// (razões/totais). Só entram os meses do ano até o último mês preenchido (corte) e células vazias/erro
+// são ignoradas. Uma coluna por ano marcado + coluna(s) "%" comparando os anos.
+function _cortes(db){
+  const cnt={}; (db.linhas||[]).forEach(L=>{ if(!L.c) return; (db.meses||[]).forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && c.v!==0 && !_ehFmtData(c.z)) cnt[k]=(cnt[k]||0)+1; }); });
+  const cut={}; (db.meses||[]).forEach(k=>{ if((cnt[k]||0)>=3){ const a=k.slice(0,4); if(!cut[a]||k>cut[a]) cut[a]=k; } });
+  return cut;
 }
-function _montarHtmlTabela(db, layout, anos){
-  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
-  const resAll=db.resumo||[]; const resIdx=_resVisiveis(resAll, anos);
-  const ncols=1+meses.length+resIdx.length;
-  let h='', zebra=0;
+function _specLinha(L, agg){
+  if(agg && Object.prototype.hasOwnProperty.call(agg, L.k)) return agg[L.k];
+  let z=null, ok=false;   // linha nova (não existia no layout): soma, ou média se o formato for %
+  Object.keys(L.c||{}).forEach(k=>{ const c=L.c[k]; if(/^\d{4}-\d{2}$/.test(k) && c && typeof c.v==='number' && !_ehFmtData(c.z)){ ok=true; z=c.z; } });
+  return ok ? {t:(String(z||'').indexOf('%')>=0?'A':'S'), z:z||'General'} : null;
+}
+function _agregar(db, agg, ano, cut){
+  const R={}, ms=(db.meses||[]).filter(k=>k.slice(0,4)===ano && (!cut[ano] || k<=cut[ano])), ex=[];
   (db.linhas||[]).forEach(L=>{
+    if(!L.k) return; const a=_specLinha(L, agg); if(!a) return;
+    if(a.t==='E'){ ex.push([L.k,a]); return; }
+    const ns=[]; ms.forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && !_ehFmtData(c.z)) ns.push(c.v); });
+    if(!ns.length){ R[L.k]=null; return; }
+    const sm=ns.reduce((x,y)=>x+y,0);
+    R[L.k] = a.t==='S' ? sm : a.t==='A' ? sm/ns.length : ns[ns.length-1];
+  });
+  const V=k=>(R[k]==null||isNaN(R[k]))?0:R[k];
+  for(let p=0;p<4;p++) ex.forEach(([k,a])=>{
+    if((a.r||[]).every(q=>R[q]==null)){ R[k]=null; return; }
+    try{ const x=new Function('V','return '+a.e)(V); R[k]=isFinite(x)?x:NaN; }catch(e){ R[k]=NaN; }
+  });
+  return R;
+}
+function _fmtRes(x, z){ if(x==null) return ''; if(typeof x!=='number'||isNaN(x)) return '-'; return _fmtCel({v:x, z:z||'General'}); }
+function _montarHtmlTabela(db, layout, agg, anos){
+  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
+  const lin=db.linhas||[], cut=_cortes(db);
+  const anosRes=(anos||_anosDoDb(db)).slice().sort();
+  const RES=anosRes.map(a=>_agregar(db, agg, a, cut));
+  const pares=[]; for(let i=1;i<anosRes.length;i++) pares.push([i-1,i]);
+  const nPct=pares.length, nRes=anosRes.length+nPct;
+  const ncols=1+meses.length+1+nRes;
+  // blocos que têm pelo menos uma linha com resumo mostram o cabeçalho das colunas de resumo
+  const temRes=[]; let bi=-1;
+  lin.forEach(L=>{ if(L.h){ bi++; temRes[bi]=false; } else if(L.k && bi>=0 && _specLinha(L,agg)) temRes[bi]=true; });
+  let h='', zebra=0, bloco=-1;
+  lin.forEach(L=>{
     if(L.gap){ h+='<tr class="gap"><td colspan="'+ncols+'"></td></tr>'; return; }
     if(L.h){
-      zebra=0;
+      zebra=0; bloco++;
       h+='<tr class="ind-h"><td class="lab" style="background:#002060">'+_esc(L.rot)+'</td>'+
-        meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('')+
-        resIdx.map(i=>'<td style="background:#002060">'+_esc(resAll[i])+'</td>').join('')+'</tr>';
-      return;
+        meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('');
+      if(temRes[bloco]){
+        h+='<td class="sp" style="background:#fff"><i></i></td>'+anosRes.map(a=>'<td style="background:#002060">.'+a+'</td>').join('')+
+          pares.map(p=>'<td style="background:#002060">%'+(nPct>1?' '+anosRes[p[1]].slice(2)+'/'+anosRes[p[0]].slice(2):'')+'</td>').join('');
+      }
+      h+='</tr>'; return;
     }
     const est=layout[L.k]||{};
     const fill=('f' in est) ? est.f : (zebra%2 ? 'D2DEEF' : 'EAEFF7'); zebra++;
-    const st='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'')+(est.r?';color:#ff0000':'');
+    const base='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'');
+    const st=base+(est.r?';color:#ff0000':'');
     let tds='<td class="lab" style="'+st+'">'+_esc(L.rot)+'</td>';
     meses.forEach(k=>{ const c=L.c[k]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
-    resIdx.forEach(i=>{ const c=L.c['R'+i]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
+    if(temRes[bloco]){
+      const sp=_specLinha(L,agg);
+      tds+='<td class="sp" style="background:#fff"><i></i></td>';
+      anosRes.forEach((a,i)=>{ tds+='<td style="'+st+'">'+(sp?_esc(_fmtRes(RES[i][L.k], sp.z)):'')+'</td>'; });
+      pares.forEach(p=>{
+        let t='', cor='';
+        if(sp){
+          const x=RES[p[0]][L.k], y=RES[p[1]][L.k];
+          if(x!=null && y!=null){
+            if(isNaN(x)||isNaN(y)||x===0){ t='-'; }
+            else { const d=y/x-1; if(!isFinite(d)) t='-'; else { t=_fmtNum(d,'0%'); cor=d<0?';color:#ff0000':';color:#000000'; } }
+          }
+        }
+        tds+='<td style="'+base+cor+'">'+_esc(t)+'</td>';
+      });
+    }
     h+='<tr>'+tds+'</tr>';
   });
   return h;
@@ -353,7 +405,7 @@ function renderIndicadores(manterMenu){
   }
   _renderFiltroAno();
   if(manterMenu===true) document.getElementById('anoMenu').classList.add('aberto');
-  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, ANOS_SEL)+'</tbody>';
+  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, AGG, ANOS_SEL)+'</tbody>';
   if(DB.atualizadoEm){
     const d = new Date(DB.atualizadoEm);
     fonte.textContent = 'Fonte: planilha INDICADORES - BANDEIRA (aba '+(DB.aba||'Operação')+') - atualizado em '+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
