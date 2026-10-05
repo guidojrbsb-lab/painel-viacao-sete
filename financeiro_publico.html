@@ -2022,6 +2022,19 @@ function _resolverTransferenciasEntreContas(){
       }
     });
   });
+  // Marcação PONTUAL (2026-10-05, pedido do usuário): estes 2 lançamentos específicos de
+  // 02/10/2026 (R$69.200,00) são uma transferência entre contas -- PIX enviado "PAULO
+  // MURILO COELHO B" (saída) e TED "GN PARTICIPACOES" (entrada). NÃO é regra nova: só casa
+  // data + valor + trecho da descrição + natureza, e liga os dois como par.
+  const TRANSFERENCIAS_PONTUAIS = [
+    { data: '2026-10-02', valor: 69200.00, natureza: 'despesa', desc: 'PIX ENVIADO DES: PAULO MURILO COELHO B' },
+    { data: '2026-10-02', valor: 69200.00, natureza: 'receita', desc: 'TED-TRANSF ELET DISPON REMET.GN PARTICIPACOES' },
+  ];
+  const _achados = TRANSFERENCIAS_PONTUAIS.map(r=> (DB.bancos[r.data]||[]).find(t=> t.natureza===r.natureza && Math.abs(t.valor - r.valor) < 0.01 && String(t.descricao||'').toUpperCase().indexOf(r.desc) === 0) || null);
+  if(_achados[0] && _achados[1]){
+    _achados[0].transferencia = true; _achados[0].transferenciaAlvo = _achados[1].banco;
+    _achados[1].transferencia = true; _achados[1].transferenciaAlvo = _achados[0].banco;
+  }
 }
 // Correção 2026-08-10 (pedido dos sócios, ajustado no mesmo dia -- primeira versão
 // usava "1º dia ÚTIL do mês", corrigido pra "1º dia DO MÊS" mesmo, sem pular fim de
