@@ -2373,6 +2373,25 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // RIBEIRO GONÇALVES): relatório gravou 02/10, mas a viagem foi de fato em 01/10
   // (confirmado pelo usuário em 2026-10-02).
   '82437': '2026-10-01',
+  // Bilhete MAURIVETE DE SOUSA FERREIRA MOTA (82250), Fazenda Ribeirão (URUCUI x BAIXA
+  // GRANDE DO RIBEIRO), e bilhete SAMUEL SILVA VELOSO (173408), Prefeitura de Jerumenha
+  // (MARCOS PARENTE x URUCUI): relatório gravou 04/10, mas as viagens foram de fato em
+  // 03/10 (confirmado pelo usuário em 2026-10-04).
+  '82250': '2026-10-03',
+  '173408': '2026-10-03',
+  // Bilhetes de 05/10 (Fazenda Ribeirão 81577/82007/174212+82602, Uruçuí Administração
+  // 82749/174198, DPL 175664, Ribeiro Gonçalves 83165, Fazenda Progresso 175534): relatório
+  // gravou 05/10, mas as viagens foram de fato em 04/10 (confirmado pelo usuário em 2026-10-05).
+  '81577': '2026-10-04',
+  '82007': '2026-10-04',
+  '174212': '2026-10-04',
+  '82602': '2026-10-04',
+  '174212/82602': '2026-10-04',
+  '82749': '2026-10-04',
+  '174198': '2026-10-04',
+  '175664': '2026-10-04',
+  '83165': '2026-10-04',
+  '175534': '2026-10-04',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2714,6 +2733,10 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
       // Bilhete ISABEL HELAYNE GUIMARAES (174195), confirmado pelo usuário em 2026-10-03.
       { cidades: ['URUCUI','LANDRI SALES'], valor: 50.00 },
+      // Bilhete JOSE MACIO DE C SANTOS (174559), confirmado pelo usuário em 2026-10-04.
+      { cidades: ['BAIXA GRANDE DO RIBEIRO','URUCUI'], valor: 60.00 },
+      // Bilhete HELOIDES SILVA DE SOUSA (174593), confirmado pelo usuário em 2026-10-05.
+      { cidades: ['RIBEIRO GONCALVES','URUCUI'], valor: 50.00 },
     ],
   },
   'PREFEITURA DE URUÇUÍ WSV': {
@@ -2802,6 +2825,11 @@ const REGRAS_VALOR_CONVENIO = {
       // (172041), confirmados pelo usuário em 2026-10-03.
       { cidades: ['AMARANTE','JERUMENHA'], valor: 60.00 },
       { cidades: ['DEMERVAL LOBAO','JERUMENHA'], valor: 100.00 },
+      // Bilhete SAMUEL SILVA VELOSO (173408), confirmado pelo usuário em 2026-10-04.
+      { cidades: ['MARCOS PARENTE','URUCUI'], valor: 40.00 },
+      // Bilhetes JOAQUIM ANTONIO RESPLANDES (174941) e MATEUS ANTONIO DA COSTA (174978),
+      // confirmados pelo usuário em 2026-10-05.
+      { cidades: ['JERUMENHA','FAZENDA CANEL'], valor: 90.00 },
     ],
   },
   // O convênio se chama "Porto Alegre", mas a rota combinada usa o nome da cidade de
