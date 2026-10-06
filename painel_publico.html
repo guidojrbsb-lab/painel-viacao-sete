@@ -6384,7 +6384,38 @@ function _receitaConveniosDia(d){
 // único dia -- receitas, contagens, km. Os campos DERIVADOS (razões: %, R$/Km,
 // tíquete médio) são calculados à parte, sempre a partir de totais somados
 // (nunca somando ou tirando média de razões já prontas -- daria conta errada).
-function _indicadoresDiaBase(d){
+// Resumo Diário (2026-10-06, pedido do usuário): "RECEITA POR ÓRGÃO GESTOR" e "R$/KM POR
+// ÓRGÃO GESTOR" passam a usar a MESMA base da aba LINHAS - REAL, ou seja, receita das
+// linhas (embarque + passagens) MAIS o delta do valor real cobrado nos Convênios
+// (_deltaLinhasRealPorDiaEPar), atribuído às linhas/órgãos do dia exatamente como
+// renderLinhasReal() faz (par de cidades -> linhas físicas do dia, dividido em partes
+// iguais; sem linha correspondente no dia o delta fica de fora). Calculado uma vez por
+// renderização do Resumo Diário (só ele passa usarReal=true em _indicadoresDiaBase).
+let _deltaRealOrgaosPorDia = null; // { 'AAAA-MM-DD': { ORGAO: delta } }
+function _prepararDeltaRealOrgaos(){
+  const porDiaPar = _deltaLinhasRealPorDiaEPar();
+  const out = {};
+  Object.keys(porDiaPar).forEach(dia=>{
+    const itens = (DB.linhas||{})[dia] || [];
+    if(!itens.length) return;
+    const cand = {}; // par -> { nomeLinha -> Set(orgaos) }
+    itens.forEach(x=>{
+      const par = _parLinhaCanonico(x.linha); if(!par) return;
+      cand[par] = cand[par] || {};
+      (cand[par][x.linha] = cand[par][x.linha] || new Set()).add(x.orgao);
+    });
+    Object.keys(porDiaPar[dia]).forEach(par=>{
+      const linhas = cand[par]; if(!linhas) return;
+      const nomes = Object.keys(linhas); if(!nomes.length) return;
+      const porLinha = porDiaPar[dia][par].delta / nomes.length;
+      nomes.forEach(nm=>{ linhas[nm].forEach(o=>{
+        out[dia] = out[dia] || {}; out[dia][o] = (out[dia][o]||0) + porLinha;
+      }); });
+    });
+  });
+  _deltaRealOrgaosPorDia = out;
+}
+function _indicadoresDiaBase(d, usarReal){
   // (DB.x||{}) em cada coleção: defensivo contra uma base ainda não inicializada
   // (ex.: painel recém aberto, antes do primeiro upload) -- em uso normal DB já
   // vem com todas as coleções como {} (ver "let DB = {...}"), mas não custa nada
@@ -6434,7 +6465,8 @@ function _indicadoresDiaBase(d){
   const orgaos = {};
   ORGAOS_GESTOR.forEach(o=>{
     const itensOrgao = linhasDia.filter(x=>x.orgao===o);
-    orgaos[o] = { receita: sum(itensOrgao, _receitaLinhas), km: sum(itensOrgao, x=>x.kmRodado) };
+    const deltaReal = (usarReal && _deltaRealOrgaosPorDia && _deltaRealOrgaosPorDia[d] && _deltaRealOrgaosPorDia[d][o]) || 0;
+    orgaos[o] = { receita: sum(itensOrgao, _receitaLinhas) + deltaReal, km: sum(itensOrgao, x=>x.kmRodado) };
   });
 
   // "Bilhetes Emitidos" = Bilhetes Normais + Qtd. de Passagens do relatório Vendas
@@ -6833,7 +6865,8 @@ function renderIndicadores(){
   // pra _receitaConveniosDia(d), chamada dentro de _indicadoresDiaBase, já usar o
   // resultado certo, com escala que atravessa a meia-noite corretamente atribuída.
   _prepararConveniosPorDia(dataIni, dataFim);
-  const baseDia = {}; dias.forEach(d=>{ baseDia[d] = _indicadoresDiaBase(d); });
+  _prepararDeltaRealOrgaos(); // base LINHAS - REAL (ver comentário acima de _indicadoresDiaBase)
+  const baseDia = {}; dias.forEach(d=>{ baseDia[d] = _indicadoresDiaBase(d, true); });
   const porDia = {}; dias.forEach(d=>{ porDia[d] = _indicadoresDerivados(baseDia[d]); });
 
   // Totais do período: soma primeiro os campos aditivos de todos os dias, depois
