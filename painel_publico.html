@@ -2396,6 +2396,9 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // mas as viagens foram de fato em 05/10 (confirmado pelo usuário em 2026-10-06).
   '82274': '2026-10-05',
   '176412': '2026-10-05',
+  // Bilhete RODRIGO LOPES (Prefeitura de Avelino Lopes, BARAO DE GRAJAU x TERESINA): relatório
+  // gravou 07/10, mas a viagem foi de fato em 06/10 (confirmado pelo usuário em 2026-10-07).
+  '83614': '2026-10-06',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2897,6 +2900,10 @@ const REGRAS_VALOR_CONVENIO = {
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
       { cidades: ['TERESINA','AVELINO LOPES'], valor: 191.90 },
+      // Bilhetes RODRIGO LOPES (176833, 176838, 83614), confirmados pelo usuário em 2026-10-07.
+      { cidades: ['AVELINO LOPES','BOM JESUS'], valor: 70.00 },
+      { cidades: ['BOM JESUS','BARAO DE GRAJAU'], valor: 85.00 },
+      { cidades: ['BARAO DE GRAJAU','TERESINA'], valor: 90.00 },
     ],
   },
   'PREFEITURA DE BAIXA GRANDE DO RIBEIRO': {
