@@ -2180,6 +2180,10 @@ const REDIRECIONAMENTOS_CONVENIO_SOMENTE = {
   // "PREFEITURA DE URUÇUÍ SAÚDE", trecho TERESINA-AVELINO LOPES VIA BERTOLÍNIA) estava
   // marcado sem regra de valor nesse convênio -- transferido pra PREFEITURA DE CURIMATÁ.
   '174756': 'PREFEITURA DE CURIMATÁ',
+  // Pedido do usuário em 2026-10-08: bilhete FLAVIA BEATRIZ PIAULINO COSTA (176288, popup
+  // "PREFEITURA DE SÃO RAIMUNDO NONATO", trecho TERESINA-URUÇUÍ, sem regra de valor) --
+  // transferido pra PREFEITURA DE URUÇUÍ SAÚDE.
+  '176288': 'PREFEITURA DE URUÇUÍ SAÚDE',
 };
 // Correções pontuais de grafia do nome do passageiro, confirmadas pelo usuário —
 // aplicadas por número de bilhete (não altera a tolerância geral de 2 caracteres da
@@ -2399,6 +2403,12 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // Bilhete RODRIGO LOPES (Prefeitura de Avelino Lopes, BARAO DE GRAJAU x TERESINA): relatório
   // gravou 07/10, mas a viagem foi de fato em 06/10 (confirmado pelo usuário em 2026-10-07).
   '83614': '2026-10-06',
+  // Escala DANILO DE SOUSA SOARES (Fazenda Progresso, BERTOLINIA x BAIXA GRANDE DO RIBEIRO via
+  // BENEDITO LEITE): relatório gravou 08/10, mas a viagem foi de fato em 07/10 (confirmado pelo
+  // usuário em 2026-10-08). Chaves individuais + a combinada do item já mesclado.
+  '176675': '2026-10-07',
+  '83582': '2026-10-07',
+  '176675/83582': '2026-10-07',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -2693,17 +2703,28 @@ const REGRAS_VALOR_CONVENIO = {
     sinonimosCidade: { 'TIMON': 'TERESINA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
-      { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
-      { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
+      // Reajuste (2026-10-07, pedido do usuário): a partir de 01/09/2026 (set/out em diante),
+      // Teresina x Uruçuí passa a R$138,00 e Floriano x Uruçuí a R$91,00 -- vale em TODOS os
+      // contratos de Uruçuí; antes de 01/09 mantém os valores antigos (vigenciaAte).
+      { cidades: ['TERESINA','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 91.00, vigenciaDesde: '2026-09-01' },
       { cidades: ['TERESINA','BOM JESUS'], valor: 175.00 },
       // Confirmado pelo usuário em 2026-08-19.
-      { cidades: ['TERESINA','BENEDITO LEITE'], valor: 128.00 },
+      { cidades: ['TERESINA','BENEDITO LEITE'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','BENEDITO LEITE'], valor: 138.00, vigenciaDesde: '2026-09-01' },
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
-      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','FLORIANO'], valor: 91.00, vigenciaDesde: '2026-09-01' },
       // Bilhete LORRANY NONATA DE SOUSA (170835), confirmado pelo usuário em
       // 2026-09-30.
-      { cidades: ['AGUA BRANCA','URUCUI'], valor: 128.00 },
+      { cidades: ['AGUA BRANCA','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['AGUA BRANCA','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
+      // Bilhetes ANA CLARA GOMES (176932) e ABIGAIL GOMES COSTA (176933), confirmados pelo usuário
+      // em 2026-10-08 (destino "URUCUI PRETO-PI"), mesmo valor de Teresina x Uruçuí reajustado.
+      { cidades: ['TERESINA','URUCUI PRETO'], valor: 138.00 },
     ],
   },
   // Mesma regra de valor da Uruçuí Saúde, replicada para os demais contratos de
@@ -2711,33 +2732,55 @@ const REGRAS_VALOR_CONVENIO = {
   'PREFEITURA DE URUÇUÍ ASSISTÊNCIA': {
     // Angical do Piauí entra só como sinônimo de matching (não de exibição) — usa o
     // mesmo valor já cadastrado pra Floriano x Uruçuí.
-    sinonimosCidade: { 'TIMON': 'TERESINA', 'ANGICAL DO PIAUI': 'FLORIANO' },
+    sinonimosCidade: { 'TIMON': 'TERESINA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
-      { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
-      { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
+      // 2026-10-07: Angical do Piauí passa a ter rota PRÓPRIA (antes era sinônimo de Floriano para
+      // matching, o que fazia Angical x Uruçuí valer o mesmo que Floriano x Uruçuí). Até 31/08
+      // mantém os valores antigos (81,00, iguais ao de Floriano); a partir de 01/09 Angical x
+      // Uruçuí = 138,00 (pedido do usuário) e Angical x Teresina segue o de Teresina x Floriano (91,00).
+      { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
+      { cidades: ['ANGICAL DO PIAUI','TERESINA'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['ANGICAL DO PIAUI','TERESINA'], valor: 91.00, vigenciaDesde: '2026-09-01' },
+      // Reajuste (2026-10-07, pedido do usuário): a partir de 01/09/2026 (set/out em diante),
+      // Teresina x Uruçuí passa a R$138,00 e Floriano x Uruçuí a R$91,00 -- vale em TODOS os
+      // contratos de Uruçuí; antes de 01/09 mantém os valores antigos (vigenciaAte).
+      { cidades: ['TERESINA','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 91.00, vigenciaDesde: '2026-09-01' },
       // Bilhetes RICHARDSON RIBEIRO DUARTE (161464) e CAIO EXPEDITO DA COSTA SARAIVA
       // (161465), confirmado pelo usuário em 2026-09-14.
-      { cidades: ['SAO PEDRO DO PIAUI','URUCUI'], valor: 128.00 },
+      { cidades: ['SAO PEDRO DO PIAUI','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['SAO PEDRO DO PIAUI','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
-      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','FLORIANO'], valor: 91.00, vigenciaDesde: '2026-09-01' },
     ],
   },
   'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO': {
     sinonimosCidade: { 'TIMON': 'TERESINA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
-      { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
-      { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
+      // Reajuste (2026-10-07, pedido do usuário): a partir de 01/09/2026 (set/out em diante),
+      // Teresina x Uruçuí passa a R$138,00 e Floriano x Uruçuí a R$91,00 -- vale em TODOS os
+      // contratos de Uruçuí; antes de 01/09 mantém os valores antigos (vigenciaAte).
+      { cidades: ['TERESINA','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 91.00, vigenciaDesde: '2026-09-01' },
       { cidades: ['URUCUI','TAGUATINGA'], valor: 630.00 },
       { cidades: ['URUCUI','BRASILIA'], valor: 630.00 },
       // Bilhetes ENZO RAFAEL OLIVEIRA (160471), ROBSON BORGES MOURA (160472) e
       // RAFAELA DA SILVA (160473), confirmado pelo usuário em 2026-09-14.
-      { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 128.00 },
+      { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 128.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['ANGICAL DO PIAUI','URUCUI'], valor: 138.00, vigenciaDesde: '2026-09-01' },
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
-      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00, vigenciaAte: '2026-08-31' },
+      { cidades: ['TERESINA','FLORIANO'], valor: 91.00, vigenciaDesde: '2026-09-01' },
       // Bilhete ISABEL HELAYNE GUIMARAES (174195), confirmado pelo usuário em 2026-10-03.
       { cidades: ['URUCUI','LANDRI SALES'], valor: 50.00 },
       // Bilhete JOSE MACIO DE C SANTOS (174559), confirmado pelo usuário em 2026-10-04.
@@ -2755,6 +2798,8 @@ const REGRAS_VALOR_CONVENIO = {
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
       { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      // 2026-10-07: o reajuste de set/2026 (Teresina/Floriano x Uruçuí etc.) NÃO se aplica a este
+      // convênio (WSV) -- mantém os valores de sempre, sem vigência.
     ],
   },
   'PREFEITURA DE SÃO RAIMUNDO NONATO': {
@@ -3090,6 +3135,10 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['URUCUI', 'RIBEIRO GONCALVES'], valor: 50.00 },
       // Bilhete JARDEL DA SILVA BARROS (82582), confirmado pelo usuário em 2026-10-03.
       { cidades: ['FAZENDA PROGRESSO', 'SEBASTIAO LEAL'], valor: 20.00 },
+      // Escala Bertolinia -> Benedito Leite -> Baixa Grande do Ribeiro (bilhetes 176675 + 83582,
+      // DANILO DE SOUSA SOARES), confirmada pelo usuário em 2026-10-08: o par de bilhetes é
+      // mesclado por _mesclarEscalasConvenio e cobrado pela rota combinada.
+      { cidades: ['BERTOLINIA', 'BAIXA GRANDE DO RIBEIRO'], valor: 90.00 },
     ],
   },
 };
