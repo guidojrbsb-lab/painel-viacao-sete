@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Indicadores Operação - Bandeira Mobilidade</title>
 <style>
-/* Painel INDICADORES do setor OPERAÇÃO - Bandeira Mobilidade (2026-10-04). Mesma arquitetura
-   visual do DRE Bandeira (tokens, header, sidebar, panel). Espelha a aba "Operação" da planilha
-   INDICADORES - BANDEIRA.xlsx (valores calculados pelo Excel, formatos e cores copiados da planilha);
-   o painel nao recalcula nada, so importa e exibe. Erros de formula (#DIV/0!) aparecem como "-". */
+/* Painel INDICADORES OPERAÇÃO - Bandeira Mobilidade. Gerado a partir de "INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx"
+   (roteamento por nome de aba). Valores calculados pelo Excel; formatos/cores copiados da planilha; erros (#DIV/0!) viram "-". */
 :root{
   --azul:#00579c; --azul-dark:#00304f; --azul-mid:#013f6b; --azul-soft:#eaf2f9;
   --dourado:#efae25; --dourado-dark:#c98f11; --dourado-soft:#fdf6e3;
@@ -40,36 +38,47 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
 .panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow-sm);}
 .panel h2{margin:0 0 14px;font-size:13.5px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);padding-bottom:10px;padding-left:11px;position:relative;letter-spacing:.1px;}
 .panel h2::before{content:'';position:absolute;left:0;top:1px;bottom:11px;width:3px;border-radius:2px;background:var(--azul);}
-#uploadBar{position:fixed;bottom:0;left:148px;right:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:50;}
-#uploadBar .btn{background:var(--azul);color:#fff;border:none;padding:9px 16px;border-radius:var(--radius-sm);font-weight:700;font-size:12.5px;cursor:pointer;transition:background .15s;}
-#uploadBar .btn:hover{background:var(--azul-mid);}
-#uploadBar .btn.btn-sec{background:#fff;color:var(--azul);border:1.5px solid var(--border-strong);}
-#uploadBar .btn.btn-sec:hover{background:var(--azul-soft);}
-#uploadBar .btn.btn-perigo{background:#fff;color:var(--red);border:1.5px solid var(--red-soft);}
-#uploadBar .btn.btn-perigo:hover{background:var(--red-soft);}
-#uploadStatus{font-size:11.5px;color:var(--muted);flex-basis:100%;}
-.info-badge{display:inline-block;background:var(--azul-soft);color:var(--azul-dark);font-size:11px;font-weight:700;padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:12px;}
-.ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
-.ind-filtro > label{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;}
-#anoMS{position:relative;}
-#anoBtn{background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;min-width:150px;text-align:left;}
-#anoBtn:hover{border-color:var(--azul);background:var(--azul-soft);}
-#anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:170px;padding:6px 0;}
-#anoMenu.aberto{display:block;}
-#anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:var(--ink);cursor:pointer;}
-#anoMenu label:hover{background:var(--azul-soft);}
-#anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);margin-top:4px;padding:7px 14px 3px;font-size:11px;}
-#anoMenu .ms-rod a{color:var(--azul);font-weight:700;text-decoration:none;}
-.scroll-box{overflow:auto;max-height:72vh;border:1px solid var(--border);border-radius:var(--radius-md);background:#fff;}
-#indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
-#indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
-#indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
-#indTabela td.txt{text-align:center;}
-#indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
-#indTabela td.sp i{display:block;width:31px;height:1px;}
-#indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
-#indTabela tr.ind-h td.lab{text-align:left;}
-#indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
+
+.indp{--ia:#00579c;--iad:#00304f;--ias:#eaf2f9;background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,24,54,.05);color:#151b2b;}
+.indp h2{margin:0 0 14px;font-size:13.5px;font-weight:700;color:#151b2b;border-bottom:1px solid #e5e8f0;padding-bottom:10px;padding-left:11px;position:relative;letter-spacing:.1px;}
+.indp h2::before{content:'';position:absolute;left:0;top:1px;bottom:11px;width:3px;border-radius:2px;background:var(--ia);}
+.indp .ind-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-bar.fixa{position:fixed;bottom:0;left:148px;right:0;margin:0;background:#fff;border-top:1px solid #e5e8f0;box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;z-index:50;}
+.indp .ind-btn{background:var(--ia);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:12.5px;cursor:pointer;}
+.indp .ind-btn:hover{background:var(--iad);}
+.indp .ind-btn.sec{background:#fff;color:var(--ia);border:1.5px solid #d6dae5;}
+.indp .ind-btn.sec:hover{background:var(--ias);}
+.indp .ind-btn.per{background:#fff;color:#b71930;border:1.5px solid #fdecee;}
+.indp .ind-btn.per:hover{background:#fdecee;}
+.indp #indStatus{font-size:11.5px;color:#6b7280;flex-basis:100%;}
+.indp .ind-secoes{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-secoes button{background:#fff;border:1.5px solid #d6dae5;color:var(--ia);padding:7px 14px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer;}
+.indp .ind-secoes button.on{background:var(--ia);border-color:var(--ia);color:#fff;}
+.indp .info-badge{display:inline-block;background:var(--ias);color:var(--iad);font-size:11px;font-weight:700;padding:6px 10px;border-radius:9px;margin-bottom:12px;}
+.indp .ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+.indp .ind-filtro > label{font-size:10.5px;font-weight:700;color:#6b7280;letter-spacing:.4px;text-transform:uppercase;}
+.indp #anoMS{position:relative;}
+.indp #anoBtn{background:#fff;border:1px solid #d6dae5;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--ia);cursor:pointer;min-width:150px;text-align:left;}
+.indp #anoBtn:hover{border-color:var(--ia);background:var(--ias);}
+.indp #anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid #d6dae5;border-radius:9px;box-shadow:0 10px 30px rgba(16,24,54,.16);min-width:170px;padding:6px 0;}
+.indp #anoMenu.aberto{display:block;}
+.indp #anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:#151b2b;cursor:pointer;}
+.indp #anoMenu label:hover{background:var(--ias);}
+.indp #anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #e5e8f0;margin-top:4px;padding:7px 14px 3px;font-size:11px;}
+.indp #anoMenu .ms-rod a{color:var(--ia);font-weight:700;text-decoration:none;}
+.indp .scroll-box{overflow:auto;max-height:72vh;border:1px solid #e5e8f0;border-radius:12px;background:#fff;}
+.indp #indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
+.indp #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
+.indp #indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
+.indp #indTabela td.txt{text-align:center;}
+.indp #indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
+.indp #indTabela td.sp i{display:block;width:31px;height:1px;}
+.indp #indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
+.indp #indTabela tr.ind-h td.lab{text-align:left;}
+.indp #indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
+.indp #indTabela.frota td{text-align:center;}
+.indp #indTabela.frota td.lab{text-align:left;min-width:190px;}
+@media print{.indp .ind-bar,.indp .ind-secoes,.indp .ind-filtro{display:none !important;}}
 
 </style>
 </head>
@@ -79,105 +88,71 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Bandeira Mobilidade &middot; Operação</span>
-    <h1 id="tituloAba">Indicadores</h1>
+    <h1>Indicadores</h1>
   </div>
   <a href="bandeira-mobilidade.html" class="btn-voltar">&#8592; Painel</a>
 </header>
 <div class="layout">
   <nav class="sidebar">
-    <button class="active" data-tab="indicadores" onclick="trocarAba(this)"><span class="ic">&#128202;</span>Indicadores</button>
+    <button class="active" data-tab="indicadores"><span class="ic">&#128202;</span>Indicadores</button>
   </nav>
   <main>
-    <section class="tab" id="tab-indicadores">
-      <div class="panel">
-        <h2>Indicadores - Operação</h2>
-        <div class="ind-filtro" id="indFiltro" style="display:none">
-          <label>Ano</label>
-          <div id="anoMS"><button type="button" id="anoBtn" onclick="_anoToggle(event)"></button><div id="anoMenu"></div></div>
-        </div>
-        <span class="info-badge" id="indFonte" style="display:none"></span>
-        <div class="scroll-box"><table id="indTabela"></table></div>
+  <section class="tab" id="tab-indicadores">
+    <div class="indp">
+      <h2>Indicadores - Operação</h2>
+      
+      <div id="indSecoes" class="ind-secoes" style="display:none"></div>
+      <div class="ind-filtro" id="indFiltro" style="display:none">
+        <label>Ano</label>
+        <div id="anoMS"><button type="button" id="anoBtn" onclick="IND.anoToggle(event)"></button><div id="anoMenu"></div></div>
       </div>
-    </section>
+      <span class="info-badge" id="indFonte" style="display:none"></span>
+      <div class="scroll-box"><table id="indTabela"></table></div>
+    </div>
+  </section>
   </main>
 </div>
-
 <script>
 
-const IDB_NOME = 'bandeira_ind_operacao_idb', IDB_STORE = 'kv', IDB_CHAVE = 'bandeira_ind_operacao_v1';
-function _idbAbrir(){
-  return new Promise((resolve, reject)=>{
-    const req = indexedDB.open(IDB_NOME, 1);
-    req.onupgradeneeded = ()=> req.result.createObjectStore(IDB_STORE);
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-function _idbGet(conn, chave){
-  return new Promise((resolve, reject)=>{
-    const tx = conn.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).get(chave);
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-function _idbPut(conn, chave, valor){
-  return new Promise((resolve, reject)=>{
-    const tx = conn.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(valor, chave);
-    tx.oncomplete = ()=> resolve();
-    tx.onerror = ()=> reject(tx.error);
-  });
-}
-// Sincronização com o link público -- mesmo mecanismo "Opção 3" dos demais painéis (endpoint
-// api/dados.js), com setor='bandeira_operacao'.
-let EMBEDDED_DB = {"linhas":[],"meses":[],"resumo":[]};
-const MODO_PUBLICO = !!EMBEDDED_DB;
+(function(){
+'use strict';
+const CFG = {"api":"bandeira_operacao","idb":"bandeira_ind_operacao_idb","chave":"bandeira_ind_operacao_v1","publico":true,"multi":false,"nomeCompleto":"Bandeira Mobilidade - Operação","rotas":[{"api":"bandeira_operacao","nome":"Bandeira Operação","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["operacao - bandeira","operacao"]}]},{"api":"bandeira_administrativo","nome":"Bandeira Administrativo","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["adm - bandeira","adm","administrativo"]}]},{"api":"bandeira_manutencao","nome":"Bandeira Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - bandeira","manutencao"]}]},{"api":"manutencao_indicadores","nome":"V7 Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - v7"]}]},{"api":"operacao_indicadores","nome":"V7 Operação","multi":false,"secoes":[{"id":"main","tipo":"frota","abas":["operacao (frota) - v7"],"lin":53,"col":12}]},{"api":"administrativo_indicadores","nome":"V7 Administrativo","multi":true,"secoes":[{"id":"ind","tipo":"grade","abas":["adm - v7"]},{"id":"pessoal","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":0,"c1":12},{"id":"fu","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":14,"c1":26}]}],"vazio":"Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.","secoes":[{"id":"main","titulo":"Indicadores","tipo":"grade","aba":"Operação - BANDEIRA"}]};
+const LAYOUT = {"main":{"0|share|1":{"f":"EAEFF7","b":1},"0|frota operacao|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|frota total|1":{"f":"D2DEEF"},"0|frota operacao real|1":{"f":"EAEFF7"},"0|receita total|1":{"f":"D2DEEF"},"0|receita catraca|1":{"f":"EAEFF7"},"0|receita subsidio|1":{"f":"D2DEEF"},"0|% subsidio|1":{"f":"EAEFF7"},"0|pt|1":{"f":"D2DEEF"},"0|peq|1":{"f":"EAEFF7"},"0|km total|1":{"f":"D2DEEF"},"0|km util|1":{"f":"EAEFF7"},"0|km morto|1":{"f":"D2DEEF"},"0|% km morto|1":{"f":"EAEFF7"},"0|pmm|1":{"f":"D2DEEF"},"0|ipk|1":{"f":"EAEFF7"},"0|ipk eq|1":{"f":"D2DEEF"},"0|r$/km c/ subsidio|1":{"f":"EAEFF7"},"0|r$/veic c/ subsidio|1":{"f":"D2DEEF"},"0|viagens|1":{"f":"EAEFF7"},"0|pas/viag|1":{"f":"D2DEEF"},"0|viagens atrasada|1":{"f":"EAEFF7"},"0|% viagens adiantado|1":{"f":"D2DEEF"},"0|cumprimento de frota (%)|1":{"f":"EAEFF7"},"0|cumprimento de viagens (%)|1":{"f":"D2DEEF"},"0|acidentes|1":{"f":"EAEFF7","b":1},"0|com culpa|1":{"f":"D2DEEF"},"0|sem culpa|1":{"f":"EAEFF7"},"0|adv escrita|1":{"f":"D2DEEF"},"0|suspensao|1":{"f":"EAEFF7"},"0|demissao|1":{"f":"D2DEEF"},"0|multas|1":{"f":"EAEFF7"},"0|% cobranca de multa|1":{"f":"D2DEEF"},"0|avaria|1":{"f":"EAEFF7"},"0|cobranca de avaria|1":{"f":"D2DEEF"},"0|motorista bafometro|1":{"f":"EAEFF7"},"0|rendimento|1":{"f":"D2DEEF"},"0|%gratuidade|1":{"f":"EAEFF7","b":1},"0|idoso 60|1":{"f":"D2DEEF"},"0|idoso|1":{"f":"EAEFF7"},"0|funcionario|1":{"f":"D2DEEF"},"0|%subsidio|1":{"f":"EAEFF7","b":1},"0|pne|1":{"f":"D2DEEF"},"0|acao social|1":{"f":"EAEFF7"},"0|% estudante|1":{"f":"D2DEEF"},"0|% pagantes|1":{"f":"EAEFF7"}}};
+const AGG = {"main":{"0|share|1":{"t":"A","z":"0.00%"},"0|frota operacao|1":{"t":"S","z":"#,##0.0"},"0|frota reserva|1":{"t":"S","z":"#,##0.0"},"0|frota total|1":{"t":"E","e":"V(\"0|frota operacao|1\")+V(\"0|frota reserva|1\")","r":["0|frota operacao|1","0|frota reserva|1"],"z":"#,##0"},"0|frota operacao real|1":{"t":"S","z":"#,##0.0"},"0|receita total|1":{"t":"E","e":"V(\"0|receita catraca|1\")+V(\"0|receita subsidio|1\")","r":["0|receita catraca|1","0|receita subsidio|1"],"z":"#,##0"},"0|receita catraca|1":{"t":"S","z":"#,##0"},"0|receita subsidio|1":{"t":"S","z":"#,##0"},"0|% subsidio|1":{"t":"E","e":"V(\"0|receita subsidio|1\")/V(\"0|receita total|1\")","r":["0|receita subsidio|1","0|receita total|1"],"z":"0.00%"},"0|pt|1":{"t":"S","z":"#,##0"},"0|peq|1":{"t":"S","z":"#,##0"},"0|km total|1":{"t":"S","z":"#,##0"},"0|km util|1":{"t":"S","z":"#,##0"},"0|km morto|1":{"t":"S","z":"#,##0"},"0|% km morto|1":{"t":"E","e":"V(\"0|km morto|1\")/V(\"0|km total|1\")","r":["0|km morto|1","0|km total|1"],"z":"0.00%"},"0|pmm|1":{"t":"E","e":"V(\"0|km total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|km total|1"],"z":"#,##0"},"0|ipk|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|pt|1"],"z":"#,##0.00"},"0|ipk eq|1":{"t":"E","e":"V(\"0|peq|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|peq|1"],"z":"#,##0.00"},"0|r$/km c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|receita total|1"],"z":"#,##0.00"},"0|r$/veic c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|receita total|1"],"z":"#,##0"},"0|viagens|1":{"t":"S","z":"#,##0"},"0|pas/viag|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|viagens|1\")","r":["0|pt|1","0|viagens|1"],"z":"#,##0.00"},"0|viagens atrasada|1":{"t":"A","z":"0.00%"},"0|% viagens adiantado|1":{"t":"A","z":"0.00%"},"0|cumprimento de frota (%)|1":{"t":"A","z":"0.00%"},"0|cumprimento de viagens (%)|1":{"t":"A","z":"0.00%"},"0|acidentes|1":{"t":"S","z":"#,##0"},"0|com culpa|1":{"t":"S","z":"#,##0"},"0|sem culpa|1":{"t":"S","z":"#,##0"},"0|adv escrita|1":{"t":"S","z":"#,##0"},"0|suspensao|1":{"t":"S","z":"#,##0"},"0|demissao|1":{"t":"S","z":"#,##0"},"0|multas|1":{"t":"S","z":"#,##0"},"0|% cobranca de multa|1":{"t":"A","z":"0%"},"0|avaria|1":{"t":"S","z":"#,##0"},"0|cobranca de avaria|1":{"t":"A","z":"0.00%"},"0|motorista bafometro|1":{"t":"A","z":"0.00%"},"0|rendimento|1":{"t":"A","z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|%gratuidade|1":{"t":"E","e":"V(\"0|idoso 60|1\")+V(\"0|idoso|1\")","r":["0|idoso 60|1","0|idoso|1"],"z":"0.00%"},"0|idoso 60|1":{"t":"A","z":"0.00%"},"0|idoso|1":{"t":"A","z":"0.00%"},"0|funcionario|1":{"t":"A","z":"0.00%"},"0|%subsidio|1":{"t":"E","e":"(V(\"0|pne|1\")+V(\"0|acao social|1\"))","r":["0|acao social|1","0|pne|1"],"z":"0.00%"},"0|pne|1":{"t":"A","z":"0.00%"},"0|acao social|1":{"t":"A","z":"0.00%"},"0|% estudante|1":{"t":"A","z":"0.00%"},"0|% pagantes|1":{"t":"A","z":"0.00%"}}};
+const IDB_STORE = 'kv';
+function _idbAbrir(){ return new Promise((res,rej)=>{ const q=indexedDB.open(CFG.idb,1); q.onupgradeneeded=()=>q.result.createObjectStore(IDB_STORE); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbGet(c,k){ return new Promise((res,rej)=>{ const q=c.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbPut(c,k,v){ return new Promise((res,rej)=>{ const t=c.transaction(IDB_STORE,'readwrite'); t.objectStore(IDB_STORE).put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+const SEED = {"linhas":[{"h":1,"rot":"Indicadores","blk":0},{"k":"0|share|1","rot":"SHARE","c":{"2025-05":{"v":0.2807,"z":"0.00%"},"2025-06":{"v":0.2763,"z":"0.00%"},"2025-07":{"v":0.2939,"z":"0.00%"},"2025-08":{"v":0.279803614707876,"z":"0.00%"},"2025-09":{"v":0.2808112942413448,"z":"0.00%"},"2025-10":{"v":0.2832259522228232,"z":"0.00%"},"2025-11":{"v":0.29896436229365037,"z":"0.00%"},"2025-12":{"v":0.286394355655352,"z":"0.00%"},"2026-01":{"v":0.273,"z":"0.00%"},"2026-02":{"v":0.2747620606666322,"z":"0.00%"},"2026-03":{"v":0.29163844969917446,"z":"0.00%"},"2026-04":{"v":0.2912,"z":"0.00%"},"2026-05":{"v":0.28657977432594134,"z":"0.00%"},"2026-06":{"v":0.2683,"z":"0.00%"},"2026-07":{"v":0.2643783099675892,"z":"0.00%"},"2026-08":{"v":0.2756,"z":"0.00%"},"R0":{"v":0.28501244739013076,"z":"0.00%"},"R1":{"v":0.27818232433241713,"z":"0.00%"}}},{"k":"0|frota operacao|1","rot":"Frota Operação","c":{"2025-05":{"v":29,"z":"#,##0"},"2025-06":{"v":29,"z":"#,##0"},"2025-07":{"v":29,"z":"#,##0"},"2025-08":{"v":28,"z":"#,##0"},"2025-09":{"v":28,"z":"#,##0"},"2025-10":{"v":28,"z":"#,##0"},"2025-11":{"v":29.5,"z":"#,##0.0"},"2025-12":{"v":29,"z":"#,##0"},"2026-01":{"v":24.5,"z":"#,##0.0"},"2026-02":{"v":26,"z":"#,##0"},"2026-03":{"v":29,"z":"#,##0"},"2026-04":{"v":29,"z":"#,##0"},"2026-05":{"v":29,"z":"#,##0"},"2026-06":{"v":28,"z":"#,##0"},"2026-07":{"v":24,"z":"#,##0"},"2026-08":{"v":28,"z":"#,##0"},"R0":{"v":229.5,"z":"#,##0"},"R1":{"v":217.5,"z":"#,##0.0"}}},{"k":"0|frota reserva|1","rot":"Frota Reserva","c":{"2025-05":{"v":3,"z":"#,##0"},"2025-06":{"v":3,"z":"#,##0"},"2025-07":{"v":3,"z":"#,##0"},"2025-08":{"v":5,"z":"#,##0"},"2025-09":{"v":2,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":8.5,"z":"#,##0.0"},"2025-12":{"v":9,"z":"#,##0"},"2026-01":{"v":10.5,"z":"#,##0.0"},"2026-02":{"v":9,"z":"#,##0"},"2026-03":{"v":6,"z":"#,##0"},"2026-04":{"v":6,"z":"#,##0"},"2026-05":{"v":6,"z":"#,##0"},"2026-06":{"v":7,"z":"#,##0"},"2026-07":{"v":8,"z":"#,##0"},"2026-08":{"v":4,"z":"#,##0"},"R0":{"v":33.5,"z":"#,##0"},"R1":{"v":56.5,"z":"#,##0.0"}}},{"k":"0|frota total|1","rot":"Frota Total","c":{"2025-05":{"v":32,"z":"#,##0"},"2025-06":{"v":32,"z":"#,##0"},"2025-07":{"v":32,"z":"#,##0"},"2025-08":{"v":33,"z":"#,##0"},"2025-09":{"v":30,"z":"#,##0"},"2025-10":{"v":28,"z":"#,##0"},"2025-11":{"v":38,"z":"#,##0"},"2025-12":{"v":38,"z":"#,##0"},"2026-01":{"v":35,"z":"#,##0"},"2026-02":{"v":35,"z":"#,##0"},"2026-03":{"v":35,"z":"#,##0"},"2026-04":{"v":35,"z":"#,##0"},"2026-05":{"v":35,"z":"#,##0"},"2026-06":{"v":35,"z":"#,##0"},"2026-07":{"v":32,"z":"#,##0"},"2026-08":{"v":32,"z":"#,##0"},"2026-09":{"v":0,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"2026-12":{"v":0,"z":"#,##0"},"R0":{"v":263,"z":"#,##0"},"R1":{"v":274,"z":"#,##0"}}},{"k":"0|frota operacao real|1","rot":"Frota Operação REAL","c":{"2025-05":{"v":26,"z":"#,##0"},"2025-06":{"v":26,"z":"#,##0"},"2025-07":{"v":28,"z":"#,##0"},"2025-08":{"v":28,"z":"#,##0"},"2025-09":{"v":26.5,"z":"#,##0.0"},"2025-10":{"v":25,"z":"#,##0.0"},"2025-11":{"v":28.6,"z":"#,##0.0"},"2025-12":{"v":27,"z":"#,##0"},"2026-01":{"v":25,"z":"#,##0"},"2026-02":{"v":26,"z":"#,##0"},"2026-03":{"v":28.5,"z":"#,##0"},"2026-04":{"v":29,"z":"#,##0"},"2026-05":{"v":29,"z":"#,##0"},"2026-06":{"v":28,"z":"#,##0"},"2026-07":{"v":24.35,"z":"#,##0.00"},"2026-08":{"v":28,"z":"#,##0"},"R0":{"v":215.1,"z":"#,##0"},"R1":{"v":217.85,"z":"#,##0.0"}}},{"k":"0|receita total|1","rot":"Receita Total","c":{"2025-05":{"v":384015.33,"z":"#,##0"},"2025-06":{"v":957926.03,"z":"#,##0"},"2025-07":{"v":1033937.9,"z":"#,##0"},"2025-08":{"v":986466.28,"z":"#,##0"},"2025-09":{"v":969899.9,"z":"#,##0"},"2025-10":{"v":1019121.2,"z":"#,##0"},"2025-11":{"v":973629.1900000001,"z":"#,##0"},"2025-12":{"v":964805.99,"z":"#,##0"},"2026-01":{"v":789053.4,"z":"#,##0"},"2026-02":{"v":731077.6,"z":"#,##0"},"2026-03":{"v":940539.7,"z":"#,##0"},"2026-04":{"v":904639.77,"z":"#,##0"},"2026-05":{"v":923131.5,"z":"#,##0"},"2026-06":{"v":974679.5,"z":"#,##0"},"2026-07":{"v":918117.5,"z":"#,##0"},"2026-08":{"v":1028404.5,"z":"#,##0"},"2026-09":{"v":0,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"2026-12":{"v":0,"z":"#,##0"},"R0":{"v":7289801.82,"z":"#,##0"},"R1":{"v":7209643.470000001,"z":"#,##0"}}},{"k":"0|receita catraca|1","rot":"Receita Catraca","c":{"2025-05":{"v":343215.33,"z":"#,##0"},"2025-06":{"v":861499.03,"z":"#,##0"},"2025-07":{"v":918939.5,"z":"#,##0"},"2025-08":{"v":872656.48,"z":"#,##0"},"2025-09":{"v":851935.1,"z":"#,##0"},"2025-10":{"v":891950,"z":"#,##0"},"2025-11":{"v":851704.39,"z":"#,##0"},"2025-12":{"v":843202.79,"z":"#,##0"},"2026-01":{"v":676815,"z":"#,##0"},"2026-02":{"v":624220,"z":"#,##0"},"2026-03":{"v":808400.5,"z":"#,##0"},"2026-04":{"v":775817.37,"z":"#,##0"},"2026-05":{"v":791635.5,"z":"#,##0"},"2026-06":{"v":792644.5,"z":"#,##0"},"2026-07":{"v":773802.5,"z":"#,##0"},"2026-08":{"v":792359.5,"z":"#,##0"},"R0":{"v":6435102.62,"z":"#,##0"},"R1":{"v":6035694.87,"z":"#,##0"}}},{"k":"0|receita subsidio|1","rot":"Receita Subsídio","c":{"2025-05":{"v":40800,"z":"#,##0"},"2025-06":{"v":96427,"z":"#,##0"},"2025-07":{"v":114998.4,"z":"#,##0"},"2025-08":{"v":113809.8,"z":"#,##0"},"2025-09":{"v":117964.8,"z":"#,##0"},"2025-10":{"v":127171.2,"z":"#,##0"},"2025-11":{"v":121924.8,"z":"#,##0"},"2025-12":{"v":121603.2,"z":"#,##0"},"2026-01":{"v":112238.4,"z":"#,##0"},"2026-02":{"v":106857.6,"z":"#,##0"},"2026-03":{"v":132139.2,"z":"#,##0"},"2026-04":{"v":128822.4,"z":"#,##0"},"2026-05":{"v":131496,"z":"#,##0"},"2026-06":{"v":182035,"z":"#,##0"},"2026-07":{"v":144315,"z":"#,##0"},"2026-08":{"v":236045,"z":"#,##0"},"R0":{"v":854699.2,"z":"#,##0"},"R1":{"v":1173948.6,"z":"#,##0"}}},{"k":"0|% subsidio|1","rot":"% Subsídio","c":{"2025-05":{"v":0.10624575847011107,"z":"0.00%"},"2025-06":{"v":0.10066226094722575,"z":"0.00%"},"2025-07":{"v":0.11122370115265143,"z":"0.00%"},"2025-08":{"v":0.11537120153767445,"z":"0.00%"},"2025-09":{"v":0.12162574715184525,"z":"0.00%"},"2025-10":{"v":0.124785158036159,"z":"0.00%"},"2025-11":{"v":0.12522714114600447,"z":"0.00%"},"2025-12":{"v":0.12603901847665766,"z":"0.00%"},"2026-01":{"v":0.14224436521026332,"z":"0.00%"},"2026-02":{"v":0.1461645111271362,"z":"0.00%"},"2026-03":{"v":0.1404929531416909,"z":"0.00%"},"2026-04":{"v":0.14240187561066434,"z":"0.00%"},"2026-05":{"v":0.14244557790520634,"z":"0.00%"},"2026-06":{"v":0.1867639567673271,"z":"0.00%"},"2026-07":{"v":0.15718576326014916,"z":"0.00%"},"2026-08":{"v":0.2295254445113766,"z":"0.00%"},"2026-09":{"v":"#DIV/0!","z":"0.00%"},"2026-10":{"v":"#DIV/0!","z":"0.00%"},"2026-11":{"v":"#DIV/0!","z":"0.00%"},"2026-12":{"v":"#DIV/0!","z":"0.00%"},"R0":{"v":0.11724587596539077,"z":"0.00%"},"R1":{"v":0.16283032647660176,"z":"0.00%"}}},{"k":"0|pt|1","rot":"PT","c":{"2025-05":{"v":120586,"z":"#,##0"},"2025-06":{"v":301988,"z":"#,##0"},"2025-07":{"v":329209,"z":"#,##0"},"2025-08":{"v":314133,"z":"#,##0"},"2025-09":{"v":311944,"z":"#,##0"},"2025-10":{"v":330822,"z":"#,##0"},"2025-11":{"v":318031,"z":"#,##0"},"2025-12":{"v":312302,"z":"#,##0"},"2026-01":{"v":257535,"z":"#,##0"},"2026-02":{"v":239279,"z":"#,##0"},"2026-03":{"v":312651,"z":"#,##0"},"2026-04":{"v":297053,"z":"#,##0"},"2026-05":{"v":307508,"z":"#,##0"},"2026-06":{"v":295939,"z":"#,##0"},"2026-07":{"v":286396,"z":"#,##0"},"2026-08":{"v":314429,"z":"#,##0"},"R0":{"v":2339015,"z":"#,##0"},"R1":{"v":2310790,"z":"#,##0"}}},{"k":"0|peq|1","rot":"PEQ","c":{"2025-05":{"v":71265.03,"z":"#,##0"},"2025-06":{"v":178850.94,"z":"#,##0"},"2025-07":{"v":190492,"z":"#,##0"},"2025-08":{"v":181191.51,"z":"#,##0"},"2025-09":{"v":176867,"z":"#,##0"},"2025-10":{"v":185189,"z":"#,##0"},"2025-11":{"v":176783,"z":"#,##0"},"2025-12":{"v":175018,"z":"#,##0"},"2026-01":{"v":140352,"z":"#,##0"},"2026-02":{"v":129564,"z":"#,##0"},"2026-03":{"v":167876,"z":"#,##0"},"2026-04":{"v":159712,"z":"#,##0"},"2026-05":{"v":164384,"z":"#,##0"},"2026-06":{"v":158529,"z":"#,##0"},"2026-07":{"v":154761,"z":"#,##0"},"2026-08":{"v":158472,"z":"#,##0"},"R0":{"v":1335656.48,"z":"#,##0"},"R1":{"v":1233650,"z":"#,##0"}}},{"k":"0|km total|1","rot":"KM Total","c":{"2025-05":{"v":40857.004,"z":"#,##0"},"2025-06":{"v":104912.496,"z":"#,##0"},"2025-07":{"v":134135.736,"z":"#,##0"},"2025-08":{"v":126760.5,"z":"#,##0"},"2025-09":{"v":137501.05299999999,"z":"#,##0"},"2025-10":{"v":142660,"z":"#,##0"},"2025-11":{"v":145535,"z":"#,##0"},"2025-12":{"v":141179,"z":"#,##0"},"2026-01":{"v":137778,"z":"#,##0"},"2026-02":{"v":123191,"z":"#,##0"},"2026-03":{"v":152682,"z":"#,##0"},"2026-04":{"v":145450,"z":"#,##0"},"2026-05":{"v":145220,"z":"#,##0"},"2026-06":{"v":139710,"z":"#,##0"},"2026-07":{"v":142176,"z":"#,##0"},"2026-08":{"v":146715,"z":"#,##0"},"2026-09":{"v":0,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"2026-12":{"v":0,"z":"#,##0"},"R0":{"v":973540.789,"z":"#,##0"},"R1":{"v":1132922,"z":"#,##0"}}},{"k":"0|km util|1","rot":"KM Útil","c":{"2025-05":{"v":39277.329,"z":"#,##0"},"2025-06":{"v":100491.542,"z":"#,##0"},"2025-07":{"v":129129.878,"z":"#,##0"},"2025-08":{"v":121648.763,"z":"#,##0"},"2025-09":{"v":126864.574,"z":"#,##0"},"2025-10":{"v":130022,"z":"#,##0"},"2025-11":{"v":131480,"z":"#,##0"},"2025-12":{"v":127545,"z":"#,##0"},"2026-01":{"v":124889,"z":"#,##0"},"2026-02":{"v":111879,"z":"#,##0"},"2026-03":{"v":138584,"z":"#,##0"},"2026-04":{"v":131603,"z":"#,##0"},"2026-05":{"v":131637,"z":"#,##0"},"2026-06":{"v":127274,"z":"#,##0"},"2026-07":{"v":129905,"z":"#,##0"},"2026-08":{"v":134699,"z":"#,##0"},"R0":{"v":906459.086,"z":"#,##0"},"R1":{"v":1030470,"z":"#,##0"}}},{"k":"0|km morto|1","rot":"KM Morto","c":{"2025-05":{"v":1579.675,"z":"#,##0"},"2025-06":{"v":4420.954,"z":"#,##0"},"2025-07":{"v":5005.858,"z":"#,##0"},"2025-08":{"v":5111.737,"z":"#,##0"},"2025-09":{"v":10636.479,"z":"#,##0"},"2025-10":{"v":12638,"z":"#,##0"},"2025-11":{"v":14055,"z":"#,##0"},"2025-12":{"v":13634,"z":"#,##0"},"2026-01":{"v":12889,"z":"#,##0"},"2026-02":{"v":11312,"z":"#,##0"},"2026-03":{"v":14098,"z":"#,##0"},"2026-04":{"v":13847,"z":"#,##0"},"2026-05":{"v":13297,"z":"#,##0"},"2026-06":{"v":12436,"z":"#,##0"},"2026-07":{"v":12271,"z":"#,##0"},"2026-08":{"v":12016,"z":"#,##0"},"R0":{"v":67081.70300000001,"z":"#,##0"},"R1":{"v":102166,"z":"#,##0"}}},{"k":"0|% km morto|1","rot":"% KM Morto","c":{"2025-05":{"v":0.038663505527718085,"z":"0.00%"},"2025-06":{"v":0.04213944161618269,"z":"0.00%"},"2025-07":{"v":0.03731934642681649,"z":"0.00%"},"2025-08":{"v":0.04032594538519491,"z":"0.00%"},"2025-09":{"v":0.07735561850569973,"z":"0.00%"},"2025-10":{"v":0.08858825178746671,"z":"0.00%"},"2025-11":{"v":0.09657470711512695,"z":"0.00%"},"2025-12":{"v":0.09657243641051431,"z":"0.00%"},"2026-01":{"v":0.09354904266283441,"z":"0.00%"},"2026-02":{"v":0.09182488980526175,"z":"0.00%"},"2026-03":{"v":0.0923357042742432,"z":"0.00%"},"2026-04":{"v":0.09520110003437607,"z":"0.00%"},"2026-05":{"v":0.09156452279300371,"z":"0.00%"},"2026-06":{"v":0.08901295540763009,"z":"0.00%"},"2026-07":{"v":0.08630851901868107,"z":"0.00%"},"2026-08":{"v":0.08190028286132979,"z":"0.00%"},"2026-09":{"v":"#DIV/0!","z":"0.00%"},"2026-10":{"v":"#DIV/0!","z":"0.00%"},"2026-11":{"v":"#DIV/0!","z":"0.00%"},"2026-12":{"v":"#DIV/0!","z":"0.00%"},"R0":{"v":0.068904871534869,"z":"0.00%"},"R1":{"v":0.09017920033329743,"z":"0.00%"}}},{"k":"0|pmm|1","rot":"PMM","c":{"2025-05":{"v":1571.4232307692307,"z":"#,##0"},"2025-06":{"v":4035.096,"z":"#,##0"},"2025-07":{"v":4790.562,"z":"#,##0"},"2025-08":{"v":4527.160714285715,"z":"#,##0"},"2025-09":{"v":5188.718981132075,"z":"#,##0"},"2025-10":{"v":5706.4,"z":"#,##0"},"2025-11":{"v":5088.636363636363,"z":"#,##0"},"2025-12":{"v":5228.851851851852,"z":"#,##0"},"2026-01":{"v":5511.12,"z":"#,##0"},"2026-02":{"v":4738.115384615385,"z":"#,##0"},"2026-03":{"v":5357.263157894737,"z":"#,##0"},"2026-04":{"v":5015.517241379311,"z":"#,##0"},"2026-05":{"v":5007.586206896552,"z":"#,##0"},"2026-06":{"v":4989.642857142857,"z":"#,##0"},"2026-07":{"v":5838.850102669404,"z":"#,##0"},"2026-08":{"v":5239.821428571428,"z":"#,##0"},"2026-09":{"v":"#DIV/0!","z":"#,##0"},"2026-10":{"v":"#DIV/0!","z":"#,##0"},"2026-11":{"v":"#DIV/0!","z":"#,##0"},"2026-12":{"v":"#DIV/0!","z":"#,##0"},"R0":{"v":4525.991580660158,"z":"#,##0"},"R1":{"v":5200.468212072527,"z":"#,##0"}}},{"k":"0|ipk|1","rot":"IPK","c":{"2025-05":{"v":3.0701171151429367,"z":"#,##0.00"},"2025-06":{"v":3.0051086289431206,"z":"#,##0.00"},"2025-07":{"v":2.549440958970007,"z":"#,##0.00"},"2025-08":{"v":2.582295062055008,"z":"#,##0.00"},"2025-09":{"v":2.4588739800600283,"z":"#,##0.00"},"2025-10":{"v":2.544354032394518,"z":"#,##0.00"},"2025-11":{"v":2.4188545786431397,"z":"#,##0.00"},"2025-12":{"v":2.448563252185503,"z":"#,##0.00"},"2026-01":{"v":2.0621111547053785,"z":"#,##0.00"},"2026-02":{"v":2.138730235343541,"z":"#,##0.00"},"2026-03":{"v":2.2560396582578077,"z":"#,##0.00"},"2026-04":{"v":2.257190185634066,"z":"#,##0.00"},"2026-05":{"v":2.3360301435006874,"z":"#,##0.00"},"2026-06":{"v":2.325211747882521,"z":"#,##0.00"},"2026-07":{"v":2.2046572495285015,"z":"#,##0.00"},"2026-08":{"v":2.334308346758328,"z":"#,##0.00"},"2026-09":{"v":"#DIV/0!","z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":2.580386733527651,"z":"#,##0.00"},"R1":{"v":2.2424621774530067,"z":"#,##0.00"}}},{"k":"0|ipk eq|1","rot":"IPK Eq","c":{"2025-05":{"v":1.8144062189157517,"z":"#,##0.00"},"2025-06":{"v":1.7797611265632685,"z":"#,##0.00"},"2025-07":{"v":1.4751969331218604,"z":"#,##0.00"},"2025-08":{"v":1.4894644674685267,"z":"#,##0.00"},"2025-09":{"v":1.394140179747894,"z":"#,##0.00"},"2025-10":{"v":1.424289735583209,"z":"#,##0.00"},"2025-11":{"v":1.3445619105567386,"z":"#,##0.00"},"2025-12":{"v":1.372205888117919,"z":"#,##0.00"},"2026-01":{"v":1.1238139467847448,"z":"#,##0.00"},"2026-02":{"v":1.1580725605341484,"z":"#,##0.00"},"2026-03":{"v":1.2113663915026265,"z":"#,##0.00"},"2026-04":{"v":1.2135893558657478,"z":"#,##0.00"},"2026-05":{"v":1.2487674438037937,"z":"#,##0.00"},"2026-06":{"v":1.2455725442745573,"z":"#,##0.00"},"2026-07":{"v":1.1913398252569185,"z":"#,##0.00"},"2026-08":{"v":1.176489803190818,"z":"#,##0.00"},"2026-09":{"v":"#DIV/0!","z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":1.4734878833792173,"z":"#,##0.00"},"R1":{"v":1.1971721641581026,"z":"#,##0.00"}}},{"k":"0|r$/km c/ subsidio|1","rot":"R$/KM c/ Subsídio","c":{"2025-05":{"v":9.777022515965891,"z":"#,##0.00"},"2025-06":{"v":9.532404528134318,"z":"#,##0.00"},"2025-07":{"v":8.006961022607022,"z":"#,##0.00"},"2025-08":{"v":8.109135314429789,"z":"#,##0.00"},"2025-09":{"v":7.645159475331546,"z":"#,##0.00"},"2025-10":{"v":7.838067403977788,"z":"#,##0.00"},"2025-11":{"v":7.405150517188926,"z":"#,##0.00"},"2025-12":{"v":7.564436002979341,"z":"#,##0.00"},"2026-01":{"v":6.318037617404255,"z":"#,##0.00"},"2026-02":{"v":6.534538206455188,"z":"#,##0.00"},"2026-03":{"v":6.786784188650926,"z":"#,##0.00"},"2026-04":{"v":6.874005683761009,"z":"#,##0.00"},"2026-05":{"v":7.012705394379999,"z":"#,##0.00"},"2026-06":{"v":7.658119490233669,"z":"#,##0.00"},"2026-07":{"v":7.067607097494323,"z":"#,##0.00"},"2026-08":{"v":7.634833963132614,"z":"#,##0.00"},"2026-09":{"v":"#DIV/0!","z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":8.042063820186584,"z":"#,##0.00"},"R1":{"v":6.996461294360826,"z":"#,##0.00"}}},{"k":"0|r$/veic c/ subsidio|1","rot":"R$/Veíc c/ Subsídio","c":{"2025-05":{"v":14769.820384615385,"z":"#,##0"},"2025-06":{"v":36843.30884615385,"z":"#,##0"},"2025-07":{"v":36926.353571428575,"z":"#,##0"},"2025-08":{"v":35230.938571428575,"z":"#,##0"},"2025-09":{"v":36599.996226415096,"z":"#,##0"},"2025-10":{"v":40764.848,"z":"#,##0"},"2025-11":{"v":34042.978671328674,"z":"#,##0"},"2025-12":{"v":35733.555185185185,"z":"#,##0"},"2026-01":{"v":31562.136000000002,"z":"#,##0"},"2026-02":{"v":28118.36923076923,"z":"#,##0"},"2026-03":{"v":33001.39298245614,"z":"#,##0"},"2026-04":{"v":31194.474827586208,"z":"#,##0"},"2026-05":{"v":31832.120689655174,"z":"#,##0"},"2026-06":{"v":34809.982142857145,"z":"#,##0"},"2026-07":{"v":37705.030800821354,"z":"#,##0"},"2026-08":{"v":36728.732142857145,"z":"#,##0"},"2026-09":{"v":"#DIV/0!","z":"#,##0"},"2026-10":{"v":"#DIV/0!","z":"#,##0"},"2026-11":{"v":"#DIV/0!","z":"#,##0"},"2026-12":{"v":"#DIV/0!","z":"#,##0"},"R0":{"v":33890.29205020921,"z":"#,##0"},"R1":{"v":33094.530502639434,"z":"#,##0"}}},{"k":"0|viagens|1","rot":"Viagens","c":{"2025-05":{"v":4916,"z":"#,##0"},"2025-06":{"v":14300,"z":"#,##0"},"2025-07":{"v":16046,"z":"#,##0"},"2025-08":{"v":15493,"z":"#,##0"},"2025-09":{"v":14705,"z":"#,##0"},"2025-10":{"v":14924,"z":"#,##0"},"2025-11":{"v":15309,"z":"#,##0"},"2025-12":{"v":16019,"z":"#,##0"},"2026-01":{"v":14310,"z":"#,##0"},"2026-02":{"v":12906,"z":"#,##0"},"2026-03":{"v":15784,"z":"#,##0"},"2026-04":{"v":14827,"z":"#,##0"},"2026-05":{"v":15037,"z":"#,##0"},"2026-06":{"v":14807,"z":"#,##0"},"2026-07":{"v":14769,"z":"#,##0"},"2026-08":{"v":15446,"z":"#,##0"},"R0":{"v":111712,"z":"#,##0"},"R1":{"v":117886,"z":"#,##0"}}},{"k":"0|pas/viag|1","rot":"Pas/Viag","c":{"2025-05":{"v":24.529292107404395,"z":"#,##0.00"},"2025-06":{"v":21.118041958041957,"z":"#,##0.00"},"2025-07":{"v":20.516577340147077,"z":"#,##0.00"},"2025-08":{"v":20.27580197508552,"z":"#,##0.00"},"2025-09":{"v":21.213464807888474,"z":"#,##0.00"},"2025-10":{"v":22.167113374430446,"z":"#,##0.00"},"2025-11":{"v":20.774119798811157,"z":"#,##0.00"},"2025-12":{"v":19.495723827954304,"z":"#,##0.00"},"2026-01":{"v":17.99685534591195,"z":"#,##0.00"},"2026-02":{"v":18.540136370680305,"z":"#,##0.00"},"2026-03":{"v":19.808096806893055,"z":"#,##0.00"},"2026-04":{"v":20.03459904228772,"z":"#,##0.00"},"2026-05":{"v":20.450089778546253,"z":"#,##0.00"},"2026-06":{"v":19.986425339366516,"z":"#,##0.00"},"2026-07":{"v":19.39169882862753,"z":"#,##0.00"},"2026-08":{"v":20.356661918943416,"z":"#,##0.00"},"2026-09":{"v":"#DIV/0!","z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":20.937902821541105,"z":"#,##0.00"},"R1":{"v":19.601903533922602,"z":"#,##0.00"}}},{"k":"0|viagens atrasada|1","rot":"Viagens Atrasada","c":{"2025-09":{"v":0.0674939467312349,"z":"0.00%"},"2025-10":{"v":0.0673,"z":"0.00%"},"2025-11":{"v":0.091,"z":"0.00%"},"2025-12":{"v":0.1252,"z":"0.00%"},"2026-01":{"v":0.0934,"z":"0.00%"},"2026-02":{"v":0.1605,"z":"0.00%"},"2026-03":{"v":0.1679,"z":"0.00%"},"2026-04":{"v":0.1934,"z":"0.00%"},"2026-05":{"v":0.2384,"z":"0.00%"},"2026-06":{"v":0.2544,"z":"0.00%"},"2026-07":{"v":0.182,"z":"0.00%"},"2026-08":{"v":0.2323,"z":"0.00%"},"R0":{"v":0.08774848668280873,"z":"0.00%"},"R1":{"v":0.19028749999999997,"z":"0.00%"}}},{"k":"0|% viagens adiantado|1","rot":"% Viagens Adiantado","c":{"2025-09":{"v":0.0386652542372881,"z":"0.00%"},"2025-10":{"v":0.0679,"z":"0.00%"},"2025-11":{"v":0.0731,"z":"0.00%"},"2025-12":{"v":0.1012,"z":"0.00%"},"2026-01":{"v":0.0435,"z":"0.00%"},"2026-02":{"v":0.0387,"z":"0.00%"},"2026-03":{"v":0.0321,"z":"0.00%"},"2026-04":{"v":0.0294,"z":"0.00%"},"2026-05":{"v":0.0278,"z":"0.00%"},"2026-06":{"v":0.0337,"z":"0.00%"},"2026-07":{"v":0.033,"z":"0.00%"},"2026-08":{"v":0.0249,"z":"0.00%"},"R0":{"v":0.07021631355932202,"z":"0.00%"},"R1":{"v":0.0328875,"z":"0.00%"}}},{"k":"0|cumprimento de frota (%)|1","rot":"Cumprimento de Frota (%)","c":{"2025-05":{"v":0.9186046511627907,"z":"0.00%"},"2025-06":{"v":0.9214876033057852,"z":"0.00%"},"2025-07":{"v":0.9788293897882939,"z":"0.00%"},"2025-08":{"v":0.9920424403183024,"z":"0.00%"},"2025-09":{"v":0.961748633879781,"z":"0.00%"},"2025-10":{"v":0.9313,"z":"0.00%"},"2025-11":{"v":0.96484375,"z":"0.00%"},"2025-12":{"v":1,"z":"0.00%"},"2026-01":{"v":1,"z":"0.00%"},"2026-02":{"v":1,"z":"0.00%"},"2026-03":{"v":1,"z":"0.00%"},"2026-04":{"v":1,"z":"0.00%"},"2026-05":{"v":1,"z":"0.00%"},"2026-06":{"v":1,"z":"0.00%"},"2026-07":{"v":1,"z":"0.00%"},"2026-08":{"v":1,"z":"0.00%"},"R0":{"v":0.9586070585568691,"z":"0.00%"},"R1":{"v":1,"z":"0.00%"}}},{"k":"0|cumprimento de viagens (%)|1","rot":"Cumprimento de Viagens (%)","c":{"2025-05":{"v":0.8860780984719864,"z":"0.00%"},"2025-06":{"v":0.9517553006604101,"z":"0.00%"},"2025-07":{"v":0.9662772491870408,"z":"0.00%"},"2025-08":{"v":0.9869618537403989,"z":"0.00%"},"2025-09":{"v":0.942567784116403,"z":"0.00%"},"2025-10":{"v":0.915,"z":"0.00%"},"2025-11":{"v":0.9430633060293505,"z":"0.00%"},"2025-12":{"v":0.9977577078791654,"z":"0.00%"},"2026-01":{"v":0.999441262746194,"z":"0.00%"},"2026-02":{"v":0.9995,"z":"0.00%"},"2026-03":{"v":0.999,"z":"0.00%"},"2026-04":{"v":0.9982,"z":"0.00%"},"2026-05":{"v":0.9977,"z":"0.00%"},"2026-06":{"v":0.9987,"z":"0.00%"},"2026-07":{"v":0.9999,"z":"0.00%"},"2026-08":{"v":0.9994,"z":"0.00%"},"R0":{"v":0.9486826625105944,"z":"0.00%"},"R1":{"v":0.9989801578432743,"z":"0.00%"}}},{"k":"0|acidentes|1","rot":"ACIDENTES","c":{"2025-05":{"v":1,"z":"#,##0"},"2025-06":{"v":2,"z":"#,##0"},"2025-07":{"v":1,"z":"#,##0"},"2025-08":{"v":5,"z":"#,##0"},"2025-09":{"v":6,"z":"#,##0"},"2025-10":{"v":4,"z":"#,##0"},"2025-11":{"v":5,"z":"#,##0"},"2025-12":{"v":2,"z":"#,##0"},"2026-01":{"v":3,"z":"#,##0"},"2026-02":{"v":3,"z":"#,##0"},"2026-03":{"v":5,"z":"#,##0"},"2026-04":{"v":7,"z":"#,##0"},"2026-05":{"v":8,"z":"#,##0"},"2026-06":{"v":3,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"2026-09":{"v":0,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"2026-12":{"v":0,"z":"#,##0"},"R0":{"v":21,"z":"#,##0"},"R1":{"v":30,"z":"#,##0"}}},{"k":"0|com culpa|1","rot":"Com Culpa","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":2,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":1,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":3,"z":"#,##0"},"2025-12":{"v":2,"z":"#,##0"},"2026-01":{"v":1,"z":"#,##0"},"2026-02":{"v":3,"z":"#,##0"},"2026-03":{"v":3,"z":"#,##0"},"2026-04":{"v":2,"z":"#,##0"},"2026-05":{"v":3,"z":"#,##0"},"2026-06":{"v":1,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"R0":{"v":8,"z":"#,##0"},"R1":{"v":14,"z":"#,##0"}}},{"k":"0|sem culpa|1","rot":"Sem Culpa","c":{"2025-05":{"v":1,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":1,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":5,"z":"#,##0"},"2025-10":{"v":4,"z":"#,##0"},"2025-11":{"v":2,"z":"#,##0"},"2025-12":{"v":0,"z":"#,##0"},"2026-01":{"v":2,"z":"#,##0"},"2026-02":{"v":0,"z":"#,##0"},"2026-03":{"v":2,"z":"#,##0"},"2026-04":{"v":5,"z":"#,##0"},"2026-05":{"v":5,"z":"#,##0"},"2026-06":{"v":2,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"R0":{"v":13,"z":"#,##0"},"R1":{"v":17,"z":"#,##0"}}},{"k":"0|adv escrita|1","rot":"ADV ESCRITA","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":0,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":2,"z":"#,##0"},"2025-12":{"v":6,"z":"#,##0"},"2026-01":{"v":0,"z":"#,##0"},"2026-02":{"v":0,"z":"#,##0"},"2026-03":{"v":1,"z":"#,##0"},"2026-04":{"v":1,"z":"#,##0"},"2026-05":{"v":1,"z":"#,##0"},"2026-06":{"v":3,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"R0":{"v":8,"z":"#,##0"},"R1":{"v":7,"z":"#,##0"}}},{"k":"0|suspensao|1","rot":"SUSPENSÃO","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":2,"z":"#,##0"},"2025-09":{"v":2,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":0,"z":"#,##0"},"2025-12":{"v":4,"z":"#,##0"},"2026-01":{"v":1,"z":"#,##0"},"2026-02":{"v":1,"z":"#,##0"},"2026-03":{"v":1,"z":"#,##0"},"2026-04":{"v":0,"z":"#,##0"},"2026-05":{"v":0,"z":"#,##0"},"2026-06":{"v":0,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":2,"z":"#,##0"},"R0":{"v":8,"z":"#,##0"},"R1":{"v":5,"z":"#,##0"}}},{"k":"0|demissao|1","rot":"DEMISSÃO","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":1,"z":"#,##0"},"2025-09":{"v":2,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":0,"z":"#,##0"},"2025-12":{"v":0,"z":"#,##0"},"2026-01":{"v":0,"z":"#,##0"},"2026-02":{"v":2,"z":"#,##0"},"2026-03":{"v":2,"z":"#,##0"},"2026-04":{"v":2,"z":"#,##0"},"2026-05":{"v":1,"z":"#,##0"},"2026-06":{"v":0,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"R0":{"v":3,"z":"#,##0"},"R1":{"v":8,"z":"#,##0"}}},{"k":"0|multas|1","rot":"MULTAS","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":1,"z":"#,##0"},"2025-07":{"v":1,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":0,"z":"#,##0"},"2025-10":{"v":5,"z":"#,##0"},"2025-11":{"v":2,"z":"#,##0"},"2025-12":{"v":0,"z":"#,##0"},"2026-01":{"v":5,"z":"#,##0"},"2026-02":{"v":8,"z":"#,##0"},"2026-03":{"v":1,"z":"#,##0"},"2026-04":{"v":1,"z":"#,##0"},"2026-05":{"v":2,"z":"#,##0"},"2026-06":{"v":1,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":0,"z":"#,##0"},"R0":{"v":9,"z":"#,##0"},"R1":{"v":18,"z":"#,##0"}}},{"k":"0|% cobranca de multa|1","rot":"% COBRANÇA DE MULTA","c":{"2025-05":{"v":0,"z":"0%"},"2025-06":{"v":0,"z":"0%"},"2025-07":{"v":1,"z":"0%"},"2025-08":{"v":0,"z":"0%"},"2025-09":{"v":0,"z":"0%"},"2025-10":{"v":0.6,"z":"0%"},"2025-11":{"v":1,"z":"0%"},"2025-12":{"v":0.8,"z":"0%"},"2026-01":{"v":1,"z":"0%"},"2026-02":{"v":1,"z":"0%"},"2026-03":{"v":1,"z":"0%"},"2026-04":{"v":1,"z":"0%"},"2026-05":{"v":1,"z":"0%"},"2026-06":{"v":1,"z":"0%"},"2026-07":{"v":0,"z":"0%"},"2026-08":{"v":0,"z":"0%"},"R0":{"v":3.4000000000000004,"z":"0%"},"R1":{"v":0.75,"z":"0%"}}},{"k":"0|avaria|1","rot":"AVARIA","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":2,"z":"#,##0"},"2025-07":{"v":5,"z":"#,##0"},"2025-08":{"v":1,"z":"#,##0"},"2025-09":{"v":0,"z":"#,##0"},"2025-10":{"v":3,"z":"#,##0"},"2025-11":{"v":5,"z":"#,##0"},"2025-12":{"v":11,"z":"#,##0"},"2026-01":{"v":6,"z":"#,##0"},"2026-02":{"v":5,"z":"#,##0"},"2026-03":{"v":6,"z":"#,##0"},"2026-04":{"v":7,"z":"#,##0"},"2026-05":{"v":6,"z":"#,##0"},"2026-06":{"v":5,"z":"#,##0"},"2026-07":{"v":3,"z":"#,##0"},"2026-08":{"v":1,"z":"#,##0"},"R0":{"v":27,"z":"#,##0"},"R1":{"v":39,"z":"#,##0"}}},{"k":"0|cobranca de avaria|1","rot":"COBRANÇA DE AVARIA","c":{"2025-06":{"v":1,"z":"0.00%"},"2025-07":{"v":0.6,"z":"0.00%"},"2025-08":{"v":1,"z":"0.00%"},"2025-09":{"v":0,"z":"0.00%"},"2025-10":{"v":0.6666666666666666,"z":"0.00%"},"2025-11":{"v":0.8,"z":"0.00%"},"2025-12":{"v":1,"z":"0.00%"},"2026-01":{"v":0.8333,"z":"0.00%"},"2026-02":{"v":1,"z":"0.00%"},"2026-03":{"v":0.8333333333333334,"z":"0.00%"},"2026-04":{"v":0.85,"z":"0.00%"},"2026-05":{"v":0.6666666666666666,"z":"0.00%"},"2026-06":{"v":1,"z":"0.00%"},"2026-07":{"v":1,"z":"0.00%"},"2026-08":{"v":1,"z":"0.00%"},"R0":{"v":0.7238095238095238,"z":"0.00%"},"R1":{"v":0.8979125,"z":"0.00%"}}},{"k":"0|motorista bafometro|1","rot":"Motorista Bafômetro","c":{"2025-09":{"v":1,"z":"0.00%"},"2025-10":{"v":1,"z":"0.00%"},"2025-11":{"v":1,"z":"0.00%"},"2025-12":{"v":1,"z":"0.00%"},"2026-01":{"v":1,"z":"0.00%"},"2026-02":{"v":1,"z":"0.00%"},"2026-03":{"v":1,"z":"0.00%"},"2026-04":{"v":1,"z":"0.00%"},"2026-05":{"v":1,"z":"0.00%"},"2026-06":{"v":1,"z":"0.00%"},"2026-07":{"v":1,"z":"0.00%"},"2026-08":{"v":1,"z":"0.00%"},"R0":{"v":1,"z":"0.00%"},"R1":{"v":1,"z":"0.00%"}}},{"k":"0|rendimento|1","rot":"RENDIMENTO","c":{"2025-05":{"v":5.155086875,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-06":{"v":2.31474184444444,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-07":{"v":2.13491274193548,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-08":{"v":2.5352103,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-09":{"v":2.50001818181818,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-10":{"v":2.38,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-11":{"v":2.6,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2025-12":{"v":3.18,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-01":{"v":3.3,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-02":{"v":3.22,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-03":{"v":2.97,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-04":{"v":3.34,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-05":{"v":3.23,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-06":{"v":3.32,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-07":{"v":3.32,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-08":{"v":3.45,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"R0":{"v":2.520697581171157,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"R1":{"v":3.26875,"z":"#,##0.00_ ;\\-#,##0.00\\ "}}},{"k":"0|%gratuidade|1","rot":"%GRATUIDADE","c":{"2025-05":{"v":0.2625926724495381,"z":"0.00%"},"2025-06":{"v":0.2673682397976078,"z":"0.00%"},"2025-07":{"v":0.2753721799829288,"z":"0.00%"},"2025-08":{"v":0.2753721799829288,"z":"0.00%"},"2025-09":{"v":0.28608019388095296,"z":"0.00%"},"2025-10":{"v":0.2879,"z":"0.00%"},"2025-11":{"v":0.29481088321578713,"z":"0.00%"},"2025-12":{"v":0.30411268579772144,"z":"0.00%"},"2026-01":{"v":0.33476226532316,"z":"0.00%"},"2026-02":{"v":0.32852026295663217,"z":"0.00%"},"2026-03":{"v":0.30436493086540584,"z":"0.00%"},"2026-04":{"v":0.30551787054835333,"z":"0.00%"},"2026-05":{"v":0.3093480494816395,"z":"0.00%"},"2026-06":{"v":0.2956284910065926,"z":"0.00%"},"2026-07":{"v":0.3358426793670303,"z":"0.00%"},"2026-08":{"v":0.2990532043800031,"z":"0.00%"},"2026-09":{"v":0,"z":"0.00%"},"2026-10":{"v":0,"z":"0.00%"},"2026-11":{"v":0,"z":"0.00%"},"2026-12":{"v":0,"z":"0.00%"},"R0":{"v":0.28170112938843317,"z":"0.00%"},"R1":{"v":0.3141297192411021,"z":"0.00%"}}},{"k":"0|idoso 60|1","rot":"IDOSO 60","c":{"2025-05":{"v":0.1206027233675551,"z":"0.00%"},"2025-06":{"v":0.14373418811343497,"z":"0.00%"},"2025-07":{"v":0.12557372368313138,"z":"0.00%"},"2025-08":{"v":0.13172764402339138,"z":"0.00%"},"2025-09":{"v":0.12808068114789833,"z":"0.00%"},"2025-10":{"v":0.1614,"z":"0.00%"},"2025-11":{"v":0.12915093182740048,"z":"0.00%"},"2025-12":{"v":0.13436033070553502,"z":"0.00%"},"2026-01":{"v":0.14837206593278585,"z":"0.00%"},"2026-02":{"v":0.14391568002206628,"z":"0.00%"},"2026-03":{"v":0.13328919466113973,"z":"0.00%"},"2026-04":{"v":0.13485472289456762,"z":"0.00%"},"2026-05":{"v":0.13636068004734836,"z":"0.00%"},"2026-06":{"v":0.13181770567583184,"z":"0.00%"},"2026-07":{"v":0.14884635260268997,"z":"0.00%"},"2026-08":{"v":0.13354048131692686,"z":"0.00%"},"R0":{"v":0.13432877785854333,"z":"0.00%"},"R1":{"v":0.13887461039416957,"z":"0.00%"}}},{"k":"0|idoso|1","rot":"IDOSO","c":{"2025-05":{"v":0.14198994908198298,"z":"0.00%"},"2025-06":{"v":0.12363405168417288,"z":"0.00%"},"2025-07":{"v":0.1497984562997974,"z":"0.00%"},"2025-08":{"v":0.15608038633317736,"z":"0.00%"},"2025-09":{"v":0.15799951273305465,"z":"0.00%"},"2025-10":{"v":0.1265,"z":"0.00%"},"2025-11":{"v":0.16565995138838666,"z":"0.00%"},"2025-12":{"v":0.16975235509218642,"z":"0.00%"},"2026-01":{"v":0.18639019939037413,"z":"0.00%"},"2026-02":{"v":0.18460458293456591,"z":"0.00%"},"2026-03":{"v":0.1710757362042661,"z":"0.00%"},"2026-04":{"v":0.17066314765378568,"z":"0.00%"},"2026-05":{"v":0.17298736943429113,"z":"0.00%"},"2026-06":{"v":0.16381078533076074,"z":"0.00%"},"2026-07":{"v":0.18699632676434028,"z":"0.00%"},"2026-08":{"v":0.16551272306307624,"z":"0.00%"},"R0":{"v":0.1489268328265948,"z":"0.00%"},"R1":{"v":0.17525510884693252,"z":"0.00%"}}},{"k":"0|funcionario|1","rot":"FUNCIONÁRIO","c":{"2025-05":{"v":0.005605957573847711,"z":"0.00%"},"2025-06":{"v":0.0038710147423076414,"z":"0.00%"},"2025-07":{"v":0.004164527701247536,"z":"0.00%"},"2025-08":{"v":0.004300726125558283,"z":"0.00%"},"2025-09":{"v":0.003910958377144616,"z":"0.00%"},"2025-10":{"v":0.0037,"z":"0.00%"},"2025-11":{"v":0.003845537070285601,"z":"0.00%"},"2025-12":{"v":0.0040729806405338425,"z":"0.00%"},"2026-01":{"v":0.0040072223192964065,"z":"0.00%"},"2026-02":{"v":0.004204297075798545,"z":"0.00%"},"2026-03":{"v":0.003857336135179481,"z":"0.00%"},"2026-04":{"v":0.003888195035902684,"z":"0.00%"},"2026-05":{"v":0.003603158291816798,"z":"0.00%"},"2026-06":{"v":0.0036798123937703377,"z":"0.00%"},"2026-07":{"v":0.0041166776072291515,"z":"0.00%"},"2026-08":{"v":0.0038546062863158296,"z":"0.00%"},"R0":{"v":0.0041839627788656545,"z":"0.00%"},"R1":{"v":0.003901413143163654,"z":"0.00%"}}},{"k":"0|%subsidio|1","rot":"%SUBSÍDIO","c":{"2025-05":{"v":0.073947224387574,"z":"0.00%"},"2025-06":{"v":0.07153264368120588,"z":"0.00%"},"2025-07":{"v":0.07263774684167201,"z":"0.00%"},"2025-08":{"v":0.07553170154043033,"z":"0.00%"},"2025-09":{"v":0.07870002308106583,"z":"0.00%"},"2025-10":{"v":0.0796,"z":"0.00%"},"2025-11":{"v":0.08094493932981377,"z":"0.00%"},"2025-12":{"v":0.08076797458869939,"z":"0.00%"},"2026-01":{"v":0.09079542586444558,"z":"0.00%"},"2026-02":{"v":0.09226127658507434,"z":"0.00%"},"2026-03":{"v":0.08805025411721057,"z":"0.00%"},"2026-04":{"v":0.09034751374333873,"z":"0.00%"},"2026-05":{"v":0.08908711318079529,"z":"0.00%"},"2026-06":{"v":0.12302197412304564,"z":"0.00%"},"2026-07":{"v":0.10078003882735792,"z":"0.00%"},"2026-08":{"v":0.15012928196826628,"z":"0.00%"},"2026-09":{"v":0,"z":"0.00%"},"2026-10":{"v":0,"z":"0.00%"},"2026-11":{"v":0,"z":"0.00%"},"2026-12":{"v":0,"z":"0.00%"},"R0":{"v":0.07670778168130765,"z":"0.00%"},"R1":{"v":0.10305910980119178,"z":"0.00%"}}},{"k":"0|pne|1","rot":"PNE","c":{"2025-05":{"v":0.0687724943194069,"z":"0.00%"},"2025-06":{"v":0.06790998317813952,"z":"0.00%"},"2025-07":{"v":0.06937841918052058,"z":"0.00%"},"2025-08":{"v":0.07226556904241198,"z":"0.00%"},"2025-09":{"v":0.07552958223270843,"z":"0.00%"},"2025-10":{"v":0.0762,"z":"0.00%"},"2025-11":{"v":0.07795152044926439,"z":"0.00%"},"2025-12":{"v":0.07746027883266837,"z":"0.00%"},"2026-01":{"v":0.0873589997476071,"z":"0.00%"},"2026-02":{"v":0.08892625763230372,"z":"0.00%"},"2026-03":{"v":0.085075691425903,"z":"0.00%"},"2026-04":{"v":0.08753656754855194,"z":"0.00%"},"2026-05":{"v":0.08648230289943676,"z":"0.00%"},"2026-06":{"v":0.12015989781677981,"z":"0.00%"},"2026-07":{"v":0.09704395312783698,"z":"0.00%"},"2026-08":{"v":0.14684714196209636,"z":"0.00%"},"R0":{"v":0.07318348090439002,"z":"0.00%"},"R1":{"v":0.09992885152006445,"z":"0.00%"}}},{"k":"0|acao social|1","rot":"AÇÃO SOCIAL","c":{"2025-05":{"v":0.0051747300681671176,"z":"0.00%"},"2025-06":{"v":0.003622660503066347,"z":"0.00%"},"2025-07":{"v":0.003259327661151427,"z":"0.00%"},"2025-08":{"v":0.0032661324980183554,"z":"0.00%"},"2025-09":{"v":0.0031704408483573974,"z":"0.00%"},"2025-10":{"v":0.0033,"z":"0.00%"},"2025-11":{"v":0.0029934188805493802,"z":"0.00%"},"2025-12":{"v":0.0033076957560310215,"z":"0.00%"},"2026-01":{"v":0.00343642611683849,"z":"0.00%"},"2026-02":{"v":0.003335018952770615,"z":"0.00%"},"2026-03":{"v":0.0029745626913075603,"z":"0.00%"},"2026-04":{"v":0.002810946194786789,"z":"0.00%"},"2026-05":{"v":0.0026048102813585336,"z":"0.00%"},"2026-06":{"v":0.002862076306265818,"z":"0.00%"},"2026-07":{"v":0.003736085699520943,"z":"0.00%"},"2026-08":{"v":0.003282140006169914,"z":"0.00%"},"R0":{"v":0.003511800776917631,"z":"0.00%"},"R1":{"v":0.0031302582811273327,"z":"0.00%"}}},{"k":"0|% estudante|1","rot":"% ESTUDANTE","c":{"2025-05":{"v":0.09945598991591063,"z":"0.00%"},"2025-06":{"v":0.08989430043577891,"z":"0.00%"},"2025-07":{"v":0.10053188096315714,"z":"0.00%"},"2025-08":{"v":0.07375220050106165,"z":"0.00%"},"2025-09":{"v":0.09224091503603211,"z":"0.00%"},"2025-10":{"v":0.1021,"z":"0.00%"},"2025-11":{"v":0.0945819747131569,"z":"0.00%"},"2025-12":{"v":0.0645625068043112,"z":"0.00%"},"2026-01":{"v":0.0243073756965073,"z":"0.00%"},"2026-02":{"v":0.04022918852051371,"z":"0.00%"},"2026-03":{"v":0.10064896641942614,"z":"0.00%"},"2026-04":{"v":0.09853797133844802,"z":"0.00%"},"2026-05":{"v":0.10008194908750341,"z":"0.00%"},"2026-06":{"v":0.07872568333338965,"z":"0.00%"},"2026-07":{"v":0.033694604673249626,"z":"0.00%"},"2026-08":{"v":0.08296626583425828,"z":"0.00%"},"R0":{"v":0.08963997104617606,"z":"0.00%"},"R1":{"v":0.06989900061291202,"z":"0.00%"}}},{"k":"0|% pagantes|1","rot":"% PAGANTES","c":{"2025-05":{"v":0.14458560695271425,"z":"0.00%"},"2025-06":{"v":0.15923480403194828,"z":"0.00%"},"2025-07":{"v":0.1361688167698939,"z":"0.00%"},"2025-08":{"v":0.13924675217185079,"z":"0.00%"},"2025-09":{"v":0.13685469186777113,"z":"0.00%"},"2025-10":{"v":0.1341,"z":"0.00%"},"2025-11":{"v":0.13676654162644522,"z":"0.00%"},"2025-12":{"v":0.15552253908076158,"z":"0.00%"},"2026-01":{"v":0.1461587745355,"z":"0.00%"},"2026-02":{"v":0.14150426907501285,"z":"0.00%"},"2026-03":{"v":0.13631173417004902,"z":"0.00%"},"2026-04":{"v":0.14314280616590305,"z":"0.00%"},"2026-05":{"v":0.14312473171429688,"z":"0.00%"},"2026-06":{"v":0.15860363115371748,"z":"0.00%"},"2026-07":{"v":0.15320744703138311,"z":"0.00%"},"2026-08":{"v":0.13588759306552511,"z":"0.00%"},"R0":{"v":0.14280996906267313,"z":"0.00%"},"R1":{"v":0.1447426233639234,"z":"0.00%"}}}],"meses":["2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"],"resumo":[".2025",".2026"],"aba":"Operação - BANDEIRA","atualizadoEm":"2026-10-10T09:54:12.888Z","arquivo":"INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx"};   // dados da última planilha processada no build (usado se for mais novo que local/nuvem)
+const PUBLICO = !!CFG.publico;
 const SYNC_TOKEN = 'Mabd3cjIMNLuRWQuspNPGx38-KlcFk_N';
 const API_BASE = 'https://indicadoresv7.vercel.app';
-async function _sincronizarNuvem(){
-  if(MODO_PUBLICO) return;
+async function postNuvem(api, db){
   try{
-    const resp = await fetch(API_BASE + '/api/dados?setor=bandeira_operacao', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Authorization': 'Bearer ' + SYNC_TOKEN },
-      body: JSON.stringify(DB),
-    });
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-  }catch(e){ console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e); }
+    const r = await fetch(API_BASE+'/api/dados?setor='+api, {method:'POST', headers:{'Content-Type':'text/plain; charset=utf-8','Authorization':'Bearer '+SYNC_TOKEN}, body:JSON.stringify(db)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }catch(e){ console.warn('Sincronização com a nuvem falhou ('+api+'):', e); return false; }
 }
-// DB = { linhas, meses, resumo, atualizadoEm, arquivo, aba } -- cada upload SUBSTITUI a base inteira
-// do setor (a planilha já traz todo o histórico), então uma célula corrigida/apagada no Excel
-// também some/muda aqui.
-let DB = { linhas: [], meses: [], resumo: [] };
-function _normalizar(){ DB.linhas = DB.linhas || []; DB.meses = DB.meses || []; DB.resumo = DB.resumo || []; }
+let DB = {};
+let SEC = CFG.secoes[0].id;
+function normalizar(){ if(CFG.multi){ DB.secoes = DB.secoes || {}; } else if(CFG.secoes[0].tipo!=='frota'){ DB.linhas=DB.linhas||[]; DB.meses=DB.meses||[]; DB.resumo=DB.resumo||[]; } }
+function temDados(d){ if(!d) return false; if(CFG.multi) return !!(d.secoes && Object.keys(d.secoes).length); return !!((d.linhas && d.linhas.length) || d.grade); }
+function sd(id){ return CFG.multi ? ((DB.secoes||{})[id] || {}) : DB; }
+function maisNovo(a, b){ if(!temDados(a)) return temDados(b) ? b : a; if(!temDados(b)) return a; return String(b.atualizadoEm||'') > String(a.atualizadoEm||'') ? b : a; }
+// Fonte da verdade = a base MAIS NOVA entre: planilha embutida no build, base local (admin) e nuvem (upload feito em qualquer painel).
 async function loadDB(){
-  if(EMBEDDED_DB){ DB = EMBEDDED_DB; _normalizar();
-    try{
-      const resp = await fetch(API_BASE + '/api/dados?setor=bandeira_operacao', {cache:'no-store'});
-      if(resp.ok){ const dadosNuvem = await resp.json(); if(dadosNuvem){ DB = dadosNuvem; _normalizar(); } }
-    }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
-    return;
-  }
-  try{
-    const conn = await _idbAbrir();
-    const raw = await _idbGet(conn, IDB_CHAVE);
-    if(raw) DB = raw;
-  }catch(e){ console.error('Erro ao carregar base local', e); }
-  _normalizar();
+  let cur = temDados(SEED) ? SEED : {};
+  let local = null;
+  if(!PUBLICO){ try{ const c = await _idbAbrir(); local = await _idbGet(c, CFG.chave); }catch(e){ console.error(e); } cur = maisNovo(cur, local); }
+  try{ const r = await fetch(API_BASE+'/api/dados?setor='+CFG.api, {cache:'no-store'}); if(r.ok){ const n = await r.json(); cur = maisNovo(cur, n); } }catch(e){ console.warn('Sem dados ao vivo, usando o último disponível:', e); }
+  DB = JSON.parse(JSON.stringify(cur || {})); normalizar();
+  if(!PUBLICO && cur !== local){ try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); }catch(e){} }
 }
 async function saveDB(){
-  if(MODO_PUBLICO) return true;
-  try{
-    const conn = await _idbAbrir();
-    await _idbPut(conn, IDB_CHAVE, DB);
-    _sincronizarNuvem();
-    return true;
-  }catch(e){ console.error('Erro ao salvar base local', e); return false; }
+  if(PUBLICO) return true;
+  try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); postNuvem(CFG.api, DB); return true; }catch(e){ console.error(e); return false; }
 }
-const ABAS_ACEITAS = ["operacao"];
-const LAYOUT = {"0|share|1":{"f":"EAEFF7","b":1},"0|frota operacao|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|frota total|1":{"f":"D2DEEF"},"0|frota operacao real|1":{"f":"EAEFF7"},"0|receita total|1":{"f":"D2DEEF"},"0|receita catraca|1":{"f":"EAEFF7"},"0|receita subsidio|1":{"f":"D2DEEF"},"0|% subsidio|1":{"f":"EAEFF7"},"0|pt|1":{"f":"D2DEEF"},"0|peq|1":{"f":"EAEFF7"},"0|km total|1":{"f":"D2DEEF"},"0|km util|1":{"f":"EAEFF7"},"0|km morto|1":{"f":"D2DEEF"},"0|% km morto|1":{"f":"EAEFF7"},"0|pmm|1":{"f":"D2DEEF"},"0|ipk|1":{"f":"EAEFF7"},"0|ipk eq|1":{"f":"D2DEEF"},"0|r$/km c/ subsidio|1":{"f":"EAEFF7"},"0|r$/veic c/ subsidio|1":{"f":"D2DEEF"},"0|viagens|1":{"f":"EAEFF7"},"0|pas/viag|1":{"f":"D2DEEF"},"0|viagens atrasada|1":{"f":"EAEFF7"},"0|% viagens adiantado|1":{"f":"D2DEEF"},"0|cumprimento de frota (%)|1":{"f":"EAEFF7"},"0|cumprimento de viagens (%)|1":{"f":"D2DEEF"},"0|acidentes|1":{"f":"EAEFF7","b":1},"0|com culpa|1":{"f":"D2DEEF"},"0|sem culpa|1":{"f":"EAEFF7"},"0|adv escrita|1":{"f":"D2DEEF"},"0|suspensao|1":{"f":"EAEFF7"},"0|demissao|1":{"f":"D2DEEF"},"0|multas|1":{"f":"EAEFF7"},"0|% cobranca de multa|1":{"f":"D2DEEF"},"0|avaria|1":{"f":"EAEFF7"},"0|cobranca de avaria|1":{"f":"D2DEEF"},"0|motorista bafometro|1":{"f":"EAEFF7"},"0|rendimento|1":{"f":"D2DEEF"},"0|%gratuidade|1":{"f":"EAEFF7","b":1},"0|idoso 60|1":{"f":"D2DEEF"},"0|idoso|1":{"f":"EAEFF7"},"0|funcionario|1":{"f":"D2DEEF"},"0|%subsidio|1":{"f":"EAEFF7","b":1},"0|pne|1":{"f":"D2DEEF"},"0|acao social|1":{"f":"EAEFF7"},"0|% estudante|1":{"f":"D2DEEF"},"0|% pagantes|1":{"f":"EAEFF7"}};
-const AGG = {"0|share|1":{"t":"A","z":"0.00%"},"0|frota operacao|1":{"t":"S","z":"#,##0.0"},"0|frota reserva|1":{"t":"S","z":"#,##0.0"},"0|frota total|1":{"t":"E","e":"V(\"0|frota operacao|1\")+V(\"0|frota reserva|1\")","r":["0|frota operacao|1","0|frota reserva|1"],"z":"#,##0"},"0|frota operacao real|1":{"t":"S","z":"#,##0.0"},"0|receita total|1":{"t":"E","e":"V(\"0|receita catraca|1\")+V(\"0|receita subsidio|1\")","r":["0|receita catraca|1","0|receita subsidio|1"],"z":"#,##0"},"0|receita catraca|1":{"t":"S","z":"#,##0"},"0|receita subsidio|1":{"t":"S","z":"#,##0"},"0|% subsidio|1":{"t":"E","e":"V(\"0|receita subsidio|1\")/V(\"0|receita total|1\")","r":["0|receita subsidio|1","0|receita total|1"],"z":"0.00%"},"0|pt|1":{"t":"S","z":"#,##0"},"0|peq|1":{"t":"S","z":"#,##0"},"0|km total|1":{"t":"S","z":"#,##0"},"0|km util|1":{"t":"S","z":"#,##0"},"0|km morto|1":{"t":"S","z":"#,##0"},"0|% km morto|1":{"t":"E","e":"V(\"0|km morto|1\")/V(\"0|km total|1\")","r":["0|km morto|1","0|km total|1"],"z":"0.00%"},"0|pmm|1":{"t":"E","e":"V(\"0|km total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|km total|1"],"z":"#,##0"},"0|ipk|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|pt|1"],"z":"#,##0.00"},"0|ipk eq|1":{"t":"E","e":"V(\"0|peq|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|peq|1"],"z":"#,##0.00"},"0|r$/km c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|km util|1\")","r":["0|km util|1","0|receita total|1"],"z":"#,##0.00"},"0|r$/veic c/ subsidio|1":{"t":"E","e":"V(\"0|receita total|1\")/V(\"0|frota operacao real|1\")","r":["0|frota operacao real|1","0|receita total|1"],"z":"#,##0"},"0|viagens|1":{"t":"S","z":"#,##0"},"0|pas/viag|1":{"t":"E","e":"V(\"0|pt|1\")/V(\"0|viagens|1\")","r":["0|pt|1","0|viagens|1"],"z":"#,##0.00"},"0|viagens atrasada|1":{"t":"A","z":"0.00%"},"0|% viagens adiantado|1":{"t":"A","z":"0.00%"},"0|cumprimento de frota (%)|1":{"t":"A","z":"0.00%"},"0|cumprimento de viagens (%)|1":{"t":"A","z":"0.00%"},"0|acidentes|1":{"t":"S","z":"#,##0"},"0|com culpa|1":{"t":"S","z":"#,##0"},"0|sem culpa|1":{"t":"S","z":"#,##0"},"0|adv escrita|1":{"t":"S","z":"#,##0"},"0|suspensao|1":{"t":"S","z":"#,##0"},"0|demissao|1":{"t":"S","z":"#,##0"},"0|multas|1":{"t":"S","z":"#,##0"},"0|% cobranca de multa|1":{"t":"A","z":"0%"},"0|avaria|1":{"t":"S","z":"#,##0"},"0|cobranca de avaria|1":{"t":"A","z":"0.00%"},"0|motorista bafometro|1":{"t":"A","z":"0.00%"},"0|rendimento|1":{"t":"A","z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|%gratuidade|1":{"t":"E","e":"V(\"0|idoso 60|1\")+V(\"0|idoso|1\")","r":["0|idoso 60|1","0|idoso|1"],"z":"0.00%"},"0|idoso 60|1":{"t":"A","z":"0.00%"},"0|idoso|1":{"t":"A","z":"0.00%"},"0|funcionario|1":{"t":"A","z":"0.00%"},"0|%subsidio|1":{"t":"E","e":"(V(\"0|pne|1\")+V(\"0|acao social|1\"))","r":["0|acao social|1","0|pne|1"],"z":"0.00%"},"0|pne|1":{"t":"A","z":"0.00%"},"0|acao social|1":{"t":"A","z":"0.00%"},"0|% estudante|1":{"t":"A","z":"0.00%"},"0|% pagantes|1":{"t":"A","z":"0.00%"}};
 
 // ==PURE-BEGIN==
 const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -234,6 +209,7 @@ function parseGrade(g){
     const cel={}; let n=0;
     lin.forEach((x,c)=>{ if(c===colRot||!x) return; const k=mapMes[c]||mapRes[c]; if(k){ cel[k]={v:x.v,z:x.z}; n++; } });
     if(!rot && !n) continue;
+    if(rot==='0' && !lin.some((x,c)=> c!==colRot && x && typeof x.v==='number' && x.v!==0)) continue;
     if(vazio && linhas.length && !linhas[linhas.length-1].gap) linhas.push({gap:1});
     vazio=false;
     const k0=blk+'|'+_norm(rot); ocorr[k0]=(ocorr[k0]||0)+1;
@@ -357,84 +333,147 @@ function _montarHtmlTabela(db, layout, agg, anos){
 }
 // ==PURE-END==
 
-// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente (2026), se existir na base; senão o
-// último ano disponível. A seleção vale só para a sessão da página (ao reabrir volta ao padrão).
+function $(id){ return document.getElementById(id); }
+// ---- Frota (matriz): mostra a aba como está na planilha (valores calculados, cores, células mescladas)
+function _fmtData(v){ const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear(); }
+function _fmtFrota(c){
+  if(!c || c.v===undefined || c.v===null) return '';
+  const v=c.v, z=c.z||'General';
+  if(typeof v==='number'){
+    if(_ehFmtData(z)) return _fmtData(v);
+    if(z==='General') return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.',',');
+    return _fmtNum(v,z);
+  }
+  const s=String(v).trim(); return _ehErro(s) ? '-' : s;
+}
+function _htmlFrota(d, L){
+  const g=d.grade||[]; let h='';
+  for(let r=0;r<g.length;r++){
+    const lin=g[r]||[]; let tds='', vazio=true;
+    for(let c=0;c<lin.length || c<CFG_FROTA_COL;c++){
+      const e=L[r+','+c]||{}; if(e.x) continue;
+      const cel=lin[c]; const t=_fmtFrota(cel); if(t!=='' || e.f) vazio=false;
+      const st=[]; if(e.f) st.push('background:#'+e.f); if(e.b) st.push('font-weight:700'); if(e.c) st.push('color:#'+e.c);
+      const txt = cel && typeof cel.v==='string' && !_ehErro(cel.v);
+      tds+='<td'+(e.rs?' rowspan="'+e.rs+'"':'')+(e.cs?' colspan="'+e.cs+'"':'')+' class="'+(c===0?'lab':'')+(txt?' txt':'')+'" style="'+st.join(';')+'">'+_esc(t)+'</td>';
+    }
+    h += vazio && !tds.match(/rowspan/) ? '<tr class="gap"><td colspan="'+CFG_FROTA_COL+'"></td></tr>' : '<tr>'+tds+'</tr>';
+  }
+  return h;
+}
+const CFG_FROTA_COL = 12;
+// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente se existir na base; senão o último ano.
 let ANOS_SEL = null;
-function _anosDisponiveis(){ return _anosDoDb(DB); }
-function _garantirAnosSel(){
-  const disp = _anosDisponiveis();
-  if(!disp.length){ ANOS_SEL = []; return disp; }
-  const validos = (ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
-  if(validos.length){ ANOS_SEL = validos; return disp; }
-  const atual = String(new Date().getFullYear());
-  ANOS_SEL = [ disp.indexOf(atual)>=0 ? atual : disp[disp.length-1] ];
+function _garantirAnosSel(d){
+  const disp=_anosDoDb(d);
+  if(!disp.length){ ANOS_SEL=[]; return disp; }
+  const ok=(ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
+  if(ok.length){ ANOS_SEL=ok; return disp; }
+  const at=String(new Date().getFullYear());
+  ANOS_SEL=[ disp.indexOf(at)>=0 ? at : disp[disp.length-1] ];
   return disp;
 }
-function _renderFiltroAno(){
-  const disp = _garantirAnosSel();
-  const box = document.getElementById('indFiltro');
-  if(!disp.length){ box.style.display = 'none'; return; }
-  box.style.display = '';
-  const ord = ANOS_SEL.slice().sort();
-  document.getElementById('anoBtn').textContent = (ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', ')) + ' ▾';
-  document.getElementById('anoMenu').innerHTML =
-    disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="_anoMarcar(this)"> '+a+'</label>').join('')+
-    '<div class="ms-rod"><a href="#" onclick="return _anoTodos()">Todos</a><a href="#" onclick="return _anoAtual()">Ano atual</a></div>';
+function _renderFiltroAno(d){
+  const disp=_garantirAnosSel(d), box=$('indFiltro');
+  if(!disp.length){ box.style.display='none'; return; }
+  box.style.display='';
+  const ord=ANOS_SEL.slice().sort();
+  $('anoBtn').textContent=(ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', '))+' ▾';
+  $('anoMenu').innerHTML = disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="IND.anoMarcar(this)"> '+a+'</label>').join('')+
+    '<div class="ms-rod"><a href="#" onclick="return IND.anoTodos()">Todos</a><a href="#" onclick="return IND.anoAtual()">Ano atual</a></div>';
 }
-function _anoMarcar(cb){
-  const a = cb.value;
-  if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); }
-  else {
-    if(ANOS_SEL.length<=1){ cb.checked = true; return; }   // sempre fica pelo menos 1 ano selecionado
-    ANOS_SEL = ANOS_SEL.filter(x=>x!==a);
+function render(manterMenu){
+  const sec = CFG.secoes.find(s=>s.id===SEC) || CFG.secoes[0];
+  const d = sd(sec.id), tab=$('indTabela'), fonte=$('indFonte'), pills=$('indSecoes');
+  if(CFG.secoes.length>1){
+    pills.style.display='';
+    pills.innerHTML = CFG.secoes.map(s=>'<button type="button" class="'+(s.id===sec.id?'on':'')+'" onclick="IND.secao(\''+s.id+'\')">'+_esc(s.titulo)+'</button>').join('');
+  } else pills.style.display='none';
+  if(sec.tipo==='frota'){
+    $('indFiltro').style.display='none';
+    if(!d.grade){ tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return; }
+    tab.className='frota';
+    tab.innerHTML='<tbody>'+_htmlFrota(d, LAYOUT[sec.id]||{})+'</tbody>';
+  } else {
+    tab.className='';
+    if(!(d.linhas||[]).length){
+      $('indFiltro').style.display='none';
+      tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return;
+    }
+    _renderFiltroAno(d);
+    if(manterMenu===true) $('anoMenu').classList.add('aberto');
+    tab.innerHTML='<tbody>'+_montarHtmlTabela(d, LAYOUT[sec.id]||{}, AGG[sec.id]||{}, ANOS_SEL)+'</tbody>';
   }
-  renderIndicadores(true);
+  const quando = DB.atualizadoEm || d.atualizadoEm;
+  if(quando){
+    const dt=new Date(quando);
+    fonte.textContent='Fonte: planilha INDICADORES - BANDEIRA e VIAÇÃO SETE (aba '+(d.aba||sec.aba||'')+') - atualizado em '+dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    fonte.style.display='';
+  } else fonte.style.display='none';
 }
-function _anoTodos(){ ANOS_SEL = _anosDisponiveis().slice(); renderIndicadores(true); return false; }
-function _anoAtual(){ ANOS_SEL = null; renderIndicadores(true); return false; }
-function _anoToggle(ev){ ev.stopPropagation(); document.getElementById('anoMenu').classList.toggle('aberto'); }
-document.addEventListener('click', e=>{ const m=document.getElementById('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
-function renderIndicadores(manterMenu){
-  const tab = document.getElementById('indTabela');
-  const fonte = document.getElementById('indFonte');
-  if(!DB.linhas.length){
-    document.getElementById('indFiltro').style.display = 'none';
-    tab.innerHTML = '<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.</td></tr></tbody>';
-    fonte.style.display = 'none';
-    return;
+// ---- leitura da planilha (roteamento por nome de aba)
+function parseSecao(wb, sp){
+  const nome = wb.SheetNames.find(n=> sp.abas.indexOf(_norm(n))>=0); if(!nome) return null;
+  let g = _gradeDaAba(wb.Sheets[nome]);
+  if(sp.c0 || sp.c1!=null) g = g.map(l=>l.slice(sp.c0||0, sp.c1!=null ? sp.c1+1 : undefined));
+  if(sp.tipo==='frota'){ g = g.slice(0,sp.lin).map(l=>{ const x=l.slice(0,sp.col); while(x.length<sp.col) x.push(null); return x; }); return {tipo:'frota', grade:g, aba:nome}; }
+  const r = parseGrade(g); if(!r.linhas.filter(l=>l.k).length) return null;
+  r.aba = nome; return r;
+}
+function parseRota(wb, rota, prev){
+  const out = {}; let achou=false;
+  rota.secoes.forEach(sp=>{ const r=parseSecao(wb,sp); if(r){ out[sp.id]=r; achou=true; } });
+  if(!achou) return null;
+  if(!rota.multi) return out[rota.secoes[0].id];
+  const m = Object.assign({}, prev && prev.secoes ? prev.secoes : {}, out);
+  return { secoes: m };
+}
+function resumoDb(db){
+  if(db.secoes) return Object.keys(db.secoes).length+' seção(ões)';
+  if(db.grade) return 'matriz de frota';
+  return db.linhas.filter(l=>l.k).length+' indicador(es), '+db.meses.length+' mês(es) de '+_rotMes(db.meses[0])+' a '+_rotMes(db.meses[db.meses.length-1]);
+}
+async function processar(files){
+  const st=$('indStatus'); st.textContent='Processando...';
+  for(const f of files){
+    try{
+      const wb = XLSX.read(await f.arrayBuffer(), {type:'array', cellNF:true});
+      const feitos=[]; let proprio=false;
+      for(const rota of CFG.rotas){
+        const db = parseRota(wb, rota, rota.api===CFG.api ? DB : null); if(!db) continue;
+        db.atualizadoEm = new Date().toISOString(); db.arquivo = f.name;
+        if(rota.api===CFG.api){ DB=db; normalizar(); proprio=true; feitos.push(rota.nome+': '+resumoDb(db)); }
+        else { const ok = await postNuvem(rota.api, db); feitos.push(rota.nome+(ok?' (enviado)':' (falha ao enviar)')); }
+      }
+      if(!feitos.length && wb.SheetNames.length===1 && !CFG.multi && CFG.secoes[0].tipo!=='frota'){
+        const r=parseGrade(_gradeDaAba(wb.Sheets[wb.SheetNames[0]]));
+        if(r.linhas.filter(l=>l.k).length){ r.aba=wb.SheetNames[0]; r.atualizadoEm=new Date().toISOString(); r.arquivo=f.name; DB=r; normalizar(); proprio=true; feitos.push(resumoDb(r)); }
+      }
+      st.textContent = feitos.length ? f.name+' - '+feitos.join(' | ') : 'Erro em '+f.name+': nenhuma aba reconhecida. Abas do arquivo: '+wb.SheetNames.join(', ')+'.';
+      if(!proprio && feitos.length) st.textContent += ' | (esta planilha não trazia a aba deste setor)';
+    }catch(e){ console.error(e); st.textContent='Erro ao processar '+f.name+': '+e.message; }
   }
-  _renderFiltroAno();
-  if(manterMenu===true) document.getElementById('anoMenu').classList.add('aberto');
-  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, AGG, ANOS_SEL)+'</tbody>';
-  if(DB.atualizadoEm){
-    const d = new Date(DB.atualizadoEm);
-    fonte.textContent = 'Fonte: planilha INDICADORES - BANDEIRA (aba '+(DB.aba||'Operação')+') - atualizado em '+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    fonte.style.display = '';
-  } else fonte.style.display = 'none';
+  await saveDB(); render();
 }
-function trocarAba(btn){
-  document.querySelectorAll('nav.sidebar button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('main .tab').forEach(s=>s.classList.add('hidden'));
-  const sec = document.getElementById('tab-'+btn.dataset.tab);
-  if(sec) sec.classList.remove('hidden');
-}
-function exportarCSV(){
-  const linhas = [];
-  document.querySelectorAll('#indTabela tr').forEach(tr=>{
-    const cels = Array.from(tr.querySelectorAll('td')).map(c=>'"'+c.textContent.replace(/"/g,'""')+'"');
-    if(cels.length) linhas.push(cels.join(';'));
-  });
-  const blob = new Blob(['﻿'+linhas.join('\n')], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Indicadores_Bandeira_operacao.csv';
-  a.click();
-}
-
-(async function(){
-  await loadDB();
-  renderIndicadores();
+window.IND = {
+  anoToggle: function(ev){ ev.stopPropagation(); $('anoMenu').classList.toggle('aberto'); },
+  anoMarcar: function(cb){ const a=cb.value; if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); } else { if(ANOS_SEL.length<=1){ cb.checked=true; return; } ANOS_SEL=ANOS_SEL.filter(x=>x!==a); } render(true); },
+  anoTodos: function(){ ANOS_SEL=_anosDoDb(sd(SEC)).slice(); render(true); return false; },
+  anoAtual: function(){ ANOS_SEL=null; render(true); return false; },
+  secao: function(id){ SEC=id; ANOS_SEL=null; render(); },
+  abrir: function(){ $('indFile').click(); },
+  csv: function(){
+    const linhas=[]; document.querySelectorAll('#indTabela tr').forEach(tr=>{ const c=Array.from(tr.querySelectorAll('td')).map(x=>'"'+x.textContent.replace(/"/g,'""')+'"'); if(c.length) linhas.push(c.join(';')); });
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+linhas.join('\n')],{type:'text/csv;charset=utf-8;'})); a.download='Indicadores_'+CFG.api+'.csv'; a.click();
+  },
+  limpar: async function(){
+    if(!confirm('Isso vai apagar toda a base local dos Indicadores ('+CFG.nomeCompleto+'). Essa ação não pode ser desfeita. Confirma?')) return;
+    DB = {}; normalizar(); await saveDB(); render(); $('indStatus').textContent='Base local apagada.';
+  }
+};
+document.addEventListener('click', e=>{ const m=$('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
+if(!PUBLICO){ const fi=$('indFile'); if(fi) fi.addEventListener('change', async ev=>{ const fs=Array.from(ev.target.files); if(fs.length) await processar(fs); ev.target.value=''; }); }
+(async function(){ await loadDB(); render(); })();
 })();
 
 </script>

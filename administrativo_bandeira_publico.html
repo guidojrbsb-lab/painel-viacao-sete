@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Indicadores Administrativo - Bandeira Mobilidade</title>
 <style>
-/* Painel INDICADORES do setor ADMINISTRATIVO - Bandeira Mobilidade (2026-10-04). Mesma arquitetura
-   visual do DRE Bandeira (tokens, header, sidebar, panel). Espelha a aba "ADM" da planilha
-   INDICADORES - BANDEIRA.xlsx (valores calculados pelo Excel, formatos e cores copiados da planilha);
-   o painel nao recalcula nada, so importa e exibe. Erros de formula (#DIV/0!) aparecem como "-". */
+/* Painel INDICADORES ADMINISTRATIVO - Bandeira Mobilidade. Gerado a partir de "INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx"
+   (roteamento por nome de aba). Valores calculados pelo Excel; formatos/cores copiados da planilha; erros (#DIV/0!) viram "-". */
 :root{
   --azul:#00579c; --azul-dark:#00304f; --azul-mid:#013f6b; --azul-soft:#eaf2f9;
   --dourado:#efae25; --dourado-dark:#c98f11; --dourado-soft:#fdf6e3;
@@ -40,36 +38,47 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
 .panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:18px;box-shadow:var(--shadow-sm);}
 .panel h2{margin:0 0 14px;font-size:13.5px;font-weight:700;color:var(--ink);border-bottom:1px solid var(--border);padding-bottom:10px;padding-left:11px;position:relative;letter-spacing:.1px;}
 .panel h2::before{content:'';position:absolute;left:0;top:1px;bottom:11px;width:3px;border-radius:2px;background:var(--azul);}
-#uploadBar{position:fixed;bottom:0;left:148px;right:0;background:#fff;border-top:1px solid var(--border);box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;z-index:50;}
-#uploadBar .btn{background:var(--azul);color:#fff;border:none;padding:9px 16px;border-radius:var(--radius-sm);font-weight:700;font-size:12.5px;cursor:pointer;transition:background .15s;}
-#uploadBar .btn:hover{background:var(--azul-mid);}
-#uploadBar .btn.btn-sec{background:#fff;color:var(--azul);border:1.5px solid var(--border-strong);}
-#uploadBar .btn.btn-sec:hover{background:var(--azul-soft);}
-#uploadBar .btn.btn-perigo{background:#fff;color:var(--red);border:1.5px solid var(--red-soft);}
-#uploadBar .btn.btn-perigo:hover{background:var(--red-soft);}
-#uploadStatus{font-size:11.5px;color:var(--muted);flex-basis:100%;}
-.info-badge{display:inline-block;background:var(--azul-soft);color:var(--azul-dark);font-size:11px;font-weight:700;padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:12px;}
-.ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
-.ind-filtro > label{font-size:10.5px;font-weight:700;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;}
-#anoMS{position:relative;}
-#anoBtn{background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--azul);cursor:pointer;min-width:150px;text-align:left;}
-#anoBtn:hover{border-color:var(--azul);background:var(--azul-soft);}
-#anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:170px;padding:6px 0;}
-#anoMenu.aberto{display:block;}
-#anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:var(--ink);cursor:pointer;}
-#anoMenu label:hover{background:var(--azul-soft);}
-#anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);margin-top:4px;padding:7px 14px 3px;font-size:11px;}
-#anoMenu .ms-rod a{color:var(--azul);font-weight:700;text-decoration:none;}
-.scroll-box{overflow:auto;max-height:72vh;border:1px solid var(--border);border-radius:var(--radius-md);background:#fff;}
-#indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
-#indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
-#indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
-#indTabela td.txt{text-align:center;}
-#indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
-#indTabela td.sp i{display:block;width:31px;height:1px;}
-#indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
-#indTabela tr.ind-h td.lab{text-align:left;}
-#indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
+
+.indp{--ia:#00579c;--iad:#00304f;--ias:#eaf2f9;background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,24,54,.05);color:#151b2b;}
+.indp h2{margin:0 0 14px;font-size:13.5px;font-weight:700;color:#151b2b;border-bottom:1px solid #e5e8f0;padding-bottom:10px;padding-left:11px;position:relative;letter-spacing:.1px;}
+.indp h2::before{content:'';position:absolute;left:0;top:1px;bottom:11px;width:3px;border-radius:2px;background:var(--ia);}
+.indp .ind-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-bar.fixa{position:fixed;bottom:0;left:148px;right:0;margin:0;background:#fff;border-top:1px solid #e5e8f0;box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;z-index:50;}
+.indp .ind-btn{background:var(--ia);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:12.5px;cursor:pointer;}
+.indp .ind-btn:hover{background:var(--iad);}
+.indp .ind-btn.sec{background:#fff;color:var(--ia);border:1.5px solid #d6dae5;}
+.indp .ind-btn.sec:hover{background:var(--ias);}
+.indp .ind-btn.per{background:#fff;color:#b71930;border:1.5px solid #fdecee;}
+.indp .ind-btn.per:hover{background:#fdecee;}
+.indp #indStatus{font-size:11.5px;color:#6b7280;flex-basis:100%;}
+.indp .ind-secoes{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-secoes button{background:#fff;border:1.5px solid #d6dae5;color:var(--ia);padding:7px 14px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer;}
+.indp .ind-secoes button.on{background:var(--ia);border-color:var(--ia);color:#fff;}
+.indp .info-badge{display:inline-block;background:var(--ias);color:var(--iad);font-size:11px;font-weight:700;padding:6px 10px;border-radius:9px;margin-bottom:12px;}
+.indp .ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+.indp .ind-filtro > label{font-size:10.5px;font-weight:700;color:#6b7280;letter-spacing:.4px;text-transform:uppercase;}
+.indp #anoMS{position:relative;}
+.indp #anoBtn{background:#fff;border:1px solid #d6dae5;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--ia);cursor:pointer;min-width:150px;text-align:left;}
+.indp #anoBtn:hover{border-color:var(--ia);background:var(--ias);}
+.indp #anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid #d6dae5;border-radius:9px;box-shadow:0 10px 30px rgba(16,24,54,.16);min-width:170px;padding:6px 0;}
+.indp #anoMenu.aberto{display:block;}
+.indp #anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:#151b2b;cursor:pointer;}
+.indp #anoMenu label:hover{background:var(--ias);}
+.indp #anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #e5e8f0;margin-top:4px;padding:7px 14px 3px;font-size:11px;}
+.indp #anoMenu .ms-rod a{color:var(--ia);font-weight:700;text-decoration:none;}
+.indp .scroll-box{overflow:auto;max-height:72vh;border:1px solid #e5e8f0;border-radius:12px;background:#fff;}
+.indp #indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
+.indp #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
+.indp #indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
+.indp #indTabela td.txt{text-align:center;}
+.indp #indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
+.indp #indTabela td.sp i{display:block;width:31px;height:1px;}
+.indp #indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
+.indp #indTabela tr.ind-h td.lab{text-align:left;}
+.indp #indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
+.indp #indTabela.frota td{text-align:center;}
+.indp #indTabela.frota td.lab{text-align:left;min-width:190px;}
+@media print{.indp .ind-bar,.indp .ind-secoes,.indp .ind-filtro{display:none !important;}}
 
 </style>
 </head>
@@ -79,105 +88,71 @@ main{flex:1;min-width:0;padding:18px 22px 24px;}
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Bandeira Mobilidade &middot; Administrativo</span>
-    <h1 id="tituloAba">Indicadores</h1>
+    <h1>Indicadores</h1>
   </div>
   <a href="bandeira-mobilidade.html" class="btn-voltar">&#8592; Painel</a>
 </header>
 <div class="layout">
   <nav class="sidebar">
-    <button class="active" data-tab="indicadores" onclick="trocarAba(this)"><span class="ic">&#128202;</span>Indicadores</button>
+    <button class="active" data-tab="indicadores"><span class="ic">&#128202;</span>Indicadores</button>
   </nav>
   <main>
-    <section class="tab" id="tab-indicadores">
-      <div class="panel">
-        <h2>Indicadores - Administrativo</h2>
-        <div class="ind-filtro" id="indFiltro" style="display:none">
-          <label>Ano</label>
-          <div id="anoMS"><button type="button" id="anoBtn" onclick="_anoToggle(event)"></button><div id="anoMenu"></div></div>
-        </div>
-        <span class="info-badge" id="indFonte" style="display:none"></span>
-        <div class="scroll-box"><table id="indTabela"></table></div>
+  <section class="tab" id="tab-indicadores">
+    <div class="indp">
+      <h2>Indicadores - Administrativo</h2>
+      
+      <div id="indSecoes" class="ind-secoes" style="display:none"></div>
+      <div class="ind-filtro" id="indFiltro" style="display:none">
+        <label>Ano</label>
+        <div id="anoMS"><button type="button" id="anoBtn" onclick="IND.anoToggle(event)"></button><div id="anoMenu"></div></div>
       </div>
-    </section>
+      <span class="info-badge" id="indFonte" style="display:none"></span>
+      <div class="scroll-box"><table id="indTabela"></table></div>
+    </div>
+  </section>
   </main>
 </div>
-
 <script>
 
-const IDB_NOME = 'bandeira_ind_administrativo_idb', IDB_STORE = 'kv', IDB_CHAVE = 'bandeira_ind_administrativo_v1';
-function _idbAbrir(){
-  return new Promise((resolve, reject)=>{
-    const req = indexedDB.open(IDB_NOME, 1);
-    req.onupgradeneeded = ()=> req.result.createObjectStore(IDB_STORE);
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-function _idbGet(conn, chave){
-  return new Promise((resolve, reject)=>{
-    const tx = conn.transaction(IDB_STORE, 'readonly');
-    const req = tx.objectStore(IDB_STORE).get(chave);
-    req.onsuccess = ()=> resolve(req.result);
-    req.onerror = ()=> reject(req.error);
-  });
-}
-function _idbPut(conn, chave, valor){
-  return new Promise((resolve, reject)=>{
-    const tx = conn.transaction(IDB_STORE, 'readwrite');
-    tx.objectStore(IDB_STORE).put(valor, chave);
-    tx.oncomplete = ()=> resolve();
-    tx.onerror = ()=> reject(tx.error);
-  });
-}
-// Sincronização com o link público -- mesmo mecanismo "Opção 3" dos demais painéis (endpoint
-// api/dados.js), com setor='bandeira_administrativo'.
-let EMBEDDED_DB = {"linhas":[],"meses":[],"resumo":[]};
-const MODO_PUBLICO = !!EMBEDDED_DB;
+(function(){
+'use strict';
+const CFG = {"api":"bandeira_administrativo","idb":"bandeira_ind_administrativo_idb","chave":"bandeira_ind_administrativo_v1","publico":true,"multi":false,"nomeCompleto":"Bandeira Mobilidade - Administrativo","rotas":[{"api":"bandeira_operacao","nome":"Bandeira Operação","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["operacao - bandeira","operacao"]}]},{"api":"bandeira_administrativo","nome":"Bandeira Administrativo","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["adm - bandeira","adm","administrativo"]}]},{"api":"bandeira_manutencao","nome":"Bandeira Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - bandeira","manutencao"]}]},{"api":"manutencao_indicadores","nome":"V7 Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - v7"]}]},{"api":"operacao_indicadores","nome":"V7 Operação","multi":false,"secoes":[{"id":"main","tipo":"frota","abas":["operacao (frota) - v7"],"lin":53,"col":12}]},{"api":"administrativo_indicadores","nome":"V7 Administrativo","multi":true,"secoes":[{"id":"ind","tipo":"grade","abas":["adm - v7"]},{"id":"pessoal","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":0,"c1":12},{"id":"fu","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":14,"c1":26}]}],"vazio":"Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.","secoes":[{"id":"main","titulo":"Indicadores","tipo":"grade","aba":"ADM - BANDEIRA"}]};
+const LAYOUT = {"main":{"0|motorista|1":{"f":"D2DEEF"},"0|manutencao|1":{"f":"EAEFF7"},"0|operacao|1":{"f":"D2DEEF"},"0|adm|1":{"f":"EAEFF7"},"0|total|1":{"f":"D2DEEF","b":1},"0|frota (ope )|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|f.u. (10% frota reserva)|1":{"f":"D2DEEF","b":1},"0|jovem aprendiz|1":{"f":"D2DEEF"},"0|pj|1":{"f":"EAEFF7"},"1|funcionarios total|1":{"f":"EAEFF7"},"1|fu total|1":{"f":"D2DEEF"},"1|salarios - relacao nominal|1":{"f":"EAEFF7"},"1|dobro / folga trabalhada|1":{"f":"D2DEEF"},"1|feriado/hora extra|1":{"f":"EAEFF7"},"1|outros (peric/insal/adic not)|1":{"f":"D2DEEF"},"1|descontos (avaria/multa)|1":{"f":"EAEFF7","r":1},"1|inss - funcionario|1":{"f":"D2DEEF","r":1},"1|inss - desonerado|1":{"f":"EAEFF7"},"1|fgts|1":{"f":"D2DEEF"},"1|consignado|1":{"f":"EAEFF7"},"1|beneficios (ticket 355,00)|1":{"f":"D2DEEF"},"1|custo folha total|1":{"f":"EAEFF7"},"1|% encargos/beneficio|1":{"f":"D2DEEF"},"1|custo total pj|1":{"f":"EAEFF7"},"1|demissao|1":{"f":"D2DEEF"},"1|faltas|1":{"f":"EAEFF7"},"1|atestad0s - dias|1":{"f":"D2DEEF"},"1|processo trabalhistas|1":{"f":"EAEFF7"},"1|trabalhista novos|1":{"f":"D2DEEF"},"1|trabalhista acordo|1":{"f":"EAEFF7"},"1|processos civel|1":{"f":"D2DEEF"},"1|civeis novos|1":{"f":"EAEFF7"},"1|civeis acordos|1":{"f":"D2DEEF"},"2|asos vencidos|1":{"f":"D2DEEF"},"2|resolucao 789 vencidas|1":{"f":"EAEFF7"},"2|cnh vencidas|1":{"f":"D2DEEF"},"2|pgr|1":{"f":"EAEFF7","r":1},"2|pcmso|1":{"f":"D2DEEF","r":1},"3|crf - caixa economica|1":{"f":"D2DEEF"},"3|cnd - inss e divida uniao|1":{"f":"EAEFF7"},"3|cnd - debitos estaduais|1":{"f":"D2DEEF"},"3|serasa / spc|1":{"f":"EAEFF7"},"3|falencia e concordata|1":{"f":"D2DEEF"},"3|cnd - debitos municipais|1":{"f":"EAEFF7"},"3|cndt - trabalhista|1":{"f":"D2DEEF"},"3|licenca operacional - lo|1":{"f":"EAEFF7"},"3|atestado de bombeiro|1":{"f":"D2DEEF"},"4|treinamento func|1":{"f":"D2DEEF","r":1},"4|pcd (% por lei)|1":{"f":"EAEFF7","r":1},"4|jovem aprendiz (% por lei)|1":{"f":"D2DEEF","r":1}}};
+const AGG = {"main":{"0|motorista|1":{"t":"A","z":"0"},"0|manutencao|1":{"t":"A","z":"0"},"0|operacao|1":{"t":"A","z":"0"},"0|adm|1":{"t":"A","z":"0"},"0|total|1":{"t":"E","e":"(V(\"0|motorista|1\")+V(\"0|manutencao|1\")+V(\"0|operacao|1\")+V(\"0|adm|1\"))","r":["0|adm|1","0|manutencao|1","0|motorista|1","0|operacao|1"],"z":"0"},"0|frota (ope )|1":{"t":"A","z":"0"},"0|frota reserva|1":{"t":"A","z":"0"},"0|f.u. (10% frota reserva)|1":{"t":"E","e":"V(\"0|total|1\")/(V(\"0|frota (ope )|1\")*1.1)","r":["0|frota (ope )|1","0|total|1"],"z":"0.00"},"0|jovem aprendiz|1":{"t":"A","z":"0"},"0|pj|1":{"t":"A","z":"0"},"1|funcionarios total|1":{"t":"A","z":"0"},"1|fu total|1":{"t":"A","z":"0.00"},"1|salarios - relacao nominal|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|dobro / folga trabalhada|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|feriado/hora extra|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|outros (peric/insal/adic not)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|descontos (avaria/multa)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - funcionario|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - desonerado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|fgts|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|consignado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|beneficios (ticket 355,00)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|custo folha total|1":{"t":"E","e":"(V(\"1|salarios - relacao nominal|1\")+V(\"1|dobro / folga trabalhada|1\")+V(\"1|feriado/hora extra|1\")+V(\"1|outros (peric/insal/adic not)|1\")+V(\"1|descontos (avaria/multa)|1\")+V(\"1|inss - funcionario|1\")+V(\"1|inss - desonerado|1\")+V(\"1|fgts|1\")+V(\"1|consignado|1\")+V(\"1|beneficios (ticket 355,00)|1\"))","r":["1|beneficios (ticket 355,00)|1","1|consignado|1","1|descontos (avaria/multa)|1","1|dobro / folga trabalhada|1","1|feriado/hora extra|1","1|fgts|1","1|inss - desonerado|1","1|inss - funcionario|1","1|outros (peric/insal/adic not)|1","1|salarios - relacao nominal|1"],"z":"#,##0_ ;\\-#,##0\\ "},"1|% encargos/beneficio|1":{"t":"E","e":"V(\"1|custo folha total|1\")/V(\"1|salarios - relacao nominal|1\")-1","r":["1|custo folha total|1","1|salarios - relacao nominal|1"],"z":"0%"},"1|custo total pj|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|demissao|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|faltas|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|atestad0s - dias|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processo trabalhistas|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista acordo|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processos civel|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis acordos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"2|asos vencidos|1":{"t":"L","z":"General"},"2|resolucao 789 vencidas|1":{"t":"L","z":"#,##0"},"2|cnh vencidas|1":{"t":"L","z":"#,##0"},"2|pgr|1":null,"2|pcmso|1":null,"3|crf - caixa economica|1":null,"3|cnd - inss e divida uniao|1":null,"3|cnd - debitos estaduais|1":null,"3|serasa / spc|1":null,"3|falencia e concordata|1":null,"3|cnd - debitos municipais|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|cndt - trabalhista|1":null,"3|licenca operacional - lo|1":null,"3|atestado de bombeiro|1":null,"4|treinamento func|1":{"t":"A","z":"0%"},"4|pcd (% por lei)|1":{"t":"A","z":"0%"},"4|jovem aprendiz (% por lei)|1":{"t":"A","z":"0%"}}};
+const IDB_STORE = 'kv';
+function _idbAbrir(){ return new Promise((res,rej)=>{ const q=indexedDB.open(CFG.idb,1); q.onupgradeneeded=()=>q.result.createObjectStore(IDB_STORE); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbGet(c,k){ return new Promise((res,rej)=>{ const q=c.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbPut(c,k,v){ return new Promise((res,rej)=>{ const t=c.transaction(IDB_STORE,'readwrite'); t.objectStore(IDB_STORE).put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+const SEED = {"linhas":[{"h":1,"rot":"1- Quadro de Pessoal","blk":0},{"k":"0|motorista|1","rot":"Motorista","c":{"2025-05":{"v":51,"z":"0"},"2025-06":{"v":54,"z":"0"},"2025-07":{"v":56,"z":"0"},"2025-08":{"v":51,"z":"0"},"2025-09":{"v":51,"z":"0"},"2025-10":{"v":51,"z":"0"},"2025-11":{"v":56,"z":"0"},"2025-12":{"v":55,"z":"0"},"2026-01":{"v":55,"z":"0"},"2026-02":{"v":53,"z":"0"},"2026-03":{"v":50,"z":"0"},"2026-04":{"v":52,"z":"0"},"2026-05":{"v":52,"z":"0"},"2026-06":{"v":53,"z":"0"},"2026-07":{"v":54,"z":"0"},"2026-08":{"v":53,"z":"0"}}},{"k":"0|manutencao|1","rot":"Manutenção","c":{"2025-05":{"v":17,"z":"0"},"2025-06":{"v":19,"z":"0"},"2025-07":{"v":18,"z":"0"},"2025-08":{"v":16,"z":"0"},"2025-09":{"v":16,"z":"0"},"2025-10":{"v":15,"z":"0"},"2025-11":{"v":14,"z":"0"},"2025-12":{"v":13,"z":"0"},"2026-01":{"v":9,"z":"0"},"2026-02":{"v":9,"z":"0"},"2026-03":{"v":9,"z":"0"},"2026-04":{"v":9,"z":"0"},"2026-05":{"v":9,"z":"0"},"2026-06":{"v":9,"z":"0"},"2026-07":{"v":9,"z":"0"},"2026-08":{"v":9,"z":"0"}}},{"k":"0|operacao|1","rot":"Operação","c":{"2025-05":{"v":8,"z":"0"},"2025-06":{"v":8,"z":"0"},"2025-07":{"v":8,"z":"0"},"2025-08":{"v":7,"z":"0"},"2025-09":{"v":8,"z":"0"},"2025-10":{"v":8,"z":"0"},"2025-11":{"v":5,"z":"0"},"2025-12":{"v":5,"z":"0"},"2026-01":{"v":5,"z":"0"},"2026-02":{"v":5,"z":"0"},"2026-03":{"v":5,"z":"0"},"2026-04":{"v":5,"z":"0"},"2026-05":{"v":5,"z":"0"},"2026-06":{"v":5,"z":"0"},"2026-07":{"v":5,"z":"0"},"2026-08":{"v":5,"z":"0"}}},{"k":"0|adm|1","rot":"ADM","c":{"2025-05":{"v":3,"z":"0"},"2025-06":{"v":3,"z":"0"},"2025-07":{"v":4,"z":"0"},"2025-08":{"v":4,"z":"0"},"2025-09":{"v":4,"z":"0"},"2025-10":{"v":4,"z":"0"},"2025-11":{"v":5,"z":"0"},"2025-12":{"v":5,"z":"0"},"2026-01":{"v":6,"z":"0"},"2026-02":{"v":5,"z":"0"},"2026-03":{"v":3,"z":"0"},"2026-04":{"v":3,"z":"0"},"2026-05":{"v":3,"z":"0"},"2026-06":{"v":3,"z":"0"},"2026-07":{"v":3,"z":"0"},"2026-08":{"v":3,"z":"0"}}},{"k":"0|total|1","rot":"Total","c":{"2025-05":{"v":79,"z":"0"},"2025-06":{"v":84,"z":"0"},"2025-07":{"v":86,"z":"0"},"2025-08":{"v":78,"z":"0"},"2025-09":{"v":79,"z":"0"},"2025-10":{"v":78,"z":"0"},"2025-11":{"v":80,"z":"0"},"2025-12":{"v":78,"z":"0"},"2026-01":{"v":75,"z":"0"},"2026-02":{"v":72,"z":"0"},"2026-03":{"v":67,"z":"0"},"2026-04":{"v":69,"z":"0"},"2026-05":{"v":69,"z":"0"},"2026-06":{"v":70,"z":"0"},"2026-07":{"v":71,"z":"0"},"2026-08":{"v":70,"z":"0"},"2026-09":{"v":0,"z":"0"},"2026-10":{"v":0,"z":"0"},"2026-11":{"v":0,"z":"0"},"2026-12":{"v":0,"z":"0"}}},{"gap":1},{"k":"0|frota (ope )|1","rot":"Frota (OPE )","c":{"2025-05":{"v":29,"z":"0"},"2025-06":{"v":29,"z":"0"},"2025-07":{"v":29,"z":"0"},"2025-08":{"v":28,"z":"0"},"2025-09":{"v":28,"z":"0"},"2025-10":{"v":28,"z":"0"},"2025-11":{"v":28,"z":"0"},"2025-12":{"v":28,"z":"0"},"2026-01":{"v":28,"z":"0"},"2026-02":{"v":25,"z":"0"},"2026-03":{"v":28,"z":"0"},"2026-04":{"v":28,"z":"0"},"2026-05":{"v":28,"z":"0"},"2026-06":{"v":28,"z":"0"},"2026-07":{"v":28,"z":"0"},"2026-08":{"v":28,"z":"0"}}},{"k":"0|frota reserva|1","rot":"Frota Reserva","c":{"2025-05":{"v":1,"z":"0"},"2025-06":{"v":1,"z":"0"},"2025-07":{"v":2,"z":"0"},"2025-08":{"v":4,"z":"0"},"2025-09":{"v":2,"z":"0"},"2025-10":{"v":2,"z":"0"},"2025-11":{"v":10,"z":"0"},"2025-12":{"v":10,"z":"0"},"2026-01":{"v":7,"z":"0"},"2026-02":{"v":10,"z":"0"},"2026-03":{"v":7,"z":"0"},"2026-04":{"v":7,"z":"0"},"2026-05":{"v":7,"z":"0"},"2026-06":{"v":7,"z":"0"},"2026-07":{"v":7,"z":"0"},"2026-08":{"v":7,"z":"0"}}},{"gap":1},{"k":"0|f.u. (10% frota reserva)|1","rot":"F.U. (10% frota reserva)","c":{"2025-05":{"v":2.476489028213166,"z":"0.00"},"2025-06":{"v":2.633228840125392,"z":"0.00"},"2025-07":{"v":2.695924764890282,"z":"0.00"},"2025-08":{"v":2.5324675324675323,"z":"0.00"},"2025-09":{"v":2.5649350649350646,"z":"0.00"},"2025-10":{"v":2.5324675324675323,"z":"0.00"},"2025-11":{"v":2.597402597402597,"z":"0.00"},"2025-12":{"v":2.5324675324675323,"z":"0.00"},"2026-01":{"v":2.435064935064935,"z":"0.00"},"2026-02":{"v":2.6181818181818177,"z":"0.00"},"2026-03":{"v":2.175324675324675,"z":"0.00"},"2026-04":{"v":2.2402597402597397,"z":"0.00"},"2026-05":{"v":2.2402597402597397,"z":"0.00"},"2026-06":{"v":2.2727272727272725,"z":"0.00"},"2026-07":{"v":2.305194805194805,"z":"0.00"},"2026-08":{"v":2.2727272727272725,"z":"0.00"},"2026-09":{"v":"#DIV/0!","z":"0.00"},"2026-10":{"v":"#DIV/0!","z":"0.00"},"2026-11":{"v":"#DIV/0!","z":"0.00"},"2026-12":{"v":"#DIV/0!","z":"0.00"}}},{"gap":1},{"k":"0|jovem aprendiz|1","rot":"Jovem Aprendiz","c":{"2025-09":{"v":2,"z":"0"},"2025-10":{"v":2,"z":"0"},"2025-11":{"v":3,"z":"0"},"2025-12":{"v":3,"z":"0"},"2026-01":{"v":3,"z":"0"},"2026-02":{"v":3,"z":"0"},"2026-03":{"v":3,"z":"0"},"2026-04":{"v":3,"z":"0"},"2026-05":{"v":3,"z":"0"},"2026-06":{"v":3,"z":"0"},"2026-07":{"v":3,"z":"0"},"2026-08":{"v":3,"z":"0"}}},{"k":"0|pj|1","rot":"PJ","c":{"2025-05":{"v":4,"z":"0"},"2025-06":{"v":4,"z":"0"},"2025-07":{"v":4,"z":"0"},"2025-08":{"v":2,"z":"0"},"2025-09":{"v":2,"z":"0"},"2025-10":{"v":2,"z":"0"},"2025-11":{"v":1,"z":"0"},"2025-12":{"v":1,"z":"0"},"2026-01":{"v":1,"z":"0"},"2026-02":{"v":1,"z":"0"},"2026-03":{"v":1,"z":"0"},"2026-04":{"v":1,"z":"0"},"2026-05":{"v":1,"z":"0"},"2026-06":{"v":1,"z":"0"},"2026-07":{"v":1,"z":"0"},"2026-08":{"v":1,"z":"0"}}},{"gap":1},{"h":1,"rot":"Indicadores","blk":1},{"k":"1|funcionarios total|1","rot":"FUNCIONÁRIOS TOTAL","c":{"2025-05":{"v":79,"z":"0"},"2025-06":{"v":84,"z":"0"},"2025-07":{"v":86,"z":"0"},"2025-08":{"v":78,"z":"0"},"2025-09":{"v":79,"z":"0"},"2025-10":{"v":78,"z":"0"},"2025-11":{"v":80,"z":"0"},"2025-12":{"v":78,"z":"0"},"2026-01":{"v":75,"z":"0"},"2026-02":{"v":72,"z":"0"},"2026-03":{"v":67,"z":"0"},"2026-04":{"v":69,"z":"0"},"2026-05":{"v":69,"z":"0"},"2026-06":{"v":70,"z":"0"},"2026-07":{"v":71,"z":"0"},"2026-08":{"v":70,"z":"0"},"2026-09":{"v":0,"z":"0"},"2026-10":{"v":0,"z":"0"},"2026-11":{"v":0,"z":"0"},"2026-12":{"v":0,"z":"0"}}},{"k":"1|fu total|1","rot":"FU TOTAL","c":{"2025-05":{"v":2.476489028213166,"z":"0.00"},"2025-06":{"v":2.633228840125392,"z":"0.00"},"2025-07":{"v":2.695924764890282,"z":"0.00"},"2025-08":{"v":2.5324675324675323,"z":"0.00"},"2025-09":{"v":2.5649350649350646,"z":"0.00"},"2025-10":{"v":2.5324675324675323,"z":"0.00"},"2025-11":{"v":2.597402597402597,"z":"0.00"},"2025-12":{"v":2.5324675324675323,"z":"0.00"},"2026-01":{"v":2.435064935064935,"z":"0.00"},"2026-02":{"v":2.6181818181818177,"z":"0.00"},"2026-03":{"v":2.175324675324675,"z":"0.00"},"2026-04":{"v":2.2402597402597397,"z":"0.00"},"2026-05":{"v":2.2402597402597397,"z":"0.00"},"2026-06":{"v":2.2727272727272725,"z":"0.00"},"2026-07":{"v":2.305194805194805,"z":"0.00"},"2026-08":{"v":2.2727272727272725,"z":"0.00"},"2026-09":{"v":"#DIV/0!","z":"0.00"},"2026-10":{"v":"#DIV/0!","z":"0.00"},"2026-11":{"v":"#DIV/0!","z":"0.00"},"2026-12":{"v":"#DIV/0!","z":"0.00"}}},{"k":"1|salarios - relacao nominal|1","rot":"SALÁRIOS - RELAÇÃO NOMINAL","c":{"2025-05":{"v":39774.5,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":198377.14,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":206324.27,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":193462.26,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":190122.9,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":185602.46,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":189093.53,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":201416.89,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":175719.8,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":179211.77,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":179211.77,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":173142.09,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":172135.05,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":189031.45,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":176075.57,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":184150.7,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|dobro / folga trabalhada|1","rot":"Dobro / Folga Trabalhada","c":{"2025-05":{"v":19356.82,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":16832.08,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":5158.33,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":2073.01,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":11676.92,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":14421.28,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":11627.13,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":3872.25,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":2378.92,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":2339.7200000000003,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":2339.7200000000003,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":12272.61,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":11443.23,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":11994.13,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":10896.32,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":17382.83,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|feriado/hora extra|1","rot":"Feriado/Hora Extra","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":3289.09,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":6759.55,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":367.07,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":4641.44,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":3085.71,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":11262.16,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":581.25,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":5591.92,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":702.91,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":702.91,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":6578.87,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":4888.35,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":6508.65,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":4252.19,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":63.29,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|outros (peric/insal/adic not)|1","rot":"Outros (Peric/Insal/Adic Not)","c":{"2025-05":{"v":504.88,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":2833.64,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":5679.94,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":4402.95,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":4220.28,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":4757.379999999999,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":5212.28,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":3607.67,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":3338.7000000000003,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":3545.1000000000004,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":3545.1000000000004,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":3453.86,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":3144.44,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":3833.75,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":3347.15,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":3441.61,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|descontos (avaria/multa)|1","rot":"Descontos (avaria/multa)","c":{"2025-05":{"v":-222.5,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":-1000,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":-1551.75,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":-1137.29,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":-695.8,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":-1836.55,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":-641.18,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":-2373.27,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":-4060.2199999999975,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":-7188.0599999999995,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":-5509.81,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":-4405.29,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":-4330.47,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":-3287.46,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":-2146.35,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":-18627.670000000002,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|inss - funcionario|1","rot":"INSS - Funcionário","c":{"2025-05":{"v":-4500.78,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":-18193.7,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":-18394.25,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":-16320.26,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":-17411.760000000002,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":-16946.5,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":-17719.73,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":-17086.54,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":-15732.4,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":-15498.29,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":-16432.59,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":-16616.97,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":-16275.24,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":-18115.969999999998,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":-16848.38,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":-17554.05,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|inss - desonerado|1","rot":"INSS - DESONERADO","c":{"2025-05":{"v":18274.019999999997,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":64092.79936,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":66105.42450000001,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":62586.02,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":63527.44,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":63906.09999999999,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":67098.98000000001,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":62290.42,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":68044.29,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":60449.95000000001,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":60449.95000000001,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":64903.150000000016,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":65025.32000000001,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":70850.75,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":71240.31,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":59503.54,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|fgts|1","rot":"FGTS","c":{"2025-05":{"v":4800.53,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":17707,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":17660.12,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":15195.53,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":17558.79,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":16414.95,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":21087.18,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":24137.52,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":15974.93,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":14880,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":15157.27,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":15800.4,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":15588.84,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":17134.72,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":17397.65,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":17174.69,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|consignado|1","rot":"Consignado","c":{"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":1806.32,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":3387.11,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":3169.91,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":3493.71,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":4785.95,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":5516.77,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":8565.87,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":9890.05,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|beneficios (ticket 355,00)|1","rot":"Benefícios (ticket 355,00)","c":{"2025-05":{"v":9762.75,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":29110.04,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":29110.03,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":28476.65,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":27098.34,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":26932.67,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":27382.33,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":28506.5,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":24506.81,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":25276,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":24116.35,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":23548.41,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":23193.440000000002,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":25244.85,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":23786.850000000002,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":24359.5,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|custo folha total|1","rot":"Custo Folha Total","c":{"2025-05":{"v":87750.22,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":313048.08936,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":316851.66449999996,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":289105.94,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":300738.55000000005,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":296337.5,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":314402.68000000005,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":304952.69000000006,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":277569.07,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":267106.20999999996,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":266750.58,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":282170.83999999997,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":279598.91000000003,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":308711.64,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":296567.18,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":279784.49,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|% encargos/beneficio|1","rot":"% Encargos/Benefício","c":{"2025-05":{"v":1.2061929125444695,"z":"0%"},"2025-06":{"v":0.5780451787942904,"z":"0%"},"2025-07":{"v":0.5356974945313024,"z":"0%"},"2025-08":{"v":0.49437900704767945,"z":"0%"},"2025-09":{"v":0.5818112915382632,"z":"0%"},"2025-10":{"v":0.5966248507697582,"z":"0%"},"2025-11":{"v":0.6626834350175812,"z":"0%"},"2025-12":{"v":0.5140373282498802,"z":"0%"},"2026-01":{"v":0.579611802426363,"z":"0%"},"2026-02":{"v":0.4904501529112735,"z":"0%"},"2026-03":{"v":0.48846574083833905,"z":"0%"},"2026-04":{"v":0.6297067916876824,"z":"0%"},"2026-05":{"v":0.6242996995672878,"z":"0%"},"2026-06":{"v":0.6331231654838387,"z":"0%"},"2026-07":{"v":0.684317591588657,"z":"0%"},"2026-08":{"v":0.5193235214419494,"z":"0%"},"2026-09":{"v":"#DIV/0!","z":"0%"},"2026-10":{"v":"#DIV/0!","z":"0%"},"2026-11":{"v":"#DIV/0!","z":"0%"},"2026-12":{"v":"#DIV/0!","z":"0%"}}},{"k":"1|custo total pj|1","rot":"Custo Total PJ","c":{"2025-05":{"v":5683.333333333333,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":16565,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":16565,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":10560,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":10560,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":10560,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":6705,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":7052.8,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":7052.8,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":7052.8,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|demissao|1","rot":"DEMISSÃO","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":7,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":4,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":5,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":2,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":4,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":5,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":5,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":2,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|faltas|1","rot":"FALTAS","c":{"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":2,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":15,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":7,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":24,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":34,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":84,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|atestad0s - dias|1","rot":"ATESTAD0S - DIAS","c":{"2025-06":{"v":20,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":20,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":14,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":165,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":46,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":39,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":13,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":28,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":42,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":30,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":22,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":17,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":8,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":14,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":21,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|processo trabalhistas|1","rot":"PROCESSO TRABALHISTAS","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":2,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":2,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":4,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|trabalhista novos|1","rot":"Trabalhista Novos","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|trabalhista acordo|1","rot":"Trabalhista Acordo","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|processos civel|1","rot":"PROCESSOS CÍVEL","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|civeis novos|1","rot":"Cíveis Novos","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"1|civeis acordos|1","rot":"Cíveis Acordos","c":{"2025-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2025-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"gap":1},{"h":1,"rot":"SESMT / SEG Trabalho","blk":2},{"k":"2|asos vencidos|1","rot":"ASOS VENCIDOS","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":0,"z":"General"},"2025-09":{"v":0,"z":"General"},"2025-10":{"v":0,"z":"General"},"2025-11":{"v":0,"z":"General"},"2025-12":{"v":0,"z":"General"},"2026-01":{"v":0,"z":"General"},"2026-02":{"v":0,"z":"General"},"2026-03":{"v":0,"z":"General"},"2026-04":{"v":0,"z":"General"},"2026-05":{"v":0,"z":"General"},"2026-06":{"v":23,"z":"General"},"2026-07":{"v":24,"z":"General"}}},{"k":"2|resolucao 789 vencidas|1","rot":"RESOLUÇÃO 789 VENCIDAS","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":0,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":15,"z":"#,##0"},"2025-12":{"v":0,"z":"#,##0"},"2026-01":{"v":0,"z":"#,##0"},"2026-02":{"v":0,"z":"#,##0"},"2026-03":{"v":0,"z":"#,##0"},"2026-04":{"v":0,"z":"#,##0"},"2026-05":{"v":0,"z":"#,##0"},"2026-06":{"v":0,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":0,"z":"#,##0"}}},{"k":"2|cnh vencidas|1","rot":"CNH VENCIDAS","c":{"2025-05":{"v":0,"z":"#,##0"},"2025-06":{"v":0,"z":"#,##0"},"2025-07":{"v":0,"z":"#,##0"},"2025-08":{"v":0,"z":"#,##0"},"2025-09":{"v":0,"z":"#,##0"},"2025-10":{"v":0,"z":"#,##0"},"2025-11":{"v":0,"z":"#,##0"},"2025-12":{"v":0,"z":"#,##0"},"2026-01":{"v":3,"z":"#,##0"},"2026-02":{"v":3,"z":"#,##0"},"2026-03":{"v":1,"z":"#,##0"},"2026-04":{"v":2,"z":"#,##0"},"2026-05":{"v":2,"z":"#,##0"},"2026-06":{"v":0,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":0,"z":"#,##0"}}},{"k":"2|pgr|1","rot":"PGR","c":{"2025-05":{"v":"não","z":"#,##0"},"2025-06":{"v":"não","z":"#,##0"},"2025-07":{"v":"não","z":"#,##0"},"2025-08":{"v":"não","z":"#,##0"},"2025-09":{"v":"confeccionando","z":"#,##0"},"2025-10":{"v":"Corrigindo","z":"#,##0"},"2025-11":{"v":"Corrigindo","z":"#,##0"},"2025-12":{"v":"Corrigindo","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"2|pcmso|1","rot":"PCMSO","c":{"2025-05":{"v":"não","z":"#,##0"},"2025-06":{"v":"não","z":"#,##0"},"2025-07":{"v":"não","z":"#,##0"},"2025-08":{"v":"não","z":"#,##0"},"2025-09":{"v":"não","z":"#,##0"},"2025-10":{"v":"não","z":"#,##0"},"2025-11":{"v":"não","z":"#,##0"},"2025-12":{"v":"não","z":"#,##0"},"2026-01":{"v":"não","z":"#,##0"},"2026-02":{"v":"não","z":"#,##0"},"2026-03":{"v":"não","z":"#,##0"},"2026-04":{"v":"não","z":"#,##0"},"2026-05":{"v":"não","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"gap":1},{"h":1,"rot":"Certidões","blk":3},{"k":"3|crf - caixa economica|1","rot":"CRF - CAIXA ECONOMICA","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"OK","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|cnd - inss e divida uniao|1","rot":"CND - INSS E DÍVIDA UNIÃO","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"OK","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|cnd - debitos estaduais|1","rot":"CND - DÉBITOS ESTADUAIS","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"OK","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"Pend","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|serasa / spc|1","rot":"SERASA / SPC","c":{"2025-05":{"v":"OK","z":"0.0%"},"2025-06":{"v":"OK","z":"0.0%"},"2025-07":{"v":"OK","z":"0.0%"},"2025-08":{"v":"OK","z":"0.0%"},"2025-09":{"v":"OK","z":"0.0%"},"2025-10":{"v":"OK","z":"0.0%"},"2025-11":{"v":"OK","z":"0.0%"},"2025-12":{"v":"OK","z":"0.0%"},"2026-01":{"v":"OK","z":"0.0%"},"2026-02":{"v":"OK","z":"0.0%"},"2026-03":{"v":"OK","z":"0.0%"},"2026-04":{"v":"Pend","z":"0.0%"},"2026-05":{"v":"OK","z":"0.0%"},"2026-06":{"v":"OK","z":"0.0%"},"2026-07":{"v":"Pend","z":"0.0%"},"2026-08":{"v":"Pend","z":"0.0%"}}},{"k":"3|falencia e concordata|1","rot":"FALÊNCIA E CONCORDATA","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"OK","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|cnd - debitos municipais|1","rot":"CND - DÉBITOS MUNICIPAIS","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"não","z":"#,##0"},"2025-08":{"v":"não","z":"#,##0"},"2025-09":{"v":"OK","z":"0.0%"},"2025-10":{"v":"OK","z":"0.0%"},"2025-11":{"v":"OK","z":"0.0%"},"2025-12":{"v":1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-01":{"v":"OK","z":"0.0%"},"2026-02":{"v":"OK","z":"0.0%"},"2026-03":{"v":"OK","z":"0.0%"},"2026-04":{"v":"OK","z":"0.0%"},"2026-05":{"v":"OK","z":"0.0%"},"2026-06":{"v":"OK","z":"0.0%"},"2026-07":{"v":"OK","z":"0.0%"},"2026-08":{"v":"OK","z":"0.0%"}}},{"k":"3|cndt - trabalhista|1","rot":"CNDT - TRABALHISTA","c":{"2025-05":{"v":"OK","z":"#,##0"},"2025-06":{"v":"OK","z":"#,##0"},"2025-07":{"v":"OK","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|licenca operacional - lo|1","rot":"LICENÇA OPERACIONAL - LO","c":{"2025-05":{"v":"não","z":"#,##0"},"2025-06":{"v":"não","z":"#,##0"},"2025-07":{"v":"não","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"k":"3|atestado de bombeiro|1","rot":"ATESTADO DE BOMBEIRO","c":{"2025-05":{"v":"não","z":"#,##0"},"2025-06":{"v":"não","z":"#,##0"},"2025-07":{"v":"não","z":"#,##0"},"2025-08":{"v":"OK","z":"#,##0"},"2025-09":{"v":"OK","z":"#,##0"},"2025-10":{"v":"OK","z":"#,##0"},"2025-11":{"v":"OK","z":"#,##0"},"2025-12":{"v":"OK","z":"#,##0"},"2026-01":{"v":"OK","z":"#,##0"},"2026-02":{"v":"OK","z":"#,##0"},"2026-03":{"v":"OK","z":"#,##0"},"2026-04":{"v":"OK","z":"#,##0"},"2026-05":{"v":"OK","z":"#,##0"},"2026-06":{"v":"OK","z":"#,##0"},"2026-07":{"v":"OK","z":"#,##0"},"2026-08":{"v":"OK","z":"#,##0"}}},{"gap":1},{"h":1,"rot":"RH","blk":4},{"k":"4|treinamento func|1","rot":"TREINAMENTO FUNC","c":{"2025-05":{"v":0,"z":"0%"},"2025-06":{"v":0,"z":"0%"},"2025-07":{"v":0,"z":"0%"},"2025-08":{"v":0,"z":"0%"},"2025-09":{"v":0,"z":"0%"},"2025-10":{"v":0,"z":"0%"},"2025-11":{"v":0,"z":"0%"},"2025-12":{"v":0,"z":"0%"},"2026-01":{"v":0,"z":"0%"},"2026-02":{"v":0,"z":"0%"},"2026-03":{"v":0.68,"z":"0%"},"2026-04":{"v":0.68,"z":"0%"},"2026-05":{"v":0.68,"z":"0%"},"2026-06":{"v":1,"z":"0%"},"2026-07":{"v":1,"z":"0%"},"2026-08":{"v":1,"z":"0%"}}},{"k":"4|pcd (% por lei)|1","rot":"PCD (% POR LEI)","c":{"2025-05":{"v":0,"z":"0%"},"2025-06":{"v":0,"z":"0%"},"2025-07":{"v":0,"z":"0%"},"2025-08":{"v":0,"z":"0%"},"2025-09":{"v":0,"z":"0%"},"2025-10":{"v":0,"z":"0%"},"2025-11":{"v":0,"z":"0%"},"2025-12":{"v":0,"z":"0%"},"2026-01":{"v":0,"z":"0%"},"2026-02":{"v":0,"z":"0%"},"2026-03":{"v":0,"z":"0%"},"2026-04":{"v":0,"z":"0%"},"2026-05":{"v":0,"z":"0%"},"2026-06":{"v":0,"z":"0%"},"2026-07":{"v":0,"z":"0%"},"2026-08":{"v":0,"z":"0%"}}},{"k":"4|jovem aprendiz (% por lei)|1","rot":"JOVEM APRENDIZ (% POR LEI)","c":{"2025-05":{"v":0,"z":"0%"},"2025-06":{"v":0,"z":"0%"},"2025-07":{"v":0,"z":"0%"},"2025-08":{"v":0,"z":"0%"},"2025-09":{"v":0.5,"z":"0%"},"2025-10":{"v":0.5,"z":"0%"},"2025-11":{"v":0.75,"z":"0%"},"2025-12":{"v":0.75,"z":"0%"},"2026-01":{"v":0.75,"z":"0%"},"2026-02":{"v":0.75,"z":"0%"},"2026-03":{"v":0.75,"z":"0%"},"2026-04":{"v":0.75,"z":"0%"},"2026-05":{"v":0.75,"z":"0%"},"2026-06":{"v":0.75,"z":"0%"},"2026-07":{"v":0.75,"z":"0%"},"2026-08":{"v":0.75,"z":"0%"}}}],"meses":["2025-05","2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"],"resumo":[],"aba":"ADM - BANDEIRA","atualizadoEm":"2026-10-10T09:54:12.888Z","arquivo":"INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx"};   // dados da última planilha processada no build (usado se for mais novo que local/nuvem)
+const PUBLICO = !!CFG.publico;
 const SYNC_TOKEN = 'Mabd3cjIMNLuRWQuspNPGx38-KlcFk_N';
 const API_BASE = 'https://indicadoresv7.vercel.app';
-async function _sincronizarNuvem(){
-  if(MODO_PUBLICO) return;
+async function postNuvem(api, db){
   try{
-    const resp = await fetch(API_BASE + '/api/dados?setor=bandeira_administrativo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Authorization': 'Bearer ' + SYNC_TOKEN },
-      body: JSON.stringify(DB),
-    });
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-  }catch(e){ console.warn('Sincronização com o link público falhou (tenta de novo na próxima gravação):', e); }
+    const r = await fetch(API_BASE+'/api/dados?setor='+api, {method:'POST', headers:{'Content-Type':'text/plain; charset=utf-8','Authorization':'Bearer '+SYNC_TOKEN}, body:JSON.stringify(db)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }catch(e){ console.warn('Sincronização com a nuvem falhou ('+api+'):', e); return false; }
 }
-// DB = { linhas, meses, resumo, atualizadoEm, arquivo, aba } -- cada upload SUBSTITUI a base inteira
-// do setor (a planilha já traz todo o histórico), então uma célula corrigida/apagada no Excel
-// também some/muda aqui.
-let DB = { linhas: [], meses: [], resumo: [] };
-function _normalizar(){ DB.linhas = DB.linhas || []; DB.meses = DB.meses || []; DB.resumo = DB.resumo || []; }
+let DB = {};
+let SEC = CFG.secoes[0].id;
+function normalizar(){ if(CFG.multi){ DB.secoes = DB.secoes || {}; } else if(CFG.secoes[0].tipo!=='frota'){ DB.linhas=DB.linhas||[]; DB.meses=DB.meses||[]; DB.resumo=DB.resumo||[]; } }
+function temDados(d){ if(!d) return false; if(CFG.multi) return !!(d.secoes && Object.keys(d.secoes).length); return !!((d.linhas && d.linhas.length) || d.grade); }
+function sd(id){ return CFG.multi ? ((DB.secoes||{})[id] || {}) : DB; }
+function maisNovo(a, b){ if(!temDados(a)) return temDados(b) ? b : a; if(!temDados(b)) return a; return String(b.atualizadoEm||'') > String(a.atualizadoEm||'') ? b : a; }
+// Fonte da verdade = a base MAIS NOVA entre: planilha embutida no build, base local (admin) e nuvem (upload feito em qualquer painel).
 async function loadDB(){
-  if(EMBEDDED_DB){ DB = EMBEDDED_DB; _normalizar();
-    try{
-      const resp = await fetch(API_BASE + '/api/dados?setor=bandeira_administrativo', {cache:'no-store'});
-      if(resp.ok){ const dadosNuvem = await resp.json(); if(dadosNuvem){ DB = dadosNuvem; _normalizar(); } }
-    }catch(e){ console.warn('Não foi possível buscar dados ao vivo, mostrando o último publicado:', e); }
-    return;
-  }
-  try{
-    const conn = await _idbAbrir();
-    const raw = await _idbGet(conn, IDB_CHAVE);
-    if(raw) DB = raw;
-  }catch(e){ console.error('Erro ao carregar base local', e); }
-  _normalizar();
+  let cur = temDados(SEED) ? SEED : {};
+  let local = null;
+  if(!PUBLICO){ try{ const c = await _idbAbrir(); local = await _idbGet(c, CFG.chave); }catch(e){ console.error(e); } cur = maisNovo(cur, local); }
+  try{ const r = await fetch(API_BASE+'/api/dados?setor='+CFG.api, {cache:'no-store'}); if(r.ok){ const n = await r.json(); cur = maisNovo(cur, n); } }catch(e){ console.warn('Sem dados ao vivo, usando o último disponível:', e); }
+  DB = JSON.parse(JSON.stringify(cur || {})); normalizar();
+  if(!PUBLICO && cur !== local){ try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); }catch(e){} }
 }
 async function saveDB(){
-  if(MODO_PUBLICO) return true;
-  try{
-    const conn = await _idbAbrir();
-    await _idbPut(conn, IDB_CHAVE, DB);
-    _sincronizarNuvem();
-    return true;
-  }catch(e){ console.error('Erro ao salvar base local', e); return false; }
+  if(PUBLICO) return true;
+  try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); postNuvem(CFG.api, DB); return true; }catch(e){ console.error(e); return false; }
 }
-const ABAS_ACEITAS = ["adm", "administrativo"];
-const LAYOUT = {"0|motorista|1":{"f":"D2DEEF"},"0|manutencao|1":{"f":"EAEFF7"},"0|operacao|1":{"f":"D2DEEF"},"0|adm|1":{"f":"EAEFF7"},"0|total|1":{"f":"D2DEEF","b":1},"0|frota (ope )|1":{"f":"D2DEEF"},"0|frota reserva|1":{"f":"EAEFF7"},"0|f.u. (10% frota reserva)|1":{"f":"D2DEEF","b":1},"0|jovem aprendiz|1":{"f":"D2DEEF"},"0|pj|1":{"f":"EAEFF7"},"1|funcionarios total|1":{"f":"EAEFF7"},"1|fu total|1":{"f":"D2DEEF"},"1|salarios - relacao nominal|1":{"f":"EAEFF7"},"1|dobro / folga trabalhada|1":{"f":"D2DEEF"},"1|feriado/hora extra|1":{"f":"EAEFF7"},"1|outros (peric/insal/adic not)|1":{"f":"D2DEEF"},"1|descontos (avaria/multa)|1":{"f":"EAEFF7","r":1},"1|inss - funcionario|1":{"f":"D2DEEF","r":1},"1|inss - desonerado|1":{"f":"EAEFF7"},"1|fgts|1":{"f":"D2DEEF"},"1|consignado|1":{"f":"EAEFF7"},"1|beneficios (ticket 355,00)|1":{"f":"D2DEEF"},"1|custo folha total|1":{"f":"EAEFF7"},"1|% encargos/beneficio|1":{"f":"D2DEEF"},"1|custo total pj|1":{"f":"EAEFF7"},"1|demissao|1":{"f":"D2DEEF"},"1|faltas|1":{"f":"EAEFF7"},"1|atestad0s - dias|1":{"f":"D2DEEF"},"1|processo trabalhistas|1":{"f":"EAEFF7"},"1|trabalhista novos|1":{"f":"D2DEEF"},"1|trabalhista acordo|1":{"f":"EAEFF7"},"1|processos civel|1":{"f":"D2DEEF"},"1|civeis novos|1":{"f":"EAEFF7"},"1|civeis acordos|1":{"f":"D2DEEF"},"2|asos vencidos|1":{"f":"D2DEEF"},"2|resolucao 789 vencidas|1":{"f":"EAEFF7"},"2|cnh vencidas|1":{"f":"D2DEEF"},"2|pgr|1":{"f":"EAEFF7","r":1},"2|pcmso|1":{"f":"D2DEEF","r":1},"3|crf - caixa economica|1":{"f":"D2DEEF"},"3|cnd - inss e divida uniao|1":{"f":"EAEFF7"},"3|cnd - debitos estaduais|1":{"f":"D2DEEF"},"3|serasa / spc|1":{"f":"EAEFF7"},"3|falencia e concordata|1":{"f":"D2DEEF"},"3|cnd - debitos municipais|1":{"f":"EAEFF7"},"3|cndt - trabalhista|1":{"f":"D2DEEF"},"3|licenca operacional - lo|1":{"f":"EAEFF7"},"3|atestado de bombeiro|1":{"f":"D2DEEF"},"4|treinamento func|1":{"f":"D2DEEF","r":1},"4|pcd (% por lei)|1":{"f":"EAEFF7","r":1},"4|jovem aprendiz (% por lei)|1":{"f":"D2DEEF","r":1}};
-const AGG = {"0|motorista|1":{"t":"A","z":"0"},"0|manutencao|1":{"t":"A","z":"0"},"0|operacao|1":{"t":"A","z":"0"},"0|adm|1":{"t":"A","z":"0"},"0|total|1":{"t":"E","e":"(V(\"0|motorista|1\")+V(\"0|manutencao|1\")+V(\"0|operacao|1\")+V(\"0|adm|1\"))","r":["0|adm|1","0|manutencao|1","0|motorista|1","0|operacao|1"],"z":"0"},"0|frota (ope )|1":{"t":"A","z":"0"},"0|frota reserva|1":{"t":"A","z":"0"},"0|f.u. (10% frota reserva)|1":{"t":"E","e":"V(\"0|total|1\")/(V(\"0|frota (ope )|1\")*1.1)","r":["0|frota (ope )|1","0|total|1"],"z":"0.00"},"0|jovem aprendiz|1":{"t":"A","z":"0"},"0|pj|1":{"t":"A","z":"0"},"1|funcionarios total|1":{"t":"A","z":"0"},"1|fu total|1":{"t":"A","z":"0.00"},"1|salarios - relacao nominal|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|dobro / folga trabalhada|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|feriado/hora extra|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|outros (peric/insal/adic not)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|descontos (avaria/multa)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - funcionario|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|inss - desonerado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|fgts|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|consignado|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|beneficios (ticket 355,00)|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|custo folha total|1":{"t":"E","e":"(V(\"1|salarios - relacao nominal|1\")+V(\"1|dobro / folga trabalhada|1\")+V(\"1|feriado/hora extra|1\")+V(\"1|outros (peric/insal/adic not)|1\")+V(\"1|descontos (avaria/multa)|1\")+V(\"1|inss - funcionario|1\")+V(\"1|inss - desonerado|1\")+V(\"1|fgts|1\")+V(\"1|consignado|1\")+V(\"1|beneficios (ticket 355,00)|1\"))","r":["1|beneficios (ticket 355,00)|1","1|consignado|1","1|descontos (avaria/multa)|1","1|dobro / folga trabalhada|1","1|feriado/hora extra|1","1|fgts|1","1|inss - desonerado|1","1|inss - funcionario|1","1|outros (peric/insal/adic not)|1","1|salarios - relacao nominal|1"],"z":"#,##0_ ;\\-#,##0\\ "},"1|% encargos/beneficio|1":{"t":"E","e":"V(\"1|custo folha total|1\")/V(\"1|salarios - relacao nominal|1\")-1","r":["1|custo folha total|1","1|salarios - relacao nominal|1"],"z":"0%"},"1|custo total pj|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|demissao|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|faltas|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|atestad0s - dias|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processo trabalhistas|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|trabalhista acordo|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|processos civel|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis novos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"1|civeis acordos|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"2|asos vencidos|1":{"t":"L","z":"General"},"2|resolucao 789 vencidas|1":{"t":"L","z":"#,##0"},"2|cnh vencidas|1":{"t":"L","z":"#,##0"},"2|pgr|1":null,"2|pcmso|1":null,"3|crf - caixa economica|1":null,"3|cnd - inss e divida uniao|1":null,"3|cnd - debitos estaduais|1":null,"3|serasa / spc|1":null,"3|falencia e concordata|1":null,"3|cnd - debitos municipais|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|cndt - trabalhista|1":null,"3|licenca operacional - lo|1":null,"3|atestado de bombeiro|1":null,"4|treinamento func|1":{"t":"A","z":"0%"},"4|pcd (% por lei)|1":{"t":"A","z":"0%"},"4|jovem aprendiz (% por lei)|1":{"t":"A","z":"0%"}};
 
 // ==PURE-BEGIN==
 const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -234,6 +209,7 @@ function parseGrade(g){
     const cel={}; let n=0;
     lin.forEach((x,c)=>{ if(c===colRot||!x) return; const k=mapMes[c]||mapRes[c]; if(k){ cel[k]={v:x.v,z:x.z}; n++; } });
     if(!rot && !n) continue;
+    if(rot==='0' && !lin.some((x,c)=> c!==colRot && x && typeof x.v==='number' && x.v!==0)) continue;
     if(vazio && linhas.length && !linhas[linhas.length-1].gap) linhas.push({gap:1});
     vazio=false;
     const k0=blk+'|'+_norm(rot); ocorr[k0]=(ocorr[k0]||0)+1;
@@ -357,84 +333,147 @@ function _montarHtmlTabela(db, layout, agg, anos){
 }
 // ==PURE-END==
 
-// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente (2026), se existir na base; senão o
-// último ano disponível. A seleção vale só para a sessão da página (ao reabrir volta ao padrão).
+function $(id){ return document.getElementById(id); }
+// ---- Frota (matriz): mostra a aba como está na planilha (valores calculados, cores, células mescladas)
+function _fmtData(v){ const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear(); }
+function _fmtFrota(c){
+  if(!c || c.v===undefined || c.v===null) return '';
+  const v=c.v, z=c.z||'General';
+  if(typeof v==='number'){
+    if(_ehFmtData(z)) return _fmtData(v);
+    if(z==='General') return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.',',');
+    return _fmtNum(v,z);
+  }
+  const s=String(v).trim(); return _ehErro(s) ? '-' : s;
+}
+function _htmlFrota(d, L){
+  const g=d.grade||[]; let h='';
+  for(let r=0;r<g.length;r++){
+    const lin=g[r]||[]; let tds='', vazio=true;
+    for(let c=0;c<lin.length || c<CFG_FROTA_COL;c++){
+      const e=L[r+','+c]||{}; if(e.x) continue;
+      const cel=lin[c]; const t=_fmtFrota(cel); if(t!=='' || e.f) vazio=false;
+      const st=[]; if(e.f) st.push('background:#'+e.f); if(e.b) st.push('font-weight:700'); if(e.c) st.push('color:#'+e.c);
+      const txt = cel && typeof cel.v==='string' && !_ehErro(cel.v);
+      tds+='<td'+(e.rs?' rowspan="'+e.rs+'"':'')+(e.cs?' colspan="'+e.cs+'"':'')+' class="'+(c===0?'lab':'')+(txt?' txt':'')+'" style="'+st.join(';')+'">'+_esc(t)+'</td>';
+    }
+    h += vazio && !tds.match(/rowspan/) ? '<tr class="gap"><td colspan="'+CFG_FROTA_COL+'"></td></tr>' : '<tr>'+tds+'</tr>';
+  }
+  return h;
+}
+const CFG_FROTA_COL = 12;
+// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente se existir na base; senão o último ano.
 let ANOS_SEL = null;
-function _anosDisponiveis(){ return _anosDoDb(DB); }
-function _garantirAnosSel(){
-  const disp = _anosDisponiveis();
-  if(!disp.length){ ANOS_SEL = []; return disp; }
-  const validos = (ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
-  if(validos.length){ ANOS_SEL = validos; return disp; }
-  const atual = String(new Date().getFullYear());
-  ANOS_SEL = [ disp.indexOf(atual)>=0 ? atual : disp[disp.length-1] ];
+function _garantirAnosSel(d){
+  const disp=_anosDoDb(d);
+  if(!disp.length){ ANOS_SEL=[]; return disp; }
+  const ok=(ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
+  if(ok.length){ ANOS_SEL=ok; return disp; }
+  const at=String(new Date().getFullYear());
+  ANOS_SEL=[ disp.indexOf(at)>=0 ? at : disp[disp.length-1] ];
   return disp;
 }
-function _renderFiltroAno(){
-  const disp = _garantirAnosSel();
-  const box = document.getElementById('indFiltro');
-  if(!disp.length){ box.style.display = 'none'; return; }
-  box.style.display = '';
-  const ord = ANOS_SEL.slice().sort();
-  document.getElementById('anoBtn').textContent = (ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', ')) + ' ▾';
-  document.getElementById('anoMenu').innerHTML =
-    disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="_anoMarcar(this)"> '+a+'</label>').join('')+
-    '<div class="ms-rod"><a href="#" onclick="return _anoTodos()">Todos</a><a href="#" onclick="return _anoAtual()">Ano atual</a></div>';
+function _renderFiltroAno(d){
+  const disp=_garantirAnosSel(d), box=$('indFiltro');
+  if(!disp.length){ box.style.display='none'; return; }
+  box.style.display='';
+  const ord=ANOS_SEL.slice().sort();
+  $('anoBtn').textContent=(ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', '))+' ▾';
+  $('anoMenu').innerHTML = disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="IND.anoMarcar(this)"> '+a+'</label>').join('')+
+    '<div class="ms-rod"><a href="#" onclick="return IND.anoTodos()">Todos</a><a href="#" onclick="return IND.anoAtual()">Ano atual</a></div>';
 }
-function _anoMarcar(cb){
-  const a = cb.value;
-  if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); }
-  else {
-    if(ANOS_SEL.length<=1){ cb.checked = true; return; }   // sempre fica pelo menos 1 ano selecionado
-    ANOS_SEL = ANOS_SEL.filter(x=>x!==a);
+function render(manterMenu){
+  const sec = CFG.secoes.find(s=>s.id===SEC) || CFG.secoes[0];
+  const d = sd(sec.id), tab=$('indTabela'), fonte=$('indFonte'), pills=$('indSecoes');
+  if(CFG.secoes.length>1){
+    pills.style.display='';
+    pills.innerHTML = CFG.secoes.map(s=>'<button type="button" class="'+(s.id===sec.id?'on':'')+'" onclick="IND.secao(\''+s.id+'\')">'+_esc(s.titulo)+'</button>').join('');
+  } else pills.style.display='none';
+  if(sec.tipo==='frota'){
+    $('indFiltro').style.display='none';
+    if(!d.grade){ tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return; }
+    tab.className='frota';
+    tab.innerHTML='<tbody>'+_htmlFrota(d, LAYOUT[sec.id]||{})+'</tbody>';
+  } else {
+    tab.className='';
+    if(!(d.linhas||[]).length){
+      $('indFiltro').style.display='none';
+      tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return;
+    }
+    _renderFiltroAno(d);
+    if(manterMenu===true) $('anoMenu').classList.add('aberto');
+    tab.innerHTML='<tbody>'+_montarHtmlTabela(d, LAYOUT[sec.id]||{}, AGG[sec.id]||{}, ANOS_SEL)+'</tbody>';
   }
-  renderIndicadores(true);
+  const quando = DB.atualizadoEm || d.atualizadoEm;
+  if(quando){
+    const dt=new Date(quando);
+    fonte.textContent='Fonte: planilha INDICADORES - BANDEIRA e VIAÇÃO SETE (aba '+(d.aba||sec.aba||'')+') - atualizado em '+dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    fonte.style.display='';
+  } else fonte.style.display='none';
 }
-function _anoTodos(){ ANOS_SEL = _anosDisponiveis().slice(); renderIndicadores(true); return false; }
-function _anoAtual(){ ANOS_SEL = null; renderIndicadores(true); return false; }
-function _anoToggle(ev){ ev.stopPropagation(); document.getElementById('anoMenu').classList.toggle('aberto'); }
-document.addEventListener('click', e=>{ const m=document.getElementById('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
-function renderIndicadores(manterMenu){
-  const tab = document.getElementById('indTabela');
-  const fonte = document.getElementById('indFonte');
-  if(!DB.linhas.length){
-    document.getElementById('indFiltro').style.display = 'none';
-    tab.innerHTML = '<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.</td></tr></tbody>';
-    fonte.style.display = 'none';
-    return;
+// ---- leitura da planilha (roteamento por nome de aba)
+function parseSecao(wb, sp){
+  const nome = wb.SheetNames.find(n=> sp.abas.indexOf(_norm(n))>=0); if(!nome) return null;
+  let g = _gradeDaAba(wb.Sheets[nome]);
+  if(sp.c0 || sp.c1!=null) g = g.map(l=>l.slice(sp.c0||0, sp.c1!=null ? sp.c1+1 : undefined));
+  if(sp.tipo==='frota'){ g = g.slice(0,sp.lin).map(l=>{ const x=l.slice(0,sp.col); while(x.length<sp.col) x.push(null); return x; }); return {tipo:'frota', grade:g, aba:nome}; }
+  const r = parseGrade(g); if(!r.linhas.filter(l=>l.k).length) return null;
+  r.aba = nome; return r;
+}
+function parseRota(wb, rota, prev){
+  const out = {}; let achou=false;
+  rota.secoes.forEach(sp=>{ const r=parseSecao(wb,sp); if(r){ out[sp.id]=r; achou=true; } });
+  if(!achou) return null;
+  if(!rota.multi) return out[rota.secoes[0].id];
+  const m = Object.assign({}, prev && prev.secoes ? prev.secoes : {}, out);
+  return { secoes: m };
+}
+function resumoDb(db){
+  if(db.secoes) return Object.keys(db.secoes).length+' seção(ões)';
+  if(db.grade) return 'matriz de frota';
+  return db.linhas.filter(l=>l.k).length+' indicador(es), '+db.meses.length+' mês(es) de '+_rotMes(db.meses[0])+' a '+_rotMes(db.meses[db.meses.length-1]);
+}
+async function processar(files){
+  const st=$('indStatus'); st.textContent='Processando...';
+  for(const f of files){
+    try{
+      const wb = XLSX.read(await f.arrayBuffer(), {type:'array', cellNF:true});
+      const feitos=[]; let proprio=false;
+      for(const rota of CFG.rotas){
+        const db = parseRota(wb, rota, rota.api===CFG.api ? DB : null); if(!db) continue;
+        db.atualizadoEm = new Date().toISOString(); db.arquivo = f.name;
+        if(rota.api===CFG.api){ DB=db; normalizar(); proprio=true; feitos.push(rota.nome+': '+resumoDb(db)); }
+        else { const ok = await postNuvem(rota.api, db); feitos.push(rota.nome+(ok?' (enviado)':' (falha ao enviar)')); }
+      }
+      if(!feitos.length && wb.SheetNames.length===1 && !CFG.multi && CFG.secoes[0].tipo!=='frota'){
+        const r=parseGrade(_gradeDaAba(wb.Sheets[wb.SheetNames[0]]));
+        if(r.linhas.filter(l=>l.k).length){ r.aba=wb.SheetNames[0]; r.atualizadoEm=new Date().toISOString(); r.arquivo=f.name; DB=r; normalizar(); proprio=true; feitos.push(resumoDb(r)); }
+      }
+      st.textContent = feitos.length ? f.name+' - '+feitos.join(' | ') : 'Erro em '+f.name+': nenhuma aba reconhecida. Abas do arquivo: '+wb.SheetNames.join(', ')+'.';
+      if(!proprio && feitos.length) st.textContent += ' | (esta planilha não trazia a aba deste setor)';
+    }catch(e){ console.error(e); st.textContent='Erro ao processar '+f.name+': '+e.message; }
   }
-  _renderFiltroAno();
-  if(manterMenu===true) document.getElementById('anoMenu').classList.add('aberto');
-  tab.innerHTML = '<tbody>'+_montarHtmlTabela(DB, LAYOUT, AGG, ANOS_SEL)+'</tbody>';
-  if(DB.atualizadoEm){
-    const d = new Date(DB.atualizadoEm);
-    fonte.textContent = 'Fonte: planilha INDICADORES - BANDEIRA (aba '+(DB.aba||'ADM')+') - atualizado em '+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    fonte.style.display = '';
-  } else fonte.style.display = 'none';
+  await saveDB(); render();
 }
-function trocarAba(btn){
-  document.querySelectorAll('nav.sidebar button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('main .tab').forEach(s=>s.classList.add('hidden'));
-  const sec = document.getElementById('tab-'+btn.dataset.tab);
-  if(sec) sec.classList.remove('hidden');
-}
-function exportarCSV(){
-  const linhas = [];
-  document.querySelectorAll('#indTabela tr').forEach(tr=>{
-    const cels = Array.from(tr.querySelectorAll('td')).map(c=>'"'+c.textContent.replace(/"/g,'""')+'"');
-    if(cels.length) linhas.push(cels.join(';'));
-  });
-  const blob = new Blob(['﻿'+linhas.join('\n')], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'Indicadores_Bandeira_administrativo.csv';
-  a.click();
-}
-
-(async function(){
-  await loadDB();
-  renderIndicadores();
+window.IND = {
+  anoToggle: function(ev){ ev.stopPropagation(); $('anoMenu').classList.toggle('aberto'); },
+  anoMarcar: function(cb){ const a=cb.value; if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); } else { if(ANOS_SEL.length<=1){ cb.checked=true; return; } ANOS_SEL=ANOS_SEL.filter(x=>x!==a); } render(true); },
+  anoTodos: function(){ ANOS_SEL=_anosDoDb(sd(SEC)).slice(); render(true); return false; },
+  anoAtual: function(){ ANOS_SEL=null; render(true); return false; },
+  secao: function(id){ SEC=id; ANOS_SEL=null; render(); },
+  abrir: function(){ $('indFile').click(); },
+  csv: function(){
+    const linhas=[]; document.querySelectorAll('#indTabela tr').forEach(tr=>{ const c=Array.from(tr.querySelectorAll('td')).map(x=>'"'+x.textContent.replace(/"/g,'""')+'"'); if(c.length) linhas.push(c.join(';')); });
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+linhas.join('\n')],{type:'text/csv;charset=utf-8;'})); a.download='Indicadores_'+CFG.api+'.csv'; a.click();
+  },
+  limpar: async function(){
+    if(!confirm('Isso vai apagar toda a base local dos Indicadores ('+CFG.nomeCompleto+'). Essa ação não pode ser desfeita. Confirma?')) return;
+    DB = {}; normalizar(); await saveDB(); render(); $('indStatus').textContent='Base local apagada.';
+  }
+};
+document.addEventListener('click', e=>{ const m=$('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
+if(!PUBLICO){ const fi=$('indFile'); if(fi) fi.addEventListener('change', async ev=>{ const fs=Array.from(ev.target.files); if(fs.length) await processar(fs); ev.target.value=''; }); }
+(async function(){ await loadDB(); render(); })();
 })();
 
 </script>

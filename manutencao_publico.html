@@ -154,6 +154,48 @@ table.data td.cel-num,table.data th.cel-num{text-align:right;font-variant-numeri
 #uploadBar button.secondary{background:#fff;color:var(--navy);border:1px solid var(--border-strong);}
 #uploadBar button.secondary:hover{background:var(--navy-soft);border-color:var(--navy);}
 .hidden{display:none !important;}
+
+.indp{--ia:#132354;--iad:#0c1938;--ias:#eef1f8;background:#fff;border:1px solid #e5e8f0;border-radius:16px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(16,24,54,.05);color:#151b2b;}
+.indp h2{margin:0 0 14px;font-size:13.5px;font-weight:700;color:#151b2b;border-bottom:1px solid #e5e8f0;padding-bottom:10px;padding-left:11px;position:relative;letter-spacing:.1px;}
+.indp h2::before{content:'';position:absolute;left:0;top:1px;bottom:11px;width:3px;border-radius:2px;background:var(--ia);}
+.indp .ind-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-bar.fixa{position:fixed;bottom:0;left:148px;right:0;margin:0;background:#fff;border-top:1px solid #e5e8f0;box-shadow:0 -2px 10px rgba(16,24,54,.08);padding:12px 20px;z-index:50;}
+.indp .ind-btn{background:var(--ia);color:#fff;border:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:12.5px;cursor:pointer;}
+.indp .ind-btn:hover{background:var(--iad);}
+.indp .ind-btn.sec{background:#fff;color:var(--ia);border:1.5px solid #d6dae5;}
+.indp .ind-btn.sec:hover{background:var(--ias);}
+.indp .ind-btn.per{background:#fff;color:#b71930;border:1.5px solid #fdecee;}
+.indp .ind-btn.per:hover{background:#fdecee;}
+.indp #indStatus{font-size:11.5px;color:#6b7280;flex-basis:100%;}
+.indp .ind-secoes{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;}
+.indp .ind-secoes button{background:#fff;border:1.5px solid #d6dae5;color:var(--ia);padding:7px 14px;border-radius:999px;font-weight:700;font-size:12px;cursor:pointer;}
+.indp .ind-secoes button.on{background:var(--ia);border-color:var(--ia);color:#fff;}
+.indp .info-badge{display:inline-block;background:var(--ias);color:var(--iad);font-size:11px;font-weight:700;padding:6px 10px;border-radius:9px;margin-bottom:12px;}
+.indp .ind-filtro{display:flex;align-items:center;gap:10px;margin:0 0 12px;}
+.indp .ind-filtro > label{font-size:10.5px;font-weight:700;color:#6b7280;letter-spacing:.4px;text-transform:uppercase;}
+.indp #anoMS{position:relative;}
+.indp #anoBtn{background:#fff;border:1px solid #d6dae5;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--ia);cursor:pointer;min-width:150px;text-align:left;}
+.indp #anoBtn:hover{border-color:var(--ia);background:var(--ias);}
+.indp #anoMenu{display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:30;background:#fff;border:1px solid #d6dae5;border-radius:9px;box-shadow:0 10px 30px rgba(16,24,54,.16);min-width:170px;padding:6px 0;}
+.indp #anoMenu.aberto{display:block;}
+.indp #anoMenu label{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:#151b2b;cursor:pointer;}
+.indp #anoMenu label:hover{background:var(--ias);}
+.indp #anoMenu .ms-rod{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #e5e8f0;margin-top:4px;padding:7px 14px 3px;font-size:11px;}
+.indp #anoMenu .ms-rod a{color:var(--ia);font-weight:700;text-decoration:none;}
+.indp .scroll-box{overflow:auto;max-height:72vh;border:1px solid #e5e8f0;border-radius:12px;background:#fff;}
+.indp #indTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
+.indp #indTabela td{padding:3px 8px;text-align:right;border-bottom:1px solid #fff;border-right:1px solid #fff;min-width:62px;}
+.indp #indTabela td.lab{text-align:left;position:sticky;left:0;z-index:2;min-width:210px;max-width:280px;font-weight:600;border-right:2px solid #fff;}
+.indp #indTabela td.txt{text-align:center;}
+.indp #indTabela td.sp{min-width:31px !important;width:31px;max-width:31px;padding:0 !important;border:none !important;background:#fff !important;}
+.indp #indTabela td.sp i{display:block;width:31px;height:1px;}
+.indp #indTabela tr.ind-h td{color:#fff;font-weight:700;text-align:center;}
+.indp #indTabela tr.ind-h td.lab{text-align:left;}
+.indp #indTabela tr.gap td{height:12px;padding:0;background:#fff !important;border:none;}
+.indp #indTabela.frota td{text-align:center;}
+.indp #indTabela.frota td.lab{text-align:left;min-width:190px;}
+@media print{.indp .ind-bar,.indp .ind-secoes,.indp .ind-filtro{display:none !important;}}
+
 </style></head>
 <body>
 <!-- Barra fixa só do modo público (link do Vercel), mesmo padrão dos outros 3 setores. -->
@@ -169,22 +211,37 @@ table.data td.cel-num,table.data th.cel-num{text-align:right;font-variant-numeri
   <div class="divider"></div>
   <div class="titulo-bloco">
     <span class="eyebrow">Viação Sete</span>
-    <h1 id="tituloAba">Controle de Combustível</h1>
+    <h1 id="tituloAba">Indicadores</h1>
   </div>
 </header>
 <div class="layout">
   <!-- Setor criado em 2026-08-14. Só 1 aba por enquanto (Combustível); novas abas de
        Manutenção entram aqui do mesmo jeito que Bancos/DRE entraram no Financeiro. -->
   <nav class="sidebar" id="sidebar">
-    <button data-tab="combustivel" class="active"><span class="ic">&#9981;</span>Combustível</button>
+    <button data-tab="indicadores" class="active"><span class="ic">&#128202;</span>Indicadores</button>
+    <button data-tab="combustivel"><span class="ic">&#9981;</span>Combustível</button>
   </nav>
   <main>
+    <section class="tab" id="tab-indicadores">
+    <div class="indp">
+      <h2>Indicadores - Manutenção</h2>
+      
+      <div id="indSecoes" class="ind-secoes" style="display:none"></div>
+      <div class="ind-filtro" id="indFiltro" style="display:none">
+        <label>Ano</label>
+        <div id="anoMS"><button type="button" id="anoBtn" onclick="IND.anoToggle(event)"></button><div id="anoMenu"></div></div>
+      </div>
+      <span class="info-badge" id="indFonte" style="display:none"></span>
+      <div class="scroll-box"><table id="indTabela"></table></div>
+    </div>
+  </section>
+
     <!-- ABA CONTROLE DE COMBUSTÍVEL -- "planilha viva": diferente de todo o resto do
          projeto (que é alimentado por upload de relatório), aqui o motorista/gestor
          digita o abastecimento diretamente na tela (CRUD manual), sem nenhum arquivo
          de origem. Pedido dos sócios em 2026-08-14. Só o painel público (EMBEDDED_DB)
          fica "congelado"; este arquivo local é onde os dados são de fato editados. -->
-    <section class="tab" id="tab-combustivel">
+    <section class="tab hidden" id="tab-combustivel">
       <div class="panel filtro-box" id="filtrosPanelComb">
         <h2 class="filtro-toggle" onclick="toggleFiltroBox(this)"><span class="seta">&#9660;</span> Filtros</h2>
         <div class="filters-grid">
@@ -301,24 +358,33 @@ const FROTA_LISTA = [
 // o posto no formulário, o campo Preço do Litro é preenchido automaticamente (mas
 // continua editável, pra quando o preço mudar e ainda não tiver sido atualizado aqui).
 const POSTOS_LISTA = [
-  {nome:'POSTO PLANALTO - TERESINA (PI)', preco:6.55},
+  // Atualizado pelo usuário em 2026-09-09 (de 6,55 para 6,70).
+  {nome:'POSTO PLANALTO - TERESINA (PI)', preco:6.70},
   {nome:'POSTO REDE MAIS - TERESINA (PI)', preco:6.62},
   {nome:'POSTO REDE MAIS - URUÇUÍ (PI)', preco:6.62},
   {nome:'POSTO REDE MAIS - BOM JESUS (PI)', preco:6.62},
   {nome:'POSTO REDE MAIS - FLORIANO (PI)', preco:6.62},
-  {nome:'POSTO FORMOSA - FORMOSA DO RIO PRETO (BA)', preco:6.65},
+  // Diesel atualizado de 6,65 para 6,70 e Arla 32 cadastrado pela primeira vez (2,95),
+  // confirmado pelo usuário em 2026-09-14.
+  {nome:'POSTO FORMOSA - FORMOSA DO RIO PRETO (BA)', preco:6.70, precoArla:2.95},
   {nome:'POSTO CACIQUE - BAIXA GRANDE DO RIBEIRO (PI)', preco:7.49},
   // Confirmado pelo usuário em 2026-08-19.
-  {nome:'POSTO CACIQUE - URUÇUÍ (PI)', preco:6.45}
+  {nome:'POSTO CACIQUE - URUÇUÍ (PI)', preco:6.45},
+  // Cadastrado pelo usuário em 2026-08-30, SEM preço fixo por enquanto -- mesmo
+  // tratamento que o Arla 32 (ver _cbAoTrocarPosto/_cbAoTrocarTipo): aparece no
+  // select do Posto normalmente, mas o campo Preço do Litro fica livre/manual até
+  // o usuário informar o valor.
+  {nome:'POSTO CAJUEIRO - FLORIANO (PI)'},
+  // Preço fixo informado pelo usuário em 2026-09-09.
+  {nome:'POSTO CAJUEIRO - BOM JESUS (PI)', preco:7.75}
 ];
 
 // Tipos de combustível -- pedido do usuário em 2026-08-15. Os preços fixos de
-// POSTOS_LISTA acima são SEMPRE de Óleo Diesel (foi o que o usuário passou) -- por
-// isso o autofill de preço ao escolher o Posto (_cbAoTrocarPosto) só roda quando o
-// tipo selecionado for DIESEL. Arla 32 ainda não tem preço fixo cadastrado ("por
-// enquanto"): o campo Preço do Litro fica livre/manual pra esse tipo. Quando o usuário
-// passar o preço fixo do Arla 32 no futuro, basta guardar aqui (ex.: precoArla:X) e
-// replicar a mesma lógica de autofill usada pro Diesel.
+// POSTOS_LISTA são de Óleo Diesel (campo "preco") e, quando cadastrado, de Arla 32
+// (campo "precoArla" -- primeiro caso confirmado pelo usuário em 2026-09-14, POSTO
+// FORMOSA). O autofill de preço ao escolher o Posto (_cbAoTrocarPosto) roda tanto pra
+// DIESEL quanto pra ARLA32, usando o campo correspondente; postos sem o campo cadastrado
+// pra aquele tipo deixam o campo Preço do Litro livre/manual normalmente.
 const TIPOS_COMBUSTIVEL = [
   {codigo:'DIESEL', nome:'Óleo Diesel'},
   {codigo:'ARLA32', nome:'Arla 32'},
@@ -465,7 +531,7 @@ async function saveDB(){
 }
 async function limparBase(){
   if(!confirm('Isso vai apagar todos os lançamentos de Combustível carregados neste navegador. Confirma?')) return;
-  DB = { combustivel: [] };
+  DB.combustivel = [];
   await saveDB();
   cbCancelarEdicao();
   document.getElementById('cbDataIni').value = '';
@@ -650,25 +716,30 @@ function _popularFiltrosMSF(){
   });
   construirMSF('cbFiltroTipo', TIPOS_COMBUSTIVEL.map(t=>t.codigo), _cbNomeTipo);
 }
-// Autofill de preço ao escolher o Posto -- só se aplica quando o tipo selecionado for
-// DIESEL (POSTOS_LISTA só tem preço fixo de Óleo Diesel). Pra Arla 32 o preço fica
-// livre/manual (pedido do usuário, 2026-08-15: ainda não tem preço fixo cadastrado).
+// Autofill de preço ao escolher o Posto -- roda pra DIESEL (campo posto.preco) e pra
+// ARLA32 (campo posto.precoArla, cadastrado pela primeira vez em 2026-09-14 pro POSTO
+// FORMOSA). Pra GASOLINA/ETANOL não há preço fixo cadastrado; o campo fica livre/manual.
 function _cbAoTrocarPosto(){
   const tipo = document.getElementById('cbTipo').value;
-  if(tipo === 'DIESEL'){
+  if(tipo === 'DIESEL' || tipo === 'ARLA32'){
     const nome = document.getElementById('cbPosto').value;
     const posto = POSTOS_LISTA.find(p=>p.nome===nome);
-    if(posto){ document.getElementById('cbPreco').value = posto.preco.toFixed(3).replace(/0+$/,'').replace(/\.$/,''); }
+    const precoFixo = posto ? (tipo === 'DIESEL' ? posto.preco : posto.precoArla) : null;
+    // precoFixo pode não existir (posto cadastrado sem preço fixo daquele tipo ainda,
+    // ex.: POSTO CAJUEIRO - FLORIANO pra Diesel, ou a maioria dos postos pra Arla 32)
+    // -- nesse caso o campo Preço do Litro fica livre/manual.
+    if(precoFixo != null){ document.getElementById('cbPreco').value = precoFixo.toFixed(3).replace(/0+$/,'').replace(/\.$/,''); }
   }
   _cbAtualizarValorTotal();
 }
-// Ao trocar o Tipo com um Posto já selecionado: se virou DIESEL, aplica o preço fixo
-// daquele posto; se virou ARLA32, limpa o preço (fica livre pro usuário digitar --
-// nunca sobrescreve um valor que o usuário talvez já tenha digitado manualmente antes
-// de trocar o tipo, exceto se estava vindo de um autofill de Diesel de outro posto).
+// Ao trocar o Tipo com um Posto já selecionado: se virou DIESEL ou ARLA32, tenta aplicar
+// o preço fixo cadastrado daquele posto pra esse tipo (_cbAoTrocarPosto); se virou
+// GASOLINA/ETANOL, limpa o preço (fica livre pro usuário digitar -- nunca sobrescreve
+// um valor que o usuário talvez já tenha digitado manualmente antes de trocar o tipo,
+// exceto se estava vindo de um autofill de outro tipo/posto).
 function _cbAoTrocarTipo(){
   const tipo = document.getElementById('cbTipo').value;
-  if(tipo === 'DIESEL'){
+  if(tipo === 'DIESEL' || tipo === 'ARLA32'){
     _cbAoTrocarPosto();
   } else {
     document.getElementById('cbPreco').value = '';
@@ -1025,7 +1096,7 @@ document.getElementById('fileInputFotos').addEventListener('change', async (ev)=
   ev.target.value = '';
 });
 
-const TITULOS_ABA_MANUT = { combustivel: 'Controle de Combustível' };
+const TITULOS_ABA_MANUT = { indicadores: 'Indicadores', combustivel: 'Controle de Combustível' };
 document.getElementById('sidebar').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('button[data-tab]');
   if(!btn) return;
@@ -1062,6 +1133,372 @@ loadDB().then(()=>{
   toggleControlesModoPublico();
   document.getElementById('uploadStatus').textContent = MODO_PUBLICO ? document.getElementById('uploadStatus').textContent : 'Base local carregada.';
 });
+</script>
+<script>
+/* ===== Aba INDICADORES (1ª aba) - alimentada pela planilha INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx (roteamento por nome de aba) ===== */
+
+(function(){
+'use strict';
+const CFG = {"api":"manutencao_indicadores","idb":"v7_ind_manutencao_idb","chave":"v7_ind_manutencao_v1","publico":true,"multi":false,"nomeCompleto":"Viação Sete - Manutenção","rotas":[{"api":"bandeira_operacao","nome":"Bandeira Operação","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["operacao - bandeira","operacao"]}]},{"api":"bandeira_administrativo","nome":"Bandeira Administrativo","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["adm - bandeira","adm","administrativo"]}]},{"api":"bandeira_manutencao","nome":"Bandeira Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - bandeira","manutencao"]}]},{"api":"manutencao_indicadores","nome":"V7 Manutenção","multi":false,"secoes":[{"id":"main","tipo":"grade","abas":["manutencao - v7"]}]},{"api":"operacao_indicadores","nome":"V7 Operação","multi":false,"secoes":[{"id":"main","tipo":"frota","abas":["operacao (frota) - v7"],"lin":53,"col":12}]},{"api":"administrativo_indicadores","nome":"V7 Administrativo","multi":true,"secoes":[{"id":"ind","tipo":"grade","abas":["adm - v7"]},{"id":"pessoal","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":0,"c1":12},{"id":"fu","tipo":"grade","abas":["adm (pessoal) - v7"],"c0":14,"c1":26}]}],"vazio":"Nenhum dado publicado ainda. Assim que a planilha de indicadores for carregada no painel administrativo, os números aparecem aqui automaticamente.","secoes":[{"id":"main","titulo":"Indicadores","tipo":"grade","aba":"Manutenção - V7"}]};
+const LAYOUT = {"main":{"0|frota|1":{"f":"EAEFF7"},"0|custo total|1":{"f":"D2DEEF"},"0|combustivel (r$/km)|1":{"f":"EAEFF7"},"0|lubrificantes (r$/km)|1":{"f":"D2DEEF"},"0|arla (r$/km)|1":{"f":"EAEFF7"},"0|preco oleo diesel (r$)|1":{"f":"D2DEEF"},"0|pecas (r$/km)|1":{"f":"EAEFF7"},"0|pneus (r$/km)|1":{"f":"D2DEEF"},"0|custo total (r$/km)|1":{"f":"EAEFF7"},"0|rendimento (km/l)|1":{"f":"D2DEEF"},"0|estoque (r$) sem comb/lub/arla|1":{"f":"EAEFF7"},"0|revisoes (%)|1":{"f":"D2DEEF"},"0|idade media|1":{"f":"EAEFF7"},"0|retidos (qtd)|1":{"f":"D2DEEF"},"0|km total|1":{"f":"EAEFF7"},"0|pmm|1":{"f":"D2DEEF"},"0|mkbf man|1":{"f":"EAEFF7"},"0|mkbf (total)|1":{"f":"D2DEEF"},"1|combustivel|1":{"f":"EAEFF7"},"1|lubrificantes|1":{"f":"D2DEEF"},"1|arla|1":{"f":"EAEFF7"},"1|pecas mecanicas|1":{"f":"D2DEEF"},"1|pneu novo|1":{"f":"EAEFF7"},"1|pneu recapado|1":{"f":"D2DEEF"},"1||1":{"f":"EAEFF7"},"1||2":{"f":"D2DEEF"},"1||3":{"f":"EAEFF7"},"1|total|1":{"f":"D2DEEF"},"2|total em litros|1":{"f":"EAEFF7"},"2||1":{"f":""},"3|mecanicas|1":{"f":"EAEFF7"},"3|eletrica|1":{"f":"D2DEEF"},"3|pneus|1":{"f":"EAEFF7"},"3|regeneracao|1":{"f":"D2DEEF"},"3|total|1":{"f":"EAEFF7","b":1},"4|corretiva programada|1":{"f":"EAEFF7"},"4|corretiva realizada|1":{"f":"D2DEEF"},"4|%|1":{"f":"EAEFF7"},"4|preventiva programada|1":{"f":"D2DEEF"},"4|preventiva realizada|1":{"f":"EAEFF7"},"4|%|2":{"f":"D2DEEF"}}};
+const AGG = {"main":{"0|frota|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"0|custo total|1":{"t":"S","z":"#,##0"},"0|combustivel (r$/km)|1":{"t":"E","e":"V(\"1|combustivel|1\")/V(\"0|km total|1\")","r":["0|km total|1","1|combustivel|1"],"z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|lubrificantes (r$/km)|1":{"t":"E","e":"V(\"1|lubrificantes|1\")/V(\"0|km total|1\")","r":["0|km total|1","1|lubrificantes|1"],"z":"#,##0.00"},"0|arla (r$/km)|1":{"t":"E","e":"V(\"1|arla|1\")/V(\"0|km total|1\")","r":["0|km total|1","1|arla|1"],"z":"#,##0.00"},"0|preco oleo diesel (r$)|1":{"t":"A","z":"#,##0.0000"},"0|pecas (r$/km)|1":{"t":"E","e":"(V(\"1|pecas mecanicas|1\"))/V(\"0|km total|1\")","r":["0|km total|1","1|pecas mecanicas|1"],"z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|pneus (r$/km)|1":{"t":"E","e":"(V(\"1|pneu novo|1\")+V(\"1|pneu recapado|1\"))/V(\"0|km total|1\")","r":["0|km total|1","1|pneu novo|1","1|pneu recapado|1"],"z":"#,##0.00"},"0|custo total (r$/km)|1":{"t":"E","e":"V(\"1|total|1\")/V(\"0|km total|1\")","r":["0|km total|1","1|total|1"],"z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|rendimento (km/l)|1":{"t":"E","e":"V(\"0|km total|1\")/V(\"2|total em litros|1\")","r":["0|km total|1","2|total em litros|1"],"z":"#,##0.00"},"0|estoque (r$) sem comb/lub/arla|1":{"t":"L","z":"#,##0_ ;\\-#,##0\\ "},"0|revisoes (%)|1":{"t":"L","z":"0.0%"},"0|idade media|1":{"t":"L","z":"#,##0.00_ ;\\-#,##0.00\\ "},"0|retidos (qtd)|1":{"t":"L","z":"#,##0"},"0|km total|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"0|pmm|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"0|mkbf man|1":{"t":"E","e":"V(\"0|km total|1\")/(V(\"3|mecanicas|1\")+V(\"3|eletrica|1\"))","r":["0|km total|1","3|eletrica|1","3|mecanicas|1"],"z":"#,##0_ ;\\-#,##0\\ "},"0|mkbf (total)|1":{"t":"E","e":"V(\"0|km total|1\")/V(\"3|total|1\")","r":["0|km total|1","3|total|1"],"z":"#,##0_ ;\\-#,##0\\ "},"1|combustivel|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|lubrificantes|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|arla|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|pecas mecanicas|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|pneu novo|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|pneu recapado|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1||1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1||2":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1||3":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"1|total|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2|total em litros|1":{"t":"S","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2||1":null,"3|mecanicas|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|eletrica|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|pneus|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|regeneracao|1":{"t":"S","z":"#,##0_ ;\\-#,##0\\ "},"3|total|1":{"t":"E","e":"(V(\"3|mecanicas|1\")+V(\"3|eletrica|1\")+V(\"3|pneus|1\")+V(\"3|regeneracao|1\"))","r":["3|eletrica|1","3|mecanicas|1","3|pneus|1","3|regeneracao|1"],"z":"#,##0_ ;\\-#,##0\\ "},"4|corretiva programada|1":{"t":"S","z":"#,##0_);\\(#,##0\\)"},"4|corretiva realizada|1":{"t":"S","z":"#,##0_);\\(#,##0\\)"},"4|%|1":{"t":"E","e":"V(\"4|corretiva realizada|1\")/V(\"4|corretiva programada|1\")","r":["4|corretiva programada|1","4|corretiva realizada|1"],"z":"0%"},"4|preventiva programada|1":{"t":"S","z":"#,##0_);\\(#,##0\\)"},"4|preventiva realizada|1":{"t":"S","z":"#,##0_);\\(#,##0\\)"},"4|%|2":{"t":"E","e":"V(\"4|preventiva realizada|1\")/V(\"4|preventiva programada|1\")","r":["4|preventiva programada|1","4|preventiva realizada|1"],"z":"0%"}}};
+const IDB_STORE = 'kv';
+function _idbAbrir(){ return new Promise((res,rej)=>{ const q=indexedDB.open(CFG.idb,1); q.onupgradeneeded=()=>q.result.createObjectStore(IDB_STORE); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbGet(c,k){ return new Promise((res,rej)=>{ const q=c.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+function _idbPut(c,k,v){ return new Promise((res,rej)=>{ const t=c.transaction(IDB_STORE,'readwrite'); t.objectStore(IDB_STORE).put(v,k); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+const SEED = {"linhas":[{"h":1,"rot":"1- Painel de Indicadores","blk":0},{"k":"0|frota|1","rot":"Frota","c":{"2026-08":{"v":30,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":30,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":60,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"0|custo total|1","rot":"CUSTO TOTAL","c":{"2026-01":{"v":0,"z":"#,##0"},"2026-02":{"v":0,"z":"#,##0"},"2026-03":{"v":0,"z":"#,##0"},"2026-04":{"v":0,"z":"#,##0"},"2026-05":{"v":0,"z":"#,##0"},"2026-06":{"v":0,"z":"#,##0"},"2026-07":{"v":0,"z":"#,##0"},"2026-08":{"v":846840,"z":"#,##0"},"2026-09":{"v":779440,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"R0":{"v":1626280,"z":"#,##0"}}},{"k":"0|combustivel (r$/km)|1","rot":"COMBUSTÍVEL (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-02":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-03":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-04":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-05":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-06":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-07":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-08":{"v":1.6410741436046055,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-09":{"v":1.571192837707364,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"R0":{"v":3.3008488921769006,"z":"#,##0.00_ ;\\-#,##0.00\\ "}}},{"k":"0|lubrificantes (r$/km)|1","rot":"LUBRIFICANTES (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":0.014309541994722553,"z":"#,##0.00"},"2026-09":{"v":0.0190743689734298,"z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":0.03415631151960477,"z":"#,##0.00"}}},{"k":"0|arla (r$/km)|1","rot":"ARLA (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":0.06577773336283754,"z":"#,##0.00"},"2026-09":{"v":0.032162606111522114,"z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":0.10149089039635867,"z":"#,##0.00"}}},{"k":"0|preco oleo diesel (r$)|1","rot":"PREÇO ÓLEO DIESEL (R$)","c":{"2026-08":{"v":7.19,"z":"#,##0.0000"},"2026-09":{"v":7.16,"z":"#,##0.0000"},"R0":{"v":7.175000000000001,"z":"#,##0.0000"}}},{"k":"0|pecas (r$/km)|1","rot":"PEÇAS  (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-02":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-03":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-04":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-05":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-06":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-07":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-08":{"v":0.18920288665386564,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-09":{"v":0.19296058983586412,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"R0":{"v":0.3923762711439355,"z":"#,##0.00_ ;\\-#,##0.00\\ "}}},{"k":"0|pneus (r$/km)|1","rot":"PNEUS (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":0.1045829080206244,"z":"#,##0.00"},"2026-09":{"v":0.13929355117804165,"z":"#,##0.00"},"2026-10":{"v":"#DIV/0!","z":"#,##0.00"},"2026-11":{"v":"#DIV/0!","z":"#,##0.00"},"2026-12":{"v":"#DIV/0!","z":"#,##0.00"},"R0":{"v":0.2495216360923374,"z":"#,##0.00"}}},{"k":"0|custo total (r$/km)|1","rot":"CUSTO TOTAL (R$/KM)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-02":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-03":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-04":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-05":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-06":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-07":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-08":{"v":2.0149472136366557,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-09":{"v":1.954683953806222,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"R0":{"v":4.078394001329137,"z":"#,##0.00_ ;\\-#,##0.00\\ "}}},{"k":"0|rendimento (km/l)|1","rot":"RENDIMENTO (KM/L)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":0,"z":"#,##0.00"},"2026-09":{"v":0,"z":"#,##0.00"},"2026-10":{"v":0,"z":"#,##0.00"},"2026-11":{"v":0,"z":"#,##0.00"},"2026-12":{"v":0,"z":"#,##0.00"},"R0":{"v":"#DIV/0!","z":"#,##0.00"}}},{"k":"0|estoque (r$) sem comb/lub/arla|1","rot":"ESTOQUE (R$) sem comb/lub/arla","c":{"2026-01":{"v":60652.1,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":62774.55,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":57138.66,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":55564.74999999999,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":56436.91,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":54849.9,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":51966.37,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":48955.22,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":44084.79,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":48955.22,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"0|revisoes (%)|1","rot":"REVISÕES (%)","c":{"2026-01":{"v":1,"z":"0.0%"},"2026-02":{"v":1,"z":"0.0%"},"2026-03":{"v":1,"z":"0.0%"},"2026-04":{"v":1,"z":"0.0%"},"2026-05":{"v":1,"z":"0.0%"},"2026-06":{"v":1,"z":"0.0%"},"2026-07":{"v":1,"z":"0.0%"},"2026-08":{"v":0,"z":"0.0%"},"2026-09":{"v":0,"z":"0.0%"},"2026-10":{"v":0,"z":"0.0%"},"2026-11":{"v":0,"z":"0.0%"},"2026-12":{"v":0,"z":"0.0%"},"R0":{"v":1,"z":"0.0%"}}},{"k":"0|idade media|1","rot":"IDADE MÉDIA","c":{"2026-08":{"v":2.9,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-09":{"v":2.99,"z":"#,##0.00_ ;\\-#,##0.00\\ "},"R0":{"v":2.9,"z":"#,##0.00_ ;\\-#,##0.00\\ "}}},{"k":"0|retidos (qtd)|1","rot":"RETIDOS (qtd)","c":{"2026-08":{"v":2,"z":"#,##0"},"2026-09":{"v":1,"z":"#,##0"},"2026-10":{"v":0,"z":"#,##0"},"2026-11":{"v":0,"z":"#,##0"},"2026-12":{"v":0,"z":"#,##0"},"R0":{"v":0,"z":"#,##0"}}},{"k":"0|km total|1","rot":"KM TOTAL","c":{"2026-08":{"v":420279,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":398755,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":398755,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"0|pmm|1","rot":"PMM","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":14009.3,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":13291.833333333334,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":13650.566666666668,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"0|mkbf man|1","rot":"MKBF MAN","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-02":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-03":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-04":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-05":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-06":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-07":{"v":"#DIV/0!","z":"#,##0.00_ ;\\-#,##0.00\\ "},"2026-08":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":66459.16666666667,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":66459.16666666667,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"0|mkbf (total)|1","rot":"MKBF (Total)","c":{"2026-01":{"v":"#DIV/0!","z":"#,##0.00"},"2026-02":{"v":"#DIV/0!","z":"#,##0.00"},"2026-03":{"v":"#DIV/0!","z":"#,##0.00"},"2026-04":{"v":"#DIV/0!","z":"#,##0.00"},"2026-05":{"v":"#DIV/0!","z":"#,##0.00"},"2026-06":{"v":"#DIV/0!","z":"#,##0.00"},"2026-07":{"v":"#DIV/0!","z":"#,##0.00"},"2026-08":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":44306.11111111111,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":"#DIV/0!","z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":44306.11111111111,"z":"#,##0_ ;\\-#,##0\\ "}}},{"gap":1},{"h":1,"rot":"2- Custo Total Por Item","blk":1},{"k":"1|combustivel|1","rot":"Combustível","c":{"2026-08":{"v":689709,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":626521,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":1316230,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1|lubrificantes|1","rot":"Lubrificantes","c":{"2026-08":{"v":6014,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":7606,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":13620,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1|arla|1","rot":"Arla","c":{"2026-08":{"v":27645,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":12825,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":40470,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1|pecas mecanicas|1","rot":"Peças  Mecânicas","c":{"2026-08":{"v":79518,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":76944,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":156462,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1|pneu novo|1","rot":"Pneu Novo","c":{"2026-08":{"v":26019,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":29389,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":55408,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1|pneu recapado|1","rot":"Pneu Recapado","c":{"2026-08":{"v":17935,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":26155,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":44090,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1||1","rot":"","c":{"R0":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1||2","rot":"","c":{"R0":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"1||3","rot":"","c":{"R0":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"gap":1},{"k":"1|total|1","rot":"Total","c":{"2026-01":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-02":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-03":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-04":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-05":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-06":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-07":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-08":{"v":846840,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-09":{"v":779440,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-10":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-11":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-12":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"R0":{"v":1626280,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"gap":1},{"h":1,"rot":"3- Consumo Diesel","blk":2},{"k":"2|total em litros|1","rot":"Total em Litros","c":{"R0":{"v":0,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"k":"2||1","rot":"","c":{"2026-03":{"v":"#REF!","z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"},"2026-04":{"v":51531,"z":"General"},"2026-05":{"v":-51531,"z":"_-* #,##0_-;\\-* #,##0_-;_-* \\-??_-;_-@_-"}}},{"gap":1},{"h":1,"rot":"4- Quebras","blk":3},{"k":"3|mecanicas|1","rot":"Mecânicas","c":{"2026-09":{"v":6,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":6,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"3|eletrica|1","rot":"Elétrica","c":{"R0":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"3|pneus|1","rot":"Pneus","c":{"R0":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"3|regeneracao|1","rot":"Regeneração","c":{"2026-09":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":3,"z":"#,##0_ ;\\-#,##0\\ "}}},{"k":"3|total|1","rot":"Total","c":{"2026-01":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-02":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-03":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-04":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-05":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-06":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-07":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-08":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-09":{"v":9,"z":"#,##0_ ;\\-#,##0\\ "},"2026-10":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-11":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"2026-12":{"v":0,"z":"#,##0_ ;\\-#,##0\\ "},"R0":{"v":9,"z":"#,##0_ ;\\-#,##0\\ "}}},{"gap":1},{"h":1,"rot":"Revisões","blk":4},{"k":"4|corretiva programada|1","rot":"Corretiva Programada","c":{"2026-01":{"v":0,"z":"#,##0_);\\(#,##0\\)"},"2026-03":{"v":19,"z":"#,##0_);\\(#,##0\\)"},"2026-04":{"v":16,"z":"#,##0_);\\(#,##0\\)"},"2026-05":{"v":20,"z":"#,##0_);\\(#,##0\\)"},"2026-06":{"v":39,"z":"#,##0_);\\(#,##0\\)"},"2026-07":{"v":20,"z":"#,##0_);\\(#,##0\\)"},"R0":{"v":114,"z":"#,##0_);\\(#,##0\\)"}}},{"k":"4|corretiva realizada|1","rot":"Corretiva Realizada","c":{"2026-01":{"v":0,"z":"#,##0_);\\(#,##0\\)"},"2026-03":{"v":19,"z":"#,##0_);\\(#,##0\\)"},"2026-04":{"v":16,"z":"#,##0_);\\(#,##0\\)"},"2026-05":{"v":20,"z":"#,##0_);\\(#,##0\\)"},"2026-06":{"v":39,"z":"#,##0_);\\(#,##0\\)"},"2026-07":{"v":20,"z":"#,##0_);\\(#,##0\\)"},"R0":{"v":114,"z":"#,##0_);\\(#,##0\\)"}}},{"k":"4|%|1","rot":"%","c":{"2026-01":{"v":"#DIV/0!","z":"0%"},"2026-02":{"v":"#DIV/0!","z":"0%"},"2026-03":{"v":1,"z":"0%"},"2026-04":{"v":1,"z":"0%"},"2026-05":{"v":1,"z":"0%"},"2026-06":{"v":1,"z":"0%"},"2026-07":{"v":1,"z":"0%"},"2026-08":{"v":"#DIV/0!","z":"0%"},"2026-09":{"v":"#DIV/0!","z":"0%"},"2026-10":{"v":"#DIV/0!","z":"0%"},"2026-11":{"v":"#DIV/0!","z":"0%"},"2026-12":{"v":"#DIV/0!","z":"0%"},"R0":{"v":1,"z":"0%"}}},{"k":"4|preventiva programada|1","rot":"Preventiva Programada","c":{"2026-01":{"v":23,"z":"#,##0_);\\(#,##0\\)"},"2026-02":{"v":8,"z":"#,##0_);\\(#,##0\\)"},"2026-03":{"v":21,"z":"#,##0_);\\(#,##0\\)"},"2026-04":{"v":9,"z":"#,##0_);\\(#,##0\\)"},"2026-05":{"v":3,"z":"#,##0_);\\(#,##0\\)"},"2026-06":{"v":11,"z":"#,##0_);\\(#,##0\\)"},"2026-07":{"v":6,"z":"#,##0_);\\(#,##0\\)"},"2026-08":{"v":0.0001,"z":"#,##0_);\\(#,##0\\)"},"2026-09":{"v":0.0001,"z":"#,##0_);\\(#,##0\\)"},"2026-10":{"v":0.0001,"z":"#,##0_);\\(#,##0\\)"},"2026-11":{"v":0.0001,"z":"#,##0_);\\(#,##0\\)"},"2026-12":{"v":0.0001,"z":"#,##0_);\\(#,##0\\)"},"R0":{"v":81.00050000000002,"z":"#,##0_);\\(#,##0\\)"}}},{"k":"4|preventiva realizada|1","rot":"Preventiva Realizada","c":{"2026-01":{"v":21,"z":"#,##0_);\\(#,##0\\)"},"2026-02":{"v":8,"z":"#,##0_);\\(#,##0\\)"},"2026-03":{"v":21,"z":"#,##0_);\\(#,##0\\)"},"2026-04":{"v":9,"z":"#,##0_);\\(#,##0\\)"},"2026-05":{"v":3,"z":"#,##0_);\\(#,##0\\)"},"2026-06":{"v":11,"z":"#,##0_);\\(#,##0\\)"},"2026-07":{"v":6,"z":"#,##0_);\\(#,##0\\)"},"R0":{"v":79,"z":"#,##0_);\\(#,##0\\)"}}},{"k":"4|%|2","rot":"%","c":{"2026-01":{"v":0.9130434782608695,"z":"0%"},"2026-02":{"v":1,"z":"0%"},"2026-03":{"v":1,"z":"0%"},"2026-04":{"v":1,"z":"0%"},"2026-05":{"v":1,"z":"0%"},"2026-06":{"v":1,"z":"0%"},"2026-07":{"v":1,"z":"0%"},"2026-08":{"v":0,"z":"0%"},"2026-09":{"v":0,"z":"0%"},"2026-10":{"v":0,"z":"0%"},"2026-11":{"v":0,"z":"0%"},"2026-12":{"v":0,"z":"0%"},"R0":{"v":0.9753026215887555,"z":"0%"}}}],"meses":["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06","2026-07","2026-08","2026-09","2026-10","2026-11","2026-12"],"resumo":[".2026"],"aba":"Manutenção - V7","atualizadoEm":"2026-10-10T09:54:12.888Z","arquivo":"INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx"};   // dados da última planilha processada no build (usado se for mais novo que local/nuvem)
+const PUBLICO = !!CFG.publico;
+const SYNC_TOKEN = 'Mabd3cjIMNLuRWQuspNPGx38-KlcFk_N';
+const API_BASE = 'https://indicadoresv7.vercel.app';
+async function postNuvem(api, db){
+  try{
+    const r = await fetch(API_BASE+'/api/dados?setor='+api, {method:'POST', headers:{'Content-Type':'text/plain; charset=utf-8','Authorization':'Bearer '+SYNC_TOKEN}, body:JSON.stringify(db)});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  }catch(e){ console.warn('Sincronização com a nuvem falhou ('+api+'):', e); return false; }
+}
+let DB = {};
+let SEC = CFG.secoes[0].id;
+function normalizar(){ if(CFG.multi){ DB.secoes = DB.secoes || {}; } else if(CFG.secoes[0].tipo!=='frota'){ DB.linhas=DB.linhas||[]; DB.meses=DB.meses||[]; DB.resumo=DB.resumo||[]; } }
+function temDados(d){ if(!d) return false; if(CFG.multi) return !!(d.secoes && Object.keys(d.secoes).length); return !!((d.linhas && d.linhas.length) || d.grade); }
+function sd(id){ return CFG.multi ? ((DB.secoes||{})[id] || {}) : DB; }
+function maisNovo(a, b){ if(!temDados(a)) return temDados(b) ? b : a; if(!temDados(b)) return a; return String(b.atualizadoEm||'') > String(a.atualizadoEm||'') ? b : a; }
+// Fonte da verdade = a base MAIS NOVA entre: planilha embutida no build, base local (admin) e nuvem (upload feito em qualquer painel).
+async function loadDB(){
+  let cur = temDados(SEED) ? SEED : {};
+  let local = null;
+  if(!PUBLICO){ try{ const c = await _idbAbrir(); local = await _idbGet(c, CFG.chave); }catch(e){ console.error(e); } cur = maisNovo(cur, local); }
+  try{ const r = await fetch(API_BASE+'/api/dados?setor='+CFG.api, {cache:'no-store'}); if(r.ok){ const n = await r.json(); cur = maisNovo(cur, n); } }catch(e){ console.warn('Sem dados ao vivo, usando o último disponível:', e); }
+  DB = JSON.parse(JSON.stringify(cur || {})); normalizar();
+  if(!PUBLICO && cur !== local){ try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); }catch(e){} }
+}
+async function saveDB(){
+  if(PUBLICO) return true;
+  try{ const c = await _idbAbrir(); await _idbPut(c, CFG.chave, DB); postNuvem(CFG.api, DB); return true; }catch(e){ console.error(e); return false; }
+}
+
+// ==PURE-BEGIN==
+const MESES_PT = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function _norm(s){ return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim().toLowerCase(); }
+function _esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function _ehErro(s){ return typeof s==='string' && /^#(DIV\/0!|N\/A|VALUE!|REF!|NAME\?|NUM!|NULL!)/i.test(s.trim()); }
+function _ehFmtData(z){ if(!z||typeof z!=='string') return false; const t=z.replace(/\[[^\]]*\]/g,'').replace(/\\./g,''); return /m{3,5}|y{2,4}/i.test(t); }
+function _celData(x){ return !!x && typeof x.v==='number' && _ehFmtData(x.z); }
+function _serialParaChave(s){ const d=new Date(Date.UTC(1899,11,30)+Math.round(s)*86400000); return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0'); }
+function _rotMes(k){ const p=k.split('-'); return MESES_PT[Number(p[1])-1]+'-'+p[0].slice(2); }
+// Converte uma aba do SheetJS numa grade simples: grade[linha][coluna] = {v, z} ou null.
+// Erros de fórmula (#DIV/0! etc.) viram o texto do erro; datas ficam como número serial + formato.
+function _gradeDaAba(ws){
+  const ref = ws['!ref']; if(!ref) return [];
+  const rg = XLSX.utils.decode_range(ref); const g = [];
+  for(let r=0;r<=rg.e.r;r++){
+    const lin = [];
+    for(let c=0;c<=rg.e.c;c++){
+      const cel = ws[XLSX.utils.encode_cell({r:r,c:c})];
+      if(!cel || cel.v===undefined || cel.v===null || cel.v==='') lin.push(null);
+      else lin.push({ v: cel.t==='e' ? (cel.w||'#ERRO') : cel.v, z: cel.z||'General' });
+    }
+    g.push(lin);
+  }
+  return g;
+}
+// Lê a grade e devolve a estrutura espelhada da planilha:
+//  linhas: [{h:1,rot,blk} (cabeçalho de bloco) | {gap:1} | {k,rot,c:{'AAAA-MM':{v,z},'R0':{v,z}}}]
+//  meses : chaves 'AAAA-MM' em ordem; resumo: textos das colunas à direita dos meses (.2025/.2026/%).
+function parseGrade(g){
+  const linhas=[]; const mesesSet=new Set(); let resumo=[];
+  let blk=-1, mapMes=null, mapRes={}, colRot=0, vazio=false; const ocorr={};
+  for(let r=0;r<g.length;r++){
+    const lin = g[r]||[];
+    if(!lin.some(x=>x)){ if(linhas.length) vazio=true; continue; }
+    const datas=[]; lin.forEach((x,c)=>{ if(_celData(x)) datas.push(c); });
+    if(datas.length>=3){
+      blk++; colRot=Math.max(0,datas[0]-1);
+      // Os meses valem pela POSIÇÃO da coluna, definida pelo 1º cabeçalho da aba -- os cabeçalhos dos
+      // blocos seguintes só repetem os mesmos meses (e podem ter data digitada errada na planilha,
+      // ex.: aba ADM, bloco "RH"), então não redefinem o mapeamento.
+      if(!mapMes){ mapMes={}; datas.forEach(c=>{ const k=_serialParaChave(lin[c].v); mapMes[c]=k; mesesSet.add(k); }); }
+      const ult=datas[datas.length-1]; const novo={}; const txt=[]; let i=0;
+      lin.forEach((x,c)=>{ if(c>ult && x && typeof x.v==='string' && !_ehErro(x.v)){ novo['c'+c]='R'+i; txt.push(String(x.v).trim()); i++; } });
+      if(txt.length){ mapRes={}; Object.keys(novo).forEach(k=>{ mapRes[k.slice(1)]=novo[k]; }); if(txt.length>resumo.length) resumo=txt; }
+      if(vazio && linhas.length && !linhas[linhas.length-1].gap) linhas.push({gap:1});
+      vazio=false;
+      const rot0 = lin[colRot] && lin[colRot].v!=null ? String(lin[colRot].v).trim() : '';
+      linhas.push({h:1, rot:rot0, blk:blk});
+      continue;
+    }
+    if(blk<0) continue;
+    const rot = lin[colRot] && lin[colRot].v!=null ? String(lin[colRot].v).trim() : '';
+    const cel={}; let n=0;
+    lin.forEach((x,c)=>{ if(c===colRot||!x) return; const k=mapMes[c]||mapRes[c]; if(k){ cel[k]={v:x.v,z:x.z}; n++; } });
+    if(!rot && !n) continue;
+    if(rot==='0' && !lin.some((x,c)=> c!==colRot && x && typeof x.v==='number' && x.v!==0)) continue;
+    if(vazio && linhas.length && !linhas[linhas.length-1].gap) linhas.push({gap:1});
+    vazio=false;
+    const k0=blk+'|'+_norm(rot); ocorr[k0]=(ocorr[k0]||0)+1;
+    linhas.push({k:k0+'|'+ocorr[k0], rot:rot, c:cel});
+  }
+  return { linhas:linhas, meses:Array.from(mesesSet).sort(), resumo:resumo };
+}
+function _fmtNum(v,z){
+  const pct=z.indexOf('%')>=0; const base=z.split(';')[0];
+  const m=base.match(/\.(0+)/); const dec=m?m[1].length:0;
+  const paren=z.indexOf('\\(')>=0 || z.indexOf('(#')>=0;
+  const acc=z.indexOf('\\-??')>=0;
+  const milhar=base.indexOf(',')>=0;
+  const x=pct?v*100:v;
+  if(acc && Math.abs(x)<1e-12) return '-';
+  const neg=x<0;
+  const t=Math.abs(x).toFixed(dec).split('.');
+  let ip=t[0]; if(milhar) ip=ip.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  let s=t[1]!==undefined ? ip+','+t[1] : ip;
+  if(pct) s+='%';
+  if(neg) s = paren ? '('+s+')' : '-'+s;
+  return s;
+}
+function _fmtCel(c){
+  if(!c || c.v===undefined || c.v===null) return '';
+  const v=c.v, z=c.z||'General';
+  if(typeof v==='number'){
+    if(_ehFmtData(z)) return _rotMes(_serialParaChave(v));
+    if(z==='General') return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.',',');
+    return _fmtNum(v,z);
+  }
+  const s=String(v).trim();
+  return _ehErro(s) ? '-' : s;
+}
+// HTML da tabela espelhando a planilha (cores/negrito/vermelho vêm do LAYOUT embutido, que foi
+// copiado célula a célula da planilha original; linhas novas sem entrada no LAYOUT caem na zebra).
+// Anos presentes nos meses da base ('2025','2026',...).
+function _anosDoDb(db){ const s=new Set(); (db.meses||[]).forEach(k=>s.add(k.slice(0,4))); return Array.from(s).sort(); }
+// ---- Colunas de resumo AUTOMÁTICAS por ano. Cada linha tem uma regra (AGG, copiada das fórmulas da
+// planilha): S=soma dos meses do ano, A=média, L=último mês preenchido, E=expressão sobre outras linhas
+// (razões/totais). Só entram os meses do ano até o último mês preenchido (corte) e células vazias/erro
+// são ignoradas. Uma coluna por ano marcado + coluna(s) "%" comparando os anos.
+function _cortes(db){
+  const cnt={}; (db.linhas||[]).forEach(L=>{ if(!L.c) return; (db.meses||[]).forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && c.v!==0 && !_ehFmtData(c.z)) cnt[k]=(cnt[k]||0)+1; }); });
+  const cut={}; (db.meses||[]).forEach(k=>{ if((cnt[k]||0)>=3){ const a=k.slice(0,4); if(!cut[a]||k>cut[a]) cut[a]=k; } });
+  return cut;
+}
+function _specLinha(L, agg){
+  if(agg && Object.prototype.hasOwnProperty.call(agg, L.k)) return agg[L.k];
+  let z=null, ok=false;   // linha nova (não existia no layout): soma, ou média se o formato for %
+  Object.keys(L.c||{}).forEach(k=>{ const c=L.c[k]; if(/^\d{4}-\d{2}$/.test(k) && c && typeof c.v==='number' && !_ehFmtData(c.z)){ ok=true; z=c.z; } });
+  return ok ? {t:(String(z||'').indexOf('%')>=0?'A':'S'), z:z||'General'} : null;
+}
+function _agregar(db, agg, ano, cut){
+  const R={}, ms=(db.meses||[]).filter(k=>k.slice(0,4)===ano && (!cut[ano] || k<=cut[ano])), ex=[];
+  (db.linhas||[]).forEach(L=>{
+    if(!L.k) return; const a=_specLinha(L, agg); if(!a) return;
+    if(a.t==='E'){ ex.push([L.k,a]); return; }
+    const ns=[]; ms.forEach(k=>{ const c=L.c[k]; if(c && typeof c.v==='number' && !_ehFmtData(c.z)) ns.push(c.v); });
+    if(!ns.length){ R[L.k]=null; return; }
+    const sm=ns.reduce((x,y)=>x+y,0);
+    R[L.k] = a.t==='S' ? sm : a.t==='A' ? sm/ns.length : ns[ns.length-1];
+  });
+  const V=k=>(R[k]==null||isNaN(R[k]))?0:R[k];
+  for(let p=0;p<4;p++) ex.forEach(([k,a])=>{
+    if((a.r||[]).every(q=>R[q]==null)){ R[k]=null; return; }
+    try{ const x=new Function('V','return '+a.e)(V); R[k]=isFinite(x)?x:NaN; }catch(e){ R[k]=NaN; }
+  });
+  return R;
+}
+function _fmtRes(x, z){ if(x==null) return ''; if(typeof x!=='number'||isNaN(x)) return '-'; return _fmtCel({v:x, z:z||'General'}); }
+function _montarHtmlTabela(db, layout, agg, anos){
+  const meses=(db.meses||[]).filter(k=>!anos || anos.indexOf(k.slice(0,4))>=0);
+  const lin=db.linhas||[], cut=_cortes(db);
+  const anosRes=(anos||_anosDoDb(db)).slice().sort();
+  const RES=anosRes.map(a=>_agregar(db, agg, a, cut));
+  const pares=[]; for(let i=1;i<anosRes.length;i++) pares.push([i-1,i]);
+  const nPct=pares.length, nRes=anosRes.length+nPct;
+  const ncols=1+meses.length+1+nRes;
+  // blocos que têm pelo menos uma linha com resumo mostram o cabeçalho das colunas de resumo
+  const temRes=[]; let bi=-1;
+  lin.forEach(L=>{ if(L.h){ bi++; temRes[bi]=false; } else if(L.k && bi>=0 && _specLinha(L,agg)) temRes[bi]=true; });
+  let h='', zebra=0, bloco=-1;
+  lin.forEach(L=>{
+    if(L.gap){ h+='<tr class="gap"><td colspan="'+ncols+'"></td></tr>'; return; }
+    if(L.h){
+      zebra=0; bloco++;
+      h+='<tr class="ind-h"><td class="lab" style="background:#002060">'+_esc(L.rot)+'</td>'+
+        meses.map(k=>'<td style="background:#002060">'+_rotMes(k)+'</td>').join('');
+      if(temRes[bloco]){
+        h+='<td class="sp" style="background:#fff"><i></i></td>'+anosRes.map(a=>'<td style="background:#002060">.'+a+'</td>').join('')+
+          pares.map(p=>'<td style="background:#002060">%'+(nPct>1?' '+anosRes[p[1]].slice(2)+'/'+anosRes[p[0]].slice(2):'')+'</td>').join('');
+      }
+      h+='</tr>'; return;
+    }
+    const est=layout[L.k]||{};
+    const fill=('f' in est) ? est.f : (zebra%2 ? 'D2DEEF' : 'EAEFF7'); zebra++;
+    const base='background:'+(fill?'#'+fill:'#fff')+(est.b?';font-weight:700':'');
+    const st=base+(est.r?';color:#ff0000':'');
+    let tds='<td class="lab" style="'+st+'">'+_esc(L.rot)+'</td>';
+    meses.forEach(k=>{ const c=L.c[k]; tds+='<td class="'+(c && typeof c.v==='string' && !_ehErro(c.v)?'txt':'')+'" style="'+st+'">'+_esc(_fmtCel(c))+'</td>'; });
+    if(temRes[bloco]){
+      const sp=_specLinha(L,agg);
+      tds+='<td class="sp" style="background:#fff"><i></i></td>';
+      anosRes.forEach((a,i)=>{ tds+='<td style="'+st+'">'+(sp?_esc(_fmtRes(RES[i][L.k], sp.z)):'')+'</td>'; });
+      pares.forEach(p=>{
+        let t='', cor='';
+        if(sp){
+          const x=RES[p[0]][L.k], y=RES[p[1]][L.k];
+          if(x!=null && y!=null){
+            if(isNaN(x)||isNaN(y)||x===0){ t='-'; }
+            else { const d=y/x-1; if(!isFinite(d)) t='-'; else { t=_fmtNum(d,'0%'); cor=d<0?';color:#ff0000':';color:#000000'; } }
+          }
+        }
+        tds+='<td style="'+base+cor+'">'+_esc(t)+'</td>';
+      });
+    }
+    h+='<tr>'+tds+'</tr>';
+  });
+  return h;
+}
+// ==PURE-END==
+
+function $(id){ return document.getElementById(id); }
+// ---- Frota (matriz): mostra a aba como está na planilha (valores calculados, cores, células mescladas)
+function _fmtData(v){ const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000); return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear(); }
+function _fmtFrota(c){
+  if(!c || c.v===undefined || c.v===null) return '';
+  const v=c.v, z=c.z||'General';
+  if(typeof v==='number'){
+    if(_ehFmtData(z)) return _fmtData(v);
+    if(z==='General') return Number.isInteger(v) ? String(v) : v.toFixed(2).replace('.',',');
+    return _fmtNum(v,z);
+  }
+  const s=String(v).trim(); return _ehErro(s) ? '-' : s;
+}
+function _htmlFrota(d, L){
+  const g=d.grade||[]; let h='';
+  for(let r=0;r<g.length;r++){
+    const lin=g[r]||[]; let tds='', vazio=true;
+    for(let c=0;c<lin.length || c<CFG_FROTA_COL;c++){
+      const e=L[r+','+c]||{}; if(e.x) continue;
+      const cel=lin[c]; const t=_fmtFrota(cel); if(t!=='' || e.f) vazio=false;
+      const st=[]; if(e.f) st.push('background:#'+e.f); if(e.b) st.push('font-weight:700'); if(e.c) st.push('color:#'+e.c);
+      const txt = cel && typeof cel.v==='string' && !_ehErro(cel.v);
+      tds+='<td'+(e.rs?' rowspan="'+e.rs+'"':'')+(e.cs?' colspan="'+e.cs+'"':'')+' class="'+(c===0?'lab':'')+(txt?' txt':'')+'" style="'+st.join(';')+'">'+_esc(t)+'</td>';
+    }
+    h += vazio && !tds.match(/rowspan/) ? '<tr class="gap"><td colspan="'+CFG_FROTA_COL+'"></td></tr>' : '<tr>'+tds+'</tr>';
+  }
+  return h;
+}
+const CFG_FROTA_COL = 12;
+// ---- Filtro de ANO (multi-seleção). Padrão: ano corrente se existir na base; senão o último ano.
+let ANOS_SEL = null;
+function _garantirAnosSel(d){
+  const disp=_anosDoDb(d);
+  if(!disp.length){ ANOS_SEL=[]; return disp; }
+  const ok=(ANOS_SEL||[]).filter(a=>disp.indexOf(a)>=0);
+  if(ok.length){ ANOS_SEL=ok; return disp; }
+  const at=String(new Date().getFullYear());
+  ANOS_SEL=[ disp.indexOf(at)>=0 ? at : disp[disp.length-1] ];
+  return disp;
+}
+function _renderFiltroAno(d){
+  const disp=_garantirAnosSel(d), box=$('indFiltro');
+  if(!disp.length){ box.style.display='none'; return; }
+  box.style.display='';
+  const ord=ANOS_SEL.slice().sort();
+  $('anoBtn').textContent=(ord.length===disp.length && disp.length>1 ? 'Todos os anos' : ord.join(', '))+' ▾';
+  $('anoMenu').innerHTML = disp.map(a=>'<label><input type="checkbox" value="'+a+'"'+(ANOS_SEL.indexOf(a)>=0?' checked':'')+' onchange="IND.anoMarcar(this)"> '+a+'</label>').join('')+
+    '<div class="ms-rod"><a href="#" onclick="return IND.anoTodos()">Todos</a><a href="#" onclick="return IND.anoAtual()">Ano atual</a></div>';
+}
+function render(manterMenu){
+  const sec = CFG.secoes.find(s=>s.id===SEC) || CFG.secoes[0];
+  const d = sd(sec.id), tab=$('indTabela'), fonte=$('indFonte'), pills=$('indSecoes');
+  if(CFG.secoes.length>1){
+    pills.style.display='';
+    pills.innerHTML = CFG.secoes.map(s=>'<button type="button" class="'+(s.id===sec.id?'on':'')+'" onclick="IND.secao(\''+s.id+'\')">'+_esc(s.titulo)+'</button>').join('');
+  } else pills.style.display='none';
+  if(sec.tipo==='frota'){
+    $('indFiltro').style.display='none';
+    if(!d.grade){ tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return; }
+    tab.className='frota';
+    tab.innerHTML='<tbody>'+_htmlFrota(d, LAYOUT[sec.id]||{})+'</tbody>';
+  } else {
+    tab.className='';
+    if(!(d.linhas||[]).length){
+      $('indFiltro').style.display='none';
+      tab.innerHTML='<tbody><tr><td style="text-align:center;padding:20px;color:#9aa1af;background:#fff;">'+CFG.vazio+'</td></tr></tbody>'; fonte.style.display='none'; return;
+    }
+    _renderFiltroAno(d);
+    if(manterMenu===true) $('anoMenu').classList.add('aberto');
+    tab.innerHTML='<tbody>'+_montarHtmlTabela(d, LAYOUT[sec.id]||{}, AGG[sec.id]||{}, ANOS_SEL)+'</tbody>';
+  }
+  const quando = DB.atualizadoEm || d.atualizadoEm;
+  if(quando){
+    const dt=new Date(quando);
+    fonte.textContent='Fonte: planilha INDICADORES - BANDEIRA e VIAÇÃO SETE (aba '+(d.aba||sec.aba||'')+') - atualizado em '+dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    fonte.style.display='';
+  } else fonte.style.display='none';
+}
+// ---- leitura da planilha (roteamento por nome de aba)
+function parseSecao(wb, sp){
+  const nome = wb.SheetNames.find(n=> sp.abas.indexOf(_norm(n))>=0); if(!nome) return null;
+  let g = _gradeDaAba(wb.Sheets[nome]);
+  if(sp.c0 || sp.c1!=null) g = g.map(l=>l.slice(sp.c0||0, sp.c1!=null ? sp.c1+1 : undefined));
+  if(sp.tipo==='frota'){ g = g.slice(0,sp.lin).map(l=>{ const x=l.slice(0,sp.col); while(x.length<sp.col) x.push(null); return x; }); return {tipo:'frota', grade:g, aba:nome}; }
+  const r = parseGrade(g); if(!r.linhas.filter(l=>l.k).length) return null;
+  r.aba = nome; return r;
+}
+function parseRota(wb, rota, prev){
+  const out = {}; let achou=false;
+  rota.secoes.forEach(sp=>{ const r=parseSecao(wb,sp); if(r){ out[sp.id]=r; achou=true; } });
+  if(!achou) return null;
+  if(!rota.multi) return out[rota.secoes[0].id];
+  const m = Object.assign({}, prev && prev.secoes ? prev.secoes : {}, out);
+  return { secoes: m };
+}
+function resumoDb(db){
+  if(db.secoes) return Object.keys(db.secoes).length+' seção(ões)';
+  if(db.grade) return 'matriz de frota';
+  return db.linhas.filter(l=>l.k).length+' indicador(es), '+db.meses.length+' mês(es) de '+_rotMes(db.meses[0])+' a '+_rotMes(db.meses[db.meses.length-1]);
+}
+async function processar(files){
+  const st=$('indStatus'); st.textContent='Processando...';
+  for(const f of files){
+    try{
+      const wb = XLSX.read(await f.arrayBuffer(), {type:'array', cellNF:true});
+      const feitos=[]; let proprio=false;
+      for(const rota of CFG.rotas){
+        const db = parseRota(wb, rota, rota.api===CFG.api ? DB : null); if(!db) continue;
+        db.atualizadoEm = new Date().toISOString(); db.arquivo = f.name;
+        if(rota.api===CFG.api){ DB=db; normalizar(); proprio=true; feitos.push(rota.nome+': '+resumoDb(db)); }
+        else { const ok = await postNuvem(rota.api, db); feitos.push(rota.nome+(ok?' (enviado)':' (falha ao enviar)')); }
+      }
+      if(!feitos.length && wb.SheetNames.length===1 && !CFG.multi && CFG.secoes[0].tipo!=='frota'){
+        const r=parseGrade(_gradeDaAba(wb.Sheets[wb.SheetNames[0]]));
+        if(r.linhas.filter(l=>l.k).length){ r.aba=wb.SheetNames[0]; r.atualizadoEm=new Date().toISOString(); r.arquivo=f.name; DB=r; normalizar(); proprio=true; feitos.push(resumoDb(r)); }
+      }
+      st.textContent = feitos.length ? f.name+' - '+feitos.join(' | ') : 'Erro em '+f.name+': nenhuma aba reconhecida. Abas do arquivo: '+wb.SheetNames.join(', ')+'.';
+      if(!proprio && feitos.length) st.textContent += ' | (esta planilha não trazia a aba deste setor)';
+    }catch(e){ console.error(e); st.textContent='Erro ao processar '+f.name+': '+e.message; }
+  }
+  await saveDB(); render();
+}
+window.IND = {
+  anoToggle: function(ev){ ev.stopPropagation(); $('anoMenu').classList.toggle('aberto'); },
+  anoMarcar: function(cb){ const a=cb.value; if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); } else { if(ANOS_SEL.length<=1){ cb.checked=true; return; } ANOS_SEL=ANOS_SEL.filter(x=>x!==a); } render(true); },
+  anoTodos: function(){ ANOS_SEL=_anosDoDb(sd(SEC)).slice(); render(true); return false; },
+  anoAtual: function(){ ANOS_SEL=null; render(true); return false; },
+  secao: function(id){ SEC=id; ANOS_SEL=null; render(); },
+  abrir: function(){ $('indFile').click(); },
+  csv: function(){
+    const linhas=[]; document.querySelectorAll('#indTabela tr').forEach(tr=>{ const c=Array.from(tr.querySelectorAll('td')).map(x=>'"'+x.textContent.replace(/"/g,'""')+'"'); if(c.length) linhas.push(c.join(';')); });
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+linhas.join('\n')],{type:'text/csv;charset=utf-8;'})); a.download='Indicadores_'+CFG.api+'.csv'; a.click();
+  },
+  limpar: async function(){
+    if(!confirm('Isso vai apagar toda a base local dos Indicadores ('+CFG.nomeCompleto+'). Essa ação não pode ser desfeita. Confirma?')) return;
+    DB = {}; normalizar(); await saveDB(); render(); $('indStatus').textContent='Base local apagada.';
+  }
+};
+document.addEventListener('click', e=>{ const m=$('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
+if(!PUBLICO){ const fi=$('indFile'); if(fi) fi.addEventListener('change', async ev=>{ const fs=Array.from(ev.target.files); if(fs.length) await processar(fs); ev.target.value=''; }); }
+(async function(){ await loadDB(); render(); })();
+})();
+
 </script>
 </body>
 </html>
