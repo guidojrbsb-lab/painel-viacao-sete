@@ -1479,7 +1479,7 @@ function recomputeLinhasParaData(data){
       else if(destino.toUpperCase().includes(cidadeHorario) || cidadeHorario.includes(destino.split('(')[0].trim().toUpperCase())) sentido='VOLTA';
     }
     return {
-      data, hora:e.hora, servico:null, cod:e.idlinhahorario, sentido, linha:linhaBase, linhaCompleta,
+      data, hora:e.hora, servico:null, cod:e.idlinhahorario, sentido:(e.sentido||sentido), linha:linhaBase, linhaCompleta,
       receitaTotal:e.valorpass, kmRodado:e.distancia, kmRodadoOriginal:e.distancia, viagens:e.qtviagem,
       receitaPassagens:e.valorpass, embarque:0,
       // Regra de negócio: toda linha do canal Embarcado (venda a bordo, ex.: PI-112) é
@@ -1809,7 +1809,8 @@ function parseEmbarcadoLinhas(aoa, data){
       valorpass: cellNum(row[iValorpass]), qtdepass: cellNum(row[iQtdepass]),
     });
   }
-  DB.embarcado[data] = rows;
+  // preserva as linhas do PRAXIO LUNA já carregadas para o dia (ver bloco LUNA abaixo)
+  DB.embarcado[data] = rows.concat((DB.embarcado[data]||[]).filter(x=>x.origem==='LUNA'));
 }
 
 function parseVendasEmbarcadaAgencia(aoa, data){
@@ -1830,7 +1831,7 @@ function parseVendasEmbarcadaAgencia(aoa, data){
       qtdepasslp: cellNum(row[iQtdepasslp]),
     });
   }
-  DB.vendasEmbarcadaAgencia[data] = rows;
+  DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'));
 }
 
 // Segundo formato do mesmo relatório "Vendas Embarcada por Agência": um export
@@ -1880,8 +1881,103 @@ function parseVendasEmbarcadaAgenciaFormatada(aoa, data){
       qtdepasstot: totFisico, qtdepasslp: totFisico,
     });
   }
-  if(rows.length) DB.vendasEmbarcadaAgencia[data] = rows;
+  if(rows.length) DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'));
 }
+
+// =====================================================================
+// PRAXIO LUNA (novo sistema de bilhetagem, implantado a partir de 10/10/2026)
+// Dois relatórios novos, ambos "Detalhado" (1ª aba), com a data em CADA linha:
+//  - "Vendas por Agência - Detalhado": 1 linha por agência/dia (hoje só "VENDA EMBARCADA").
+//    SOMA-SE ao que já existe em DB.vendasEmbarcadaAgencia do dia (nenhum substitui o
+//    outro): a linha entra com origem:'LUNA' e, ao reenviar o mesmo relatório, só as
+//    linhas LUNA do dia são trocadas (idempotente). Valores vêm como texto BR ("6.760,00").
+//  - "Vendas por Linha - Detalhado": 1 linha por viagem. Entra em DB.embarcado (mesma
+//    coleção do "Embarcado Linhas" do sistema antigo), logo vira registros canal:'embarcada'
+//    da linha em DB.linhas via recomputeLinhasParaData -- agregando à linha correspondente.
+// Os parsers do sistema antigo preservam as linhas origem:'LUNA' ao regravar o dia.
+// =====================================================================
+const LUNA_LINHAS_CANONICAS = {
+  'TERESINA(PI) - MATIAS OLIMPIO(PI)': 'TERESINA(PI) - MATIAS OLIMPIO(PI)',
+  'TERESINA(PI) - LAGOA ALEGRE(PI)': 'TERESINA(PI) - LAGOA ALEGRE(PI)',
+  'TERESINA(PI) - BARRAS(PI)': 'TERESINA(PI) -  BARRAS(PI) VIA UNIÃO(PI)',
+  'TERESINA(PI) - PORTO(PI)': 'TERESINA(PI) - PORTO(PI)',
+};
+// "TERESINA(PI) - MATIAS OLÍMPIO(PI) VIA CAMPO LARGO(PI) - CONV": tira o sufixo de classe
+// (" - CONV") e o "VIA ..." (as duas variantes de Matias Olímpio são a mesma linha para o
+// painel) e casa com o nome já usado pelo sistema antigo; sem correspondência, mantém o nome.
+function _lunaNomeLinha(nome){
+  const s = String(nome||'').trim().replace(/\s*-\s*(CONV|EXEC|LEIT|SEMI|CAM)\s*$/i,'').replace(/\s+/g,' ');
+  const semVia = s.replace(/\s+VIA\s+.*$/i,'').trim();
+  const k = semVia.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+  return LUNA_LINHAS_CANONICAS[k] || s;
+}
+function _lunaData(v){
+  if(typeof v==='string') return valorParaData(v, false);
+  return _dataVendaConvenio(v);
+}
+function _lunaHora(v){
+  if(typeof v==='string'){ const m=v.match(/^(\d{1,2}):(\d{2})/); return m ? m[1].padStart(2,'0')+':'+m[2] : null; }
+  if(v instanceof Date && !isNaN(v)) return String(v.getHours()).padStart(2,'0')+':'+String(v.getMinutes()).padStart(2,'0');
+  if(typeof v==='number' && v>=0 && v<1){ const t=Math.round(v*1440); return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0'); }
+  return null;
+}
+function _lunaIndices(aoa, chave){
+  const hi = aoa.findIndex(r=>r && r.some(c=>typeof c==='string' && c.trim().toLowerCase()===chave));
+  if(hi<0) return null;
+  const H = aoa[hi].map(h=>typeof h==='string' ? h.trim().toLowerCase() : h);
+  return {hi, ix:n=>H.indexOf(n)};
+}
+function parseLunaAgencias(aoa){
+  const c = _lunaIndices(aoa, 'agencia'); if(!c) return [];
+  const {hi, ix} = c;
+  const iAg=ix('agencia'), iData=ix('data'), iPass=ix('vl pass. + liberacao'), iTx=ix('tx.emb'),
+        iBruto=ix('total bruto'), iCom=ix('comissao'), iQtd=ix('qtd.pass + qtd.lib');
+  const porDataNome = {};
+  for(let r=hi+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const nome = row[iAg]; if(typeof nome!=='string' || !nome.trim()) continue;
+    const d = _lunaData(row[iData]); if(!d) continue;
+    const k = d+'||'+nome.trim();
+    const o = porDataNome[k] || (porDataNome[k] = {d, x:{nome:nome.trim(), uf:'', vlpasstot:0, vltxembarquetot:0, totgeral:0, vlcomissaotot:0, qtdepasstot:0, qtdepasslp:0, origem:'LUNA'}});
+    // "TOT FISIC LP+PAS" do formato antigo = passagens + liberações: aqui Qtd.Pass + Qtd.Lib
+    // (mesma convenção do formato formatado: um único total físico nos dois campos).
+    const qtd = cellNum(row[iQtd]);
+    o.x.vlpasstot += cellNum(row[iPass]); o.x.vltxembarquetot += cellNum(row[iTx]);
+    o.x.totgeral += cellNum(row[iBruto]); o.x.vlcomissaotot += cellNum(row[iCom]);
+    o.x.qtdepasstot += qtd; o.x.qtdepasslp += qtd;
+  }
+  const datas = new Set(Object.values(porDataNome).map(o=>o.d));
+  datas.forEach(d=>{ DB.vendasEmbarcadaAgencia[d] = (DB.vendasEmbarcadaAgencia[d]||[]).filter(x=>x.origem!=='LUNA'); });
+  Object.values(porDataNome).forEach(o=>{ DB.vendasEmbarcadaAgencia[o.d].push(o.x); });
+  return Array.from(datas).sort();
+}
+function parseLunaLinhas(aoa){
+  const c = _lunaIndices(aoa, 'nome linha'); if(!c) return [];
+  const {hi, ix} = c;
+  const iData=ix('data'), iNome=ix('nome linha'), iHora=ix('hora partida'), iSent=ix('sentido'), iQtV=ix('qtd.viagens'),
+        iKm=ix('km rodado'), iPax=ix('qtd.transportada'), iRec=ix('receita bruta'), iSrv=ix('numero servico');
+  const porData = {};
+  for(let r=hi+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const nome = row[iNome]; if(typeof nome!=='string' || !nome.trim()) continue;
+    const d = _lunaData(row[iData]); if(!d) continue;
+    const linha = _lunaNomeLinha(nome);
+    const sentRaw = String(row[iSent]||'').trim().toUpperCase();
+    const sentido = sentRaw==='IDA' ? 'IDA' : (sentRaw==='VOLTA' ? 'VOLTA' : '');
+    const {origem, destino} = origemDestinoCidade(linha);
+    const cidade = (sentido==='VOLTA' ? destino : origem).replace(/\(/,' (').replace(/\s+/g,' ').trim();
+    (porData[d] || (porData[d] = [])).push({
+      nlinha: linha, idlinhahorario: row[iSrv], hora: _lunaHora(row[iHora]), cidadeHorario: cidade, sentido,
+      distancia: cellNum(row[iKm]), qtviagem: cellNum(row[iQtV]), valorpass: cellNum(row[iRec]), qtdepass: cellNum(row[iPax]),
+      origem: 'LUNA',
+    });
+  }
+  Object.keys(porData).forEach(d=>{
+    DB.embarcado[d] = (DB.embarcado[d]||[]).filter(x=>x.origem!=='LUNA').concat(porData[d]);
+  });
+  return Object.keys(porData).sort();
+}
+
 
 // =====================================================================
 // CONVÊNIOS: mapeamento fixo Bilheteiro -> Convênio (Prefeituras/Correntistas).
@@ -2073,6 +2169,10 @@ const REDIRECIONAMENTOS_BILHETE = {
   // em 2026-08-19 como sendo da PREFEITURA DE SEBASTIÃO LEAL.
   '146501': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
   '146502': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
+  // Pedido do usuário em 2026-10-12: ÚNICA e EXCLUSIVAMENTE estes 2 bilhetes (SEBASTIAO LEAL x
+  // TERESINA, 10/10/2026, R$ 0,01) gravados em PREFEITURA DE SÃO RAIMUNDO NONATO -> SEBASTIÃO LEAL.
+  '178823': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
+  '178824': { convenio: 'PREFEITURA DE SEBASTIÃO LEAL', bilheteiro: 'PREFSBLL01' },
   // Bilhete WESLEY BANDEIRA DA SILVA (São Raimundo Nonato -> Teresina, 20/08/2026)
   // vendido com o código de Prefeitura de Corrente por engano — pertence ao contrato
   // de São Raimundo Nonato.
@@ -2412,6 +2512,9 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // Bilhete JOSE RUBENS ALVES (Fazenda Ribeirão, URUCUI x BAIXA GRANDE DO RIBEIRO): relatório
   // gravou 09/10, mas a viagem foi de fato em 08/10 (confirmado pelo usuário em 2026-10-09).
   '83691': '2026-10-08',
+  // Pedido do usuário em 2026-10-12: DPL (bilhete 179986) e Fazenda Progresso (180086) -> 11/10/2026.
+  '179986': '2026-10-11',
+  '180086': '2026-10-11',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -3856,6 +3959,9 @@ async function processarArquivo(file){
   if(tipo==='desconhecido' && header0.includes('vlpasstot') && header0.includes('totgeral')){
     tipo = 'vendasEmbarcadaAgencia';
   }
+  // PRAXIO LUNA (sistema novo, a partir de 10/10/2026) -- ver bloco "PRAXIO LUNA" nos parsers.
+  if(tipo==='desconhecido' && header0.includes('agencia') && header0.includes('vl pass. + liberacao')) tipo = 'lunaAgencias';
+  if(tipo==='desconhecido' && header0.includes('codigo linha') && header0.includes('nome linha')) tipo = 'lunaLinhas';
   // 2º formato do mesmo relatório -- ver comentário em parseVendasEmbarcadaAgenciaFormatada.
   if(tipo==='desconhecido' && aoa.slice(0,10).some(r=>r && r.some(c=>typeof c==='string' && /PASSAG\s*\+\s*LP/i.test(c)))){
     tipo = 'vendasEmbarcadaAgenciaFmt';
@@ -3863,6 +3969,7 @@ async function processarArquivo(file){
   // "agencia" (Receita Diária por Agência) grava o campo "Período:" em MM/DD/AAAA —
   // ver comentário em tentarExtrairPeriodoData.
   const data = extrairPeriodoData(aoa, file.name, tipo==='agencia');
+  let datasLuna = null;   // PRAXIO LUNA: as datas vêm em cada linha do relatório
   if(tipo==='rlh'){ parseRLH(aoa, data); recomputeLinhasParaData(data); }
   else if(tipo==='analitico'){ parseAnalitico(aoa, data); recomputeLinhasParaData(data); }
   else if(tipo==='agencia'){ parseAgencia(aoa, data); }
@@ -3871,6 +3978,8 @@ async function processarArquivo(file){
   else if(tipo==='embarcadoLinhas'){ parseEmbarcadoLinhas(aoa, data); recomputeLinhasParaData(data); }
   else if(tipo==='vendasEmbarcadaAgencia'){ parseVendasEmbarcadaAgencia(aoa, data); }
   else if(tipo==='vendasEmbarcadaAgenciaFmt'){ parseVendasEmbarcadaAgenciaFormatada(aoa, data); }
+  else if(tipo==='lunaAgencias'){ datasLuna = parseLunaAgencias(aoa); }
+  else if(tipo==='lunaLinhas'){ datasLuna = parseLunaLinhas(aoa); datasLuna.forEach(d=>recomputeLinhasParaData(d)); }
   else if(tipo==='formaPagamento'){ parseFormaPagamento(aoa); }
   else if(tipo==='receitaPadrao'){ parseReceitaPadrao(aoa); }
   else if(tipo==='ocd'){ parseOCD(aoa); }
@@ -3881,7 +3990,7 @@ async function processarArquivo(file){
   // tamanho) sem perder a detecção de cancelamento/troca quando o status muda de um
   // arquivo pro outro.
   const brutosConvenio = tipo==='convenios' ? _extrairBrutosConvenio(aoa) : null;
-  return {tipo, arquivo:file.name, data, brutosConvenio};
+  return {tipo, arquivo:file.name, data: datasLuna ? datasLuna.join(', ') : data, brutosConvenio};
 }
 
 document.getElementById('fileInput').addEventListener('change', async (ev)=>{
