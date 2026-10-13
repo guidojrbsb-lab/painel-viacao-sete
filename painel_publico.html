@@ -2515,6 +2515,8 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   // Pedido do usuário em 2026-10-12: DPL (bilhete 179986) e Fazenda Progresso (180086) -> 11/10/2026.
   '179986': '2026-10-11',
   '180086': '2026-10-11',
+  // Pedido do usuário em 2026-10-13: Fazenda Ribeirão, bilhete 83463 (URUCUI x RIBEIRO GONÇALVES) -> 12/10/2026.
+  '83463': '2026-10-12',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -3109,6 +3111,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['URUCUI','FLORIANO'], valor: 90.00 },
       // Bilhete FABRICIO BARBOSA LOPES (162033), confirmado pelo usuário em 2026-09-13.
       { cidades: ['BAIXA GRANDE DO RIBEIRO','RIBEIRO GONCALVES'], valor: 25.00 },
+      // Bilhete 83463 (URUCUI x RIBEIRO GONÇALVES, 13/10/2026), confirmado pelo usuário em 2026-10-13.
+      { cidades: ['URUCUI','RIBEIRO GONCALVES'], valor: 50.00 },
     ],
   },
   'PREFEITURA DE BENEDITO LEITE': {
