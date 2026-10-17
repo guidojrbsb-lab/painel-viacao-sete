@@ -1982,7 +1982,7 @@ function parseSistemaAgencias(aoa){
   const I = {ag:ix('agencia'), data:ix('data'), pass:ix('vl pass. + liberacao'), ped:ix('pedagio'), imp:ix('imposto'), tx:ix('tx.emb'),
     liq:ix('total liquido'), bruto:ix('total bruto'), com:ix('comissao'), qtd:ix('qtd.pass + qtd.lib'),
     din:ix('dinheiro'), vt:ix('vale transporte'), req:ix('requisicao'), cc:ix('cartao credito'), cd:ix('cartao debito'),
-    chq:ix('cheque'), bil:ix('bilhetagem'), pix:ix('pix'), fid:ix('fidelidade'), dev:ix('devolucao'), rec:ix('receita')};
+    chq:ix('cheque'), bil:ix('bilhetagem'), pix:ix('pix'), fid:ix('fidelidade'), dev:ix('devolucao'), rec:ix('receita'), desp:ix('despesa')};
   const N = (row,k)=> I[k]>=0 ? cellNum(row[I[k]]) : 0;
   // 1) nomes canônicos já existentes na base (mantém o ranking contínuo com o histórico)
   const antigos = {}, porSigla = {}, antigosInternet = [];
@@ -2032,7 +2032,7 @@ function parseSistemaAgencias(aoa){
     const dev = N(row,'dev'); if(dev) D.fp.push({forma:'DEVOLUÇÃO', valor:-dev});
     if(ehEmb(nome)){
       const o = D.ve[nome] || (D.ve[nome] = {nome, uf:'', vlpasstot:0, vltxembarquetot:0, totgeral:0, vlcomissaotot:0, qtdepasstot:0, qtdepasslp:0, origem:'SISTEMA'});
-      o.vlpasstot += pass; o.vltxembarquetot += tx; o.totgeral += bruto; o.vlcomissaotot += com; o.qtdepasstot += qtd; o.qtdepasslp += qtd;
+      o.vlpasstot += pass; o.vltxembarquetot += tx; o.totgeral += bruto; o.vlcomissaotot += com; o.qtdepasstot += qtd; o.qtdepasslp += qtd; o.despesa = (o.despesa||0) + N(row,'desp');
       return;
     }
     const info = _snSigla(nome);
@@ -2044,6 +2044,7 @@ function parseSistemaAgencias(aoa){
     const a = D.ag[nomeC] || (D.ag[nomeC] = {uf, cod:info.sigla, agencia:nomeC, qtdBil:0, tarifa:0, seguro:0, pedagio:0, bagagem:0, embarqueTaxa:0, devolucao:0,
       qtdGap:0, tarifaGap:0, devolucaoGap:0, recTotal:0, impostos:0, recLiquida:0, comissao:0, tipo, qtdCanc:0, origem:'SISTEMA'});
     a.qtdBil += qtd;
+    a.despesa = (a.despesa||0) + N(row,'desp'); // coluna Despesa do relatório (OCDs, devoluções etc.) -> DESPESAS da aba Agências
     if(!zera){ a.tarifa += pass; a.embarqueTaxa += tx; a.pedagio += N(row,'ped'); a.recTotal += bruto; a.impostos += N(row,'imp');
       a.recLiquida += N(row,'liq'); a.comissao += com; }
     const v = D.vr[nomeC] || (D.vr[nomeC] = {cod:info.sigla, agencia:nomeC, vendido:0, anulado:0, devolvido:0, anuladoValor:0, devolvidoValor:0, receita:0, totalQtd:0, totalFinal:0, origem:'SISTEMA'});
@@ -6096,7 +6097,11 @@ function renderAgencias(){
   // tiradas da soma, mas as duas caixas continuam aparecendo normalmente,
   // agora com estilo "kpi-informativo" (fundo cinza, borda tracejada) pra
   // deixar visualmente claro que não somam no total.
-  const despesaTotal = comissaoAgencias + comissaoInternet + taxaEmbarque + ocdsPagas;
+  // 2026-10-17: a coluna "Despesa" do relatório Vendas por Agência (sistema novo) compõe esta caixa junto com as OCDs pagas.
+  const despesaRelatorio = sum(rows, x=>x.despesa) + sum(ve, x=>x.despesa);
+  const despesasOcdDev = ocdsPagas + despesaRelatorio;
+  const temBaseDespesas = temBaseOCD || despesaRelatorio > 0;
+  const despesaTotal = comissaoAgencias + comissaoInternet + taxaEmbarque + despesasOcdDev;
   const pctDespesa = v => despesaTotal ? fmtPct(v/despesaTotal*100) : fmtPct(0);
 
   const rowDespesa = document.getElementById('agDespesaRow'); rowDespesa.innerHTML='';
@@ -6106,7 +6111,7 @@ function renderAgencias(){
   rowDespesa.appendChild(kpiCard('TAXA DE EMBARQUE', fmtR$(taxaEmbarque), pctDespesa(taxaEmbarque), true));
   rowDespesa.appendChild(kpiCard('BILHETES ANULADOS', fmtR$(valorAnulados), fmtInt(qtdAnulados)+' bilhetes', false, 'kpi-informativo', pctVendidos(qtdAnulados)+' dos vendidos · não soma no total'));
   rowDespesa.appendChild(kpiCard('BILHETES DEVOLVIDOS', fmtR$(valorDevolvidos), fmtInt(qtdDevolvidos)+' bilhetes', false, 'kpi-informativo', pctVendidos(qtdDevolvidos)+' dos vendidos · não soma no total'));
-  rowDespesa.appendChild(kpiCard('OCDs PAGAS', temBaseOCD ? fmtR$(ocdsPagas) : 'Sem dados', temBaseOCD ? pctDespesa(ocdsPagas) : 'Aguardando base', true));
+  rowDespesa.appendChild(kpiCard('DESPESAS (OCDs, DEV, ETC.)', temBaseDespesas ? fmtR$(despesasOcdDev) : 'Sem dados', temBaseDespesas ? pctDespesa(despesasOcdDev) : 'Aguardando base', true));
 
   document.getElementById('agNote').textContent = '';
 
