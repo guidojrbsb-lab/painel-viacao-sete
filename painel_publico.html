@@ -1369,6 +1369,12 @@ async function limparBasePeriodo(){
 }
 
 // Recompute joined "linhas" data for a given date once we have rlh and/or analitico rows for it
+// Linhas que o painel trata como UMA só, mesmo o sistema novo (Luna) trazendo uma linha por "VIA":
+// a linha base fica única (ex.: TIMON(MA) - PASTOS BONS(MA)) e a via aparece só nos popups
+// (linhaCompleta mantém o nome com a via). Pedido do usuário em 2026-10-17.
+function _linhaUnicaVias(linha){
+  return String(linha||'').replace(/^(TIMON\(MA\) - PASTOS BONS\(MA\))\s+VIA\s+.*$/i,'$1');
+}
 function recomputeLinhasParaData(data){
   const rlhRows = DB.rlh[data] || [];
   const anaRows = DB.analitico[data] || [];
@@ -1448,6 +1454,8 @@ function recomputeLinhasParaData(data){
     // horário correto da mesma linha (ex.: 17:25 -> 17:15, 13:30 -> 13:00 na linha
     // TIMON(MA) - BAIXA GRANDE DO RIBEIRO(PI)). Aplicado aqui no cruzamento, portanto
     // vale para todas as abas do painel (Visão Geral, Linhas, Horários e Detalhes).
+    const linhaUnica = _linhaUnicaVias(row.linha);
+    if(linhaUnica !== row.linha){ row.linha = linhaUnica; row.orgao = classificarOrgao(linhaUnica); }
     row.hora = corrigirHorarioLinha(row.linha, row.hora);
     // Corrige a Linha quando o relatório atribuiu por engano um horário a uma linha
     // que não é a dela (ex.: 14:00 lançado em TIMON(MA) - REMANSO(BA), quando na
@@ -1810,7 +1818,7 @@ function parseEmbarcadoLinhas(aoa, data){
     });
   }
   // preserva as linhas do PRAXIO LUNA já carregadas para o dia (ver bloco LUNA abaixo)
-  DB.embarcado[data] = rows.concat((DB.embarcado[data]||[]).filter(x=>x.origem==='LUNA'));
+  DB.embarcado[data] = rows.concat((DB.embarcado[data]||[]).filter(x=>x.origem==='LUNA'||x.origem==='SISTEMA'));
 }
 
 function parseVendasEmbarcadaAgencia(aoa, data){
@@ -1831,7 +1839,7 @@ function parseVendasEmbarcadaAgencia(aoa, data){
       qtdepasslp: cellNum(row[iQtdepasslp]),
     });
   }
-  DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'));
+  DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'||x.origem==='SISTEMA'));
 }
 
 // Segundo formato do mesmo relatório "Vendas Embarcada por Agência": um export
@@ -1881,7 +1889,7 @@ function parseVendasEmbarcadaAgenciaFormatada(aoa, data){
       qtdepasstot: totFisico, qtdepasslp: totFisico,
     });
   }
-  if(rows.length) DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'));
+  if(rows.length) DB.vendasEmbarcadaAgencia[data] = rows.concat((DB.vendasEmbarcadaAgencia[data]||[]).filter(x=>x.origem==='LUNA'||x.origem==='SISTEMA'));
 }
 
 // =====================================================================
@@ -1950,6 +1958,175 @@ function parseLunaAgencias(aoa){
   datas.forEach(d=>{ DB.vendasEmbarcadaAgencia[d] = (DB.vendasEmbarcadaAgencia[d]||[]).filter(x=>x.origem!=='LUNA'); });
   Object.values(porDataNome).forEach(o=>{ DB.vendasEmbarcadaAgencia[o.d].push(o.x); });
   return Array.from(datas).sort();
+}
+// =====================================================================
+// SISTEMA NOVO (PRAXIO LUNA, definitivo a partir de 16/10/2026) -- relatório
+// "Vendas por Agência - Detalhado" (aba "Detalhado"). Um único relatório alimenta a aba
+// AGÊNCIAS inteira (Receita Diária por Agência + Resumo de Vendas + Forma de Pagamento +
+// Venda Embarcada por Agência). Regras confirmadas pelo usuário (2026-10-17):
+//  - TOTAL BRUTO é a base principal de receita (= Vl Pass.+Liberação + Tx.Emb);
+//  - nome contendo "EMBARCADA" -> RECEITA EMBARCADA (DB.vendasEmbarcadaAgencia), nunca ranking de agências;
+//  - BUSON, CLICKBUS, WHITE LABEL, CLICK OFERTA, BUSER, DISTRIBUSION, GOPASS, VENDA ONLINE -> tipo INTERNET;
+//  - Seguro, Encomendas e OCD continuam vindo dos relatórios próprios.
+// Só datas >= SISTEMA_NOVO_INICIO são gravadas (a base 01/10 a 15/10 fica intacta); reenviar o
+// mesmo dia substitui apenas aquele dia (linhas com origem 'SISTEMA').
+// =====================================================================
+const SISTEMA_NOVO_INICIO = '2026-10-16';
+let _snIgnoradas = 0;
+const _SN_INTERNET = /BUSON|CLICKBUS|WHITE LABEL|CLICK OFERTA|BUSER|DISTRIBUSION|GOPASS|VENDA ONLINE/i;
+function _snNorm(s){ return String(s||'').replace(/\s+/g,' ').replace(/\(\s+/g,'(').replace(/\s+\)/g,')').trim().toUpperCase(); }
+function _snSigla(nome){ const m = String(nome).match(/-\s*([A-Z0-9]{2,8})\s*-\s*([A-Z]{2})\s*$/i); return m ? {sigla:m[1].toUpperCase(), uf:m[2].toUpperCase()} : {sigla:'', uf:''}; }
+function parseSistemaAgencias(aoa){
+  const c = _lunaIndices(aoa, 'agencia'); if(!c) return [];
+  const {hi, ix} = c;
+  const I = {ag:ix('agencia'), data:ix('data'), pass:ix('vl pass. + liberacao'), ped:ix('pedagio'), imp:ix('imposto'), tx:ix('tx.emb'),
+    liq:ix('total liquido'), bruto:ix('total bruto'), com:ix('comissao'), qtd:ix('qtd.pass + qtd.lib'),
+    din:ix('dinheiro'), vt:ix('vale transporte'), req:ix('requisicao'), cc:ix('cartao credito'), cd:ix('cartao debito'),
+    chq:ix('cheque'), bil:ix('bilhetagem'), pix:ix('pix'), fid:ix('fidelidade'), dev:ix('devolucao'), rec:ix('receita')};
+  const N = (row,k)=> I[k]>=0 ? cellNum(row[I[k]]) : 0;
+  // 1) nomes canônicos já existentes na base (mantém o ranking contínuo com o histórico)
+  const antigos = {}, porSigla = {}, antigosInternet = [];
+  Object.values(DB.agencias||{}).flat().forEach(x=>{
+    if(!x.agencia) return;
+    if(x.tipo==='PRESTACAO DE SERVICO'){
+      antigos[_snNorm(x.agencia)] = x.agencia;
+      const s = _snSigla(x.agencia).sigla; if(s){ (porSigla[s] = porSigla[s] || new Set()).add(x.agencia); }
+    } else if(x.tipo==='INTERNET') antigosInternet.push(x.agencia);
+  });
+  const linhas = [];
+  for(let r=hi+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const nome = row[I.ag]; if(typeof nome!=='string' || !nome.trim()) continue;
+    const d = _lunaData(row[I.data]); if(!d) continue;
+    if(d < SISTEMA_NOVO_INICIO){ _snIgnoradas++; continue; }
+    linhas.push({nome:nome.replace(/\s+/g,' ').trim(), d, row});
+  }
+  const ehEmb = n => /EMBARCAD/i.test(n);
+  const ehInternet = n => _SN_INTERNET.test(n);
+  const ehConv = n => /^CONV[EÊ]NIOS\b/i.test(n);
+  const ehProp = n => /^VIACAO SETE LTDA$/i.test(n);
+  // quantas agências "novas" (fora o que já bate exato) por sigla -- decide se dá pra casar com segurança
+  const novosPorSigla = {};
+  const nomesPrest = new Set(linhas.map(l=>l.nome).filter(n=>!ehEmb(n)&&!ehInternet(n)&&!ehConv(n)&&!ehProp(n)&&!antigos[_snNorm(n)]));
+  nomesPrest.forEach(n=>{ const s=_snSigla(n).sigla; novosPorSigla[s]=(novosPorSigla[s]||0)+1; });
+  function canon(n){
+    if(ehInternet(n)){
+      const k = (n.match(_SN_INTERNET)||[''])[0].toUpperCase();
+      return antigosInternet.find(a=>a.toUpperCase().indexOf(k)>=0) || n;
+    }
+    if(ehConv(n) || ehProp(n)) return n;
+    const ex = antigos[_snNorm(n)]; if(ex) return ex;
+    const s = _snSigla(n).sigla;
+    if(s && porSigla[s] && porSigla[s].size===1 && novosPorSigla[s]===1) return Array.from(porSigla[s])[0];
+    return n;
+  }
+  const UF_INTERNET = {GOPASS:'PR'};
+  const porDia = {};
+  const dia = d => porDia[d] || (porDia[d] = {ag:{}, vr:{}, ve:{}, fp:[]});
+  linhas.forEach(({nome, d, row})=>{
+    const D = dia(d);
+    const pass = N(row,'pass'), tx = N(row,'tx'), bruto = N(row,'bruto'), com = N(row,'com'), qtd = N(row,'qtd');
+    // forma de pagamento (Troca/Substituição são informativas e não somam no Total Bruto -- ficam de fora)
+    [['din','DINHEIRO'],['vt','VALE TRANSPORTE'],['req','REQUISIÇÃO'],['cc','CRÉDITO'],['cd','DÉBITO'],['chq','CHEQUE'],
+     ['bil','BILHETAGEM'],['pix','PIX'],['fid','FIDELIDADE']].forEach(([k,f])=>{ const v=N(row,k); if(v) D.fp.push({forma:f, valor:v}); });
+    const dev = N(row,'dev'); if(dev) D.fp.push({forma:'DEVOLUÇÃO', valor:-dev});
+    if(ehEmb(nome)){
+      const o = D.ve[nome] || (D.ve[nome] = {nome, uf:'', vlpasstot:0, vltxembarquetot:0, totgeral:0, vlcomissaotot:0, qtdepasstot:0, qtdepasslp:0, origem:'SISTEMA'});
+      o.vlpasstot += pass; o.vltxembarquetot += tx; o.totgeral += bruto; o.vlcomissaotot += com; o.qtdepasstot += qtd; o.qtdepasslp += qtd;
+      return;
+    }
+    const info = _snSigla(nome);
+    const nomeC = canon(nome);
+    const tipo = ehInternet(nome) ? 'INTERNET' : (ehConv(nome) ? 'REQUISIÇÃO' : (ehProp(nome) ? 'PROPRIAS' : 'PRESTACAO DE SERVICO'));
+    // Convênios (requisição) e VIACAO SETE LTDA: a receita é apurada no relatório de Convênios -- aqui só a quantidade
+    const zera = tipo==='REQUISIÇÃO' || tipo==='PROPRIAS';
+    const uf = info.uf || (ehInternet(nome) ? (UF_INTERNET[(nome.match(_SN_INTERNET)||[''])[0].toUpperCase()] || 'SP') : '');
+    const a = D.ag[nomeC] || (D.ag[nomeC] = {uf, cod:info.sigla, agencia:nomeC, qtdBil:0, tarifa:0, seguro:0, pedagio:0, bagagem:0, embarqueTaxa:0, devolucao:0,
+      qtdGap:0, tarifaGap:0, devolucaoGap:0, recTotal:0, impostos:0, recLiquida:0, comissao:0, tipo, qtdCanc:0, origem:'SISTEMA'});
+    a.qtdBil += qtd;
+    if(!zera){ a.tarifa += pass; a.embarqueTaxa += tx; a.pedagio += N(row,'ped'); a.recTotal += bruto; a.impostos += N(row,'imp');
+      a.recLiquida += N(row,'liq'); a.comissao += com; }
+    const v = D.vr[nomeC] || (D.vr[nomeC] = {cod:info.sigla, agencia:nomeC, vendido:0, anulado:0, devolvido:0, anuladoValor:0, devolvidoValor:0, receita:0, totalQtd:0, totalFinal:0, origem:'SISTEMA'});
+    v.vendido += qtd; v.totalQtd += qtd; v.devolvidoValor += dev; v.receita += N(row,'rec'); if(!zera) v.totalFinal += bruto;
+  });
+  const datas = Object.keys(porDia).sort();
+  datas.forEach(d=>{
+    const D = porDia[d];
+    DB.agencias[d] = Object.values(D.ag);
+    DB.vendasResumo[d] = Object.values(D.vr);
+    DB.formaPagamento[d] = D.fp;
+    DB.vendasEmbarcadaAgencia[d] = (DB.vendasEmbarcadaAgencia[d]||[]).filter(x=>x.origem!=='SISTEMA').concat(Object.values(D.ve));
+  });
+  return datas;
+}
+// =====================================================================
+// SISTEMA NOVO (PRAXIO LUNA, definitivo a partir de 16/10/2026) -- relatório "Vendas por Linha -
+// Detalhado" (aba "Detalhado", 1 linha por viagem/classe, com a data em cada linha). Substitui o RLH
+// (Relatório de Linhas por Horário) + Analítico do TOTALBUS: grava DB.rlh e DB.analitico no MESMO
+// formato dos relatórios antigos e roda recomputeLinhasParaData -- assim todas as abas que usam
+// "linhas" (Visão Geral, Linhas, Resumo Diário, Indicadores) funcionam sem outras mudanças.
+//  Receita Bruta = Receita Líquida (tarifa) + Taxa de Embarque; ASK -> paxOfer; RPK -> paxTrans;
+//  IAP = RPK / ASK x 100; Qtd.Transportada -> paxAbs; "KM Rodado" -> kmRodado (Leito/Cama continuam
+//  zerados pela regra existente). Classe Convencional (linhas Teresina - Matias Olímpio/Porto/Barras/
+//  Lagoa Alegre, "PJU...") segue o canal Embarcado, como no relatório de linhas do Luna de 10-12/10.
+// Só datas >= SISTEMA_NOVO_INICIO; reenviar o mesmo dia substitui apenas aquele dia.
+// =====================================================================
+function _slClasse(s){
+  const c = String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').trim().toUpperCase();
+  if(c.startsWith('EXEC')) return 'EXEC';
+  if(c.startsWith('SEMI')) return 'SEMI';
+  if(c.startsWith('CAMA')) return 'CAM';
+  if(c.startsWith('LEITO')) return 'LEIT';
+  if(c.startsWith('CONV')) return 'CONVENCIONAL';
+  return c;
+}
+function _slNomeBase(nome){
+  return String(nome||'').trim().replace(/\s*-\s*(EX|SL|SLG|CA|LI|LD|CONV|LEIT|SEMI|CAM|EXEC)\s*$/i,'').replace(/\s+/g,' ').trim();
+}
+function parseSistemaLinhas(aoa){
+  const c = _lunaIndices(aoa, 'nome linha'); if(!c) return [];
+  const {hi, ix} = c;
+  const I = {data:ix('data'), nome:ix('nome linha'), hora:ix('hora partida'), sent:ix('sentido'), srv:ix('servico'), pol:ix('qtd.poltronas'),
+    pax:ix('qtd.transportada'), ask:ix('ask'), rpk:ix('rpk'), liq:ix('receita liquida'), tx:ix('taxa de embarque'), ped:ix('pedagio'),
+    bruto:ix('receita bruta'), nsrv:ix('numero servico'), viag:ix('qtd.viagens'), km:ix('km rodado')};
+  const N = (row,k)=> I[k]>=0 ? cellNum(row[I[k]]) : 0;
+  const rlh = {}, ana = {}, emb = {};
+  for(let r=hi+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const nome = row[I.nome]; if(typeof nome!=='string' || !nome.trim()) continue;
+    const d = _lunaData(row[I.data]); if(!d) continue;
+    if(d < SISTEMA_NOVO_INICIO){ _snIgnoradas++; continue; }
+    const classe = _slClasse(row[I.srv]);
+    const sentRaw = String(row[I.sent]||'').trim().toUpperCase();
+    const sentido = sentRaw.startsWith('V') ? 'VOLTA' : 'IDA';
+    const hora = _lunaHora(row[I.hora]);
+    const servico = Number(row[I.nsrv]) || 0;
+    const base = _slNomeBase(nome);
+    const km = N(row,'km'), viagens = N(row,'viag'), pax = N(row,'pax'), ask = N(row,'ask'), rpk = N(row,'rpk');
+    const bruto = N(row,'bruto'), liq = N(row,'liq'), tx = N(row,'tx'), ped = N(row,'ped'), lot = N(row,'pol');
+    if(classe==='CONVENCIONAL'){
+      const linha = _lunaNomeLinha(nome);
+      const {origem, destino} = origemDestinoCidade(linha);
+      const cidade = (sentido==='VOLTA' ? destino : origem).replace(/\(/,' (').replace(/\s+/g,' ').trim();
+      (emb[d] = emb[d] || []).push({ nlinha: linha, idlinhahorario: servico, hora, cidadeHorario: cidade, sentido,
+        distancia: km, qtviagem: viagens, valorpass: bruto, qtdepass: pax, origem: 'SISTEMA' });
+      continue;
+    }
+    const iap = ask ? rpk/ask*100 : 0;
+    (rlh[d] = rlh[d] || []).push({ hora, servico, trecho: base, sentido: sentido==='VOLTA' ? 'Volta' : 'Ida', lot, classe,
+      extensao: km, receitaTotal: bruto, viagens, kmRodado: km, absol: pax, iap, origem: 'SISTEMA' });
+    (ana[d] = ana[d] || []).push({ cod: String(Math.floor(servico/100)), linha: base+(sentido==='VOLTA' ? ' - VOLTA - VOLTA' : ' - IDA - IDA'),
+      sentido, lot, classe, extensao: km, tarifaUnit: 0, receitaPassagens: liq, seguro: 0, embarque: tx, pedagio: ped,
+      receitaTotal: bruto, viagens, kmRodado: km, paxAbs: pax, paxOfer: ask, paxTrans: rpk, iap, origem: 'SISTEMA' });
+  }
+  const datas = Array.from(new Set(Object.keys(rlh).concat(Object.keys(emb)))).sort();
+  datas.forEach(d=>{
+    DB.rlh[d] = rlh[d] || [];
+    DB.analitico[d] = ana[d] || [];
+    DB.embarcado[d] = (DB.embarcado[d]||[]).filter(x=>x.origem!=='SISTEMA' && x.origem!=='LUNA').concat(emb[d]||[]);
+    recomputeLinhasParaData(d);
+  });
+  return datas;
 }
 function parseLunaLinhas(aoa){
   const c = _lunaIndices(aoa, 'nome linha'); if(!c) return [];
@@ -2526,6 +2703,8 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '83463': '2026-10-12',
   // Pedido do usuário em 2026-10-14: DPL Construções, bilhete 181340 (ELISEU MARTINS x BOM JESUS) -> 13/10/2026.
   '181340': '2026-10-13',
+  // Pedido do usuário em 2026-10-16: Fazenda Progresso, bilhete 182790 (FAZENDA PROGRESSO x RIBEIRO GONÇALVES) -> 15/10/2026.
+  '182790': '2026-10-15',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -3243,6 +3422,7 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['FAZENDA PROGRESSO', 'MONSENHOR GIL'], valor: 130.00 },
       { cidades: ['FAZENDA PROGRESSO', 'RIBEIRO GONCALVES'], valor: 70.00 },
       { cidades: ['FAZENDA PROGRESSO', 'SANTA FE'], valor: 35.00 },
+      { cidades: ['BENEDITO LEITE', 'SANTA FE'], valor: 140.00 },
       { cidades: ['FAZENDA PROGRESSO', 'TERESINA'], valor: 135.00 },
       { cidades: ['FAZENDA PROGRESSO', 'URUCUI'], valor: 35.00 },
       { cidades: ['SANTA FE', 'TERESINA'], valor: 130.00 },
@@ -3464,6 +3644,8 @@ function _precificarConvenio(itens, convenio, regra){
     if(it.valorCobradoManual!==undefined){
       return Object.assign({}, it, { valorCobrado: it.valorCobradoManual, semRegra: false });
     }
+    // Sistema novo (a partir de 16/10/2026): o valor é o do próprio relatório de Convênios (já ajustado).
+    if(it.fonteSistema){ return Object.assign({}, it, { valorCobrado: it.valorOriginal, semRegra: false }); }
     const res = _valorCobradoConvenio(convenio, it.origem, it.destino, it.valorOriginal, it.dataVenda);
     return Object.assign({}, it, {
       valorCobrado: res.valor,
@@ -3725,6 +3907,84 @@ function _processarBrutosConvenio(brutos){
 // Mantido pra compatibilidade (ex.: harness de teste que chama parseConvenios com um
 // único aoa) — upload real na tela usa _extrairBrutosConvenio + _processarBrutosConvenio
 // separadamente pra poder juntar vários arquivos antes de dedupar (ver fileInput abaixo).
+// =====================================================================
+// SISTEMA NOVO (PRAXIO LUNA, a partir de 16/10/2026) -- relatório "Passagens Vendidas por
+// Convênio". Regras confirmadas pelo usuário (2026-10-17): data de referência = DATA DA VIAGEM;
+// situação C (cancelada) é desprezada (e remove a mesma passagem se ela já tinha sido gravada
+// por um envio anterior); o VALOR é o da própria coluna "Valor" do relatório (já vem ajustado),
+// não mais o das REGRAS_VALOR_CONVENIO -- se mudar de um dia pro outro, vale o do relatório.
+// Identificador da passagem = Série + Número (ex. "@-23", "V7003-12"). Escalas (2 trechos do
+// mesmo passageiro na mesma venda) continuam sendo juntadas, somando os dois valores.
+// Itens ficam marcados com fonteSistema:true. NÃO aplica a regra "descartar mês diferente do lote"
+// (aqui o relatório é diário e a viagem pode cair em outro mês).
+// =====================================================================
+function _cvNomeNovo(g){
+  const sem = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+  const k = sem(g);
+  if(k === 'PREFEITURA DE URUCUI SAUDE WS') return 'PREFEITURA DE URUÇUÍ WSV';
+  const todos = new Set(Object.keys(CONVENIOS_BILHETEIROS).concat(Object.keys(REGRAS_VALOR_CONVENIO||{})));
+  for(const n of todos){ if(sem(n)===k) return n; }
+  return String(g||'').replace(/\s+/g,' ').trim();
+}
+function _cvDataBR(s){
+  const m = String(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}:\d{2}))?/);
+  return m ? {iso:m[3]+'-'+m[2]+'-'+m[1], hora:m[4]||''} : null;
+}
+function processarConveniosNovo(aoa){
+  const hi = aoa.findIndex(r=>r && r.some(c=>typeof c==='string' && c.trim().toLowerCase()==='gerenciamento'));
+  if(hi<0) return [];
+  const H = aoa[hi].map(h=>typeof h==='string' ? h.trim().toLowerCase() : h);
+  const ix = n => H.indexOf(n);
+  const iSer=ix('série')>=0?ix('série'):ix('serie'), iPas=ix('passagem'), iDV=ix('data venda'), iDVi=ix('data viagem'), iOri=ix('origem'), iDes=ix('destino'),
+        iVal=ix('valor'), iCli=ix('cliente'), iLin=ix('linha'), iGer=ix('gerenciamento'), iSit=ix('situação')>=0?ix('situação'):ix('situacao');
+  const itens = [], cancelados = new Set();
+  for(let r=hi+1;r<aoa.length;r++){
+    const row = aoa[r]; if(!row) continue;
+    const pas = row[iPas]; if(pas===null || pas===undefined || pas==='') continue;
+    const chave = String(row[iSer]||'').trim()+'-'+String(pas).trim();
+    const sit = String(row[iSit]||'').trim().toUpperCase();
+    if(sit==='C'){ cancelados.add(chave); continue; }
+    const via = _cvDataBR(row[iDVi]); if(!via) continue;
+    const venda = _cvDataBR(row[iDV]);
+    const valor = cellNum(row[iVal]);
+    itens.push({
+      bilhete: chave, convenio: _cvNomeNovo(row[iGer]), bilheteiro: '',
+      dataVenda: via.iso, dataCompra: venda ? venda.iso : via.iso, horaViagem: via.hora,
+      origem: String(row[iOri]||'').trim(), destino: String(row[iDes]||'').trim(),
+      passageiro: String(row[iCli]||'').trim().replace(/\s+/g,' '),
+      valorCobrado: valor, valorOriginal: valor, linha: String(row[iLin]||'').trim(), agencia: '',
+      status: 'VENDIDO', fonteSistema: true,
+    });
+  }
+  // cancelada em envio posterior: remove a passagem já gravada
+  if(cancelados.size){
+    Object.keys(DB.convenios).forEach(dia=>{
+      DB.convenios[dia] = (DB.convenios[dia]||[]).filter(x=>!(x.fonteSistema && x.bilhete.split('/').some(n=>cancelados.has(n))));
+    });
+  }
+  const porConv = {};
+  itens.forEach(x=>{ (porConv[x.convenio] = porConv[x.convenio]||[]).push(x); });
+  const mesclados = [];
+  Object.entries(porConv).forEach(([nome, lista])=>{
+    _mesclarEscalasConvenio(lista, REGRAS_VALOR_CONVENIO[nome]).forEach(it=>mesclados.push(it));
+  });
+  const consumidos = new Set();
+  mesclados.forEach(x=>{ if(x.escala) x.bilhete.split('/').forEach(n=>consumidos.add(n)); });
+  if(consumidos.size){
+    Object.keys(DB.convenios).forEach(dia=>{
+      DB.convenios[dia] = (DB.convenios[dia]||[]).filter(x=>!(x.fonteSistema && x.bilhete.split('/').some(n=>consumidos.has(n))));
+    });
+  }
+  const porData = {};
+  mesclados.forEach(x=>{ (porData[x.dataVenda] = porData[x.dataVenda]||[]).push(x); });
+  Object.keys(porData).forEach(d=>{
+    const merged = {};
+    (DB.convenios[d]||[]).forEach(x=>{ merged[x.bilhete]=x; });
+    porData[d].forEach(x=>{ merged[x.bilhete]=x; });
+    DB.convenios[d] = Object.values(merged);
+  });
+  return Object.keys(porData).sort();
+}
 function parseConvenios(aoa){
   _processarBrutosConvenio(_extrairBrutosConvenio(aoa));
 }
@@ -3974,7 +4234,9 @@ async function processarArquivo(file){
   }
   // PRAXIO LUNA (sistema novo, a partir de 10/10/2026) -- ver bloco "PRAXIO LUNA" nos parsers.
   if(tipo==='desconhecido' && header0.includes('agencia') && header0.includes('vl pass. + liberacao')) tipo = 'lunaAgencias';
-  if(tipo==='desconhecido' && header0.includes('codigo linha') && header0.includes('nome linha')) tipo = 'lunaLinhas';
+  if((tipo==='desconhecido'||tipo==='lunaAgencias') && header0.includes('agencia') && header0.includes('dinheiro') && header0.includes('total r-d')) tipo = 'sistemaAgencias';
+  if(tipo==='desconhecido' && header0.includes('gerenciamento') && header0.includes('data viagem')) tipo = 'conveniosNovo';
+  if(tipo==='desconhecido' && header0.includes('codigo linha') && header0.includes('nome linha')) tipo = (header0.includes('receita liquida') && header0.includes('numero servico')) ? 'sistemaLinhas' : 'lunaLinhas';
   // 2º formato do mesmo relatório -- ver comentário em parseVendasEmbarcadaAgenciaFormatada.
   if(tipo==='desconhecido' && aoa.slice(0,10).some(r=>r && r.some(c=>typeof c==='string' && /PASSAG\s*\+\s*LP/i.test(c)))){
     tipo = 'vendasEmbarcadaAgenciaFmt';
@@ -3992,6 +4254,9 @@ async function processarArquivo(file){
   else if(tipo==='vendasEmbarcadaAgencia'){ parseVendasEmbarcadaAgencia(aoa, data); }
   else if(tipo==='vendasEmbarcadaAgenciaFmt'){ parseVendasEmbarcadaAgenciaFormatada(aoa, data); }
   else if(tipo==='lunaAgencias'){ datasLuna = parseLunaAgencias(aoa); }
+  else if(tipo==='conveniosNovo'){ datasLuna = processarConveniosNovo(aoa); }
+  else if(tipo==='sistemaLinhas'){ _snIgnoradas = 0; datasLuna = parseSistemaLinhas(aoa); }
+  else if(tipo==='sistemaAgencias'){ _snIgnoradas = 0; datasLuna = parseSistemaAgencias(aoa); }
   else if(tipo==='lunaLinhas'){ datasLuna = parseLunaLinhas(aoa); datasLuna.forEach(d=>recomputeLinhasParaData(d)); }
   else if(tipo==='formaPagamento'){ parseFormaPagamento(aoa); }
   else if(tipo==='receitaPadrao'){ parseReceitaPadrao(aoa); }
@@ -4003,7 +4268,7 @@ async function processarArquivo(file){
   // tamanho) sem perder a detecção de cancelamento/troca quando o status muda de um
   // arquivo pro outro.
   const brutosConvenio = tipo==='convenios' ? _extrairBrutosConvenio(aoa) : null;
-  return {tipo, arquivo:file.name, data: datasLuna ? datasLuna.join(', ') : data, brutosConvenio};
+  return {tipo, arquivo:file.name, data: datasLuna ? datasLuna.join(', ')+((tipo==='sistemaAgencias'||tipo==='sistemaLinhas') && _snIgnoradas ? ' — '+_snIgnoradas+' linha(s) anteriores a 16/10/2026 ignoradas (base histórica preservada)' : '') : data, brutosConvenio};
 }
 
 document.getElementById('fileInput').addEventListener('change', async (ev)=>{
@@ -4374,7 +4639,9 @@ function _pktDia(d){
   const linhasDia = (DB.linhas||{})[d] || [];
   let pkt = 0;
   linhasDia.forEach(x=>{
-    const km = x.kmRodado||0, viagens = x.viagens||0;
+    // 2026-10-17: passageiros de Leito/Cama entram no PKT, mas o KM não é somado em lugar nenhum --
+    // por isso usa o km ORIGINAL da viagem (antes de zerar Leito/Cama) só como distância percorrida.
+    const km = (x.kmRodadoOriginal!==undefined && x.kmRodadoOriginal!==null ? x.kmRodadoOriginal : x.kmRodado)||0, viagens = x.viagens||0;
     const distanciaPorViagem = viagens>0 ? km/viagens : km;
     pkt += (x.paxAbs||0) * distanciaPorViagem;
   });
@@ -4608,7 +4875,7 @@ function renderVisaoGeral(){
   if(rowReceitaVG){
     rowReceitaVG.innerHTML = '';
     rowReceitaVG.appendChild(kpiCard('RECEITA TOTAL DE VENDAS', fmtR$(totalDerivadoVG.receitaTotalVendas), pctVG(totalDerivadoVG.receitaTotalVendas), true, true));
-    rowReceitaVG.appendChild(kpiCard('RECEITA PASSAGENS TOTALBUS', fmtR$(totalReceitaBaseVG.receitaPassagensTotalbus), pctVG(totalReceitaBaseVG.receitaPassagensTotalbus), true));
+    rowReceitaVG.appendChild(kpiCard('RECEITA PASSAGENS AGÊNCIAS', fmtR$(totalReceitaBaseVG.receitaPassagensTotalbus), pctVG(totalReceitaBaseVG.receitaPassagensTotalbus), true));
     rowReceitaVG.appendChild(kpiCard('RECEITA EMBARCADA (AGÊNCIAS)', fmtR$(totalReceitaBaseVG.receitaEmbarcadaAgencias), pctVG(totalReceitaBaseVG.receitaEmbarcadaAgencias), true));
     rowReceitaVG.appendChild(kpiCard('CONVÊNIOS', fmtR$(totalReceitaBaseVG.convenios), pctVG(totalReceitaBaseVG.convenios), true));
     rowReceitaVG.appendChild(kpiCard('EMBARCADA (MOTORISTA/COBRADORES)', fmtR$(totalReceitaBaseVG.embarcadaMotoristas), pctVG(totalReceitaBaseVG.embarcadaMotoristas), true));
@@ -5730,7 +5997,8 @@ function _seguroLiquido(seguroRows){
   // metodologia do relatório da CAPEMISA.
   let vendido=0, cancelado=0;
   seguroRows.forEach(r=>{
-    vendido += r.valorSeguro||0;
+    // Regra de 2026-10-17 (usuário): seguro cancelado SEMPRE é abatido -- VENDIDO = só linhas de Venda.
+    if(r.status==='Venda') vendido += r.valorSeguro||0;
     if(r.status==='Cancelamento') cancelado += r.valorSeguro||0;
   });
   return vendido - cancelado;
@@ -5765,7 +6033,9 @@ function renderAgencias(){
   // OCD sem pagamento (Data OCD + Valor OCD) soma dentro de Outras Receitas -- pedido
   // explícito do usuário (2026-08-05).
   const ocdGeracaoRows = _filtrarOCDGeracao(di, df);
-  const outrasReceitas = outrasReceitasBruta - seguroOpcional + sum(ocdGeracaoRows, x=>x.valorOcd);
+  // Resumo de Vendas do TOTALBUS (antes de 16/10/2026) traz o Seguro embutido na coluna Receita; o relatório do sistema novo não.
+  const seguroEmbutidoResumo = _seguroLiquido(seguroRows.filter(r=>r.data<SISTEMA_NOVO_INICIO));
+  const outrasReceitas = outrasReceitasBruta - seguroEmbutidoResumo + sum(ocdGeracaoRows, x=>x.valorOcd);
   const receitaTotal = receitaEmbarcada + receitaPassagensTotal + taxaEmbarque + seguroOpcional + outrasReceitas;
   const pct = v => receitaTotal ? fmtPct(v/receitaTotal*100) : fmtPct(0);
 
@@ -5860,7 +6130,7 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
   function getAg(nome, uf){
     if(!nome) return null;
     porAgencia[nome] = porAgencia[nome] || {
-      agencia:nome, uf: uf||'', tarifa:0, embarqueTaxa:0, receitaEmbarcada:0, receita:0, seguro:0, ocd:0,
+      agencia:nome, uf: uf||'', tarifa:0, embarqueTaxa:0, receitaEmbarcada:0, receita:0, seguro:0, seguroEmb:0, ocd:0,
       qtdVendido:0, qtdEmbarcados:0, qtdAnulado:0, qtdDevolvido:0, comissao:0,
       _porDia: {},
     };
@@ -5868,7 +6138,7 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
     return porAgencia[nome];
   }
   function diaDe(a, d){
-    a._porDia[d] = a._porDia[d] || {data:d, tarifa:0, embarqueTaxa:0, receitaEmbarcada:0, receita:0, seguro:0, ocd:0, qtdVendido:0, qtdEmbarcados:0, qtdAnulado:0, qtdDevolvido:0, comissao:0};
+    a._porDia[d] = a._porDia[d] || {data:d, tarifa:0, embarqueTaxa:0, receitaEmbarcada:0, receita:0, seguro:0, seguroEmb:0, ocd:0, qtdVendido:0, qtdEmbarcados:0, qtdAnulado:0, qtdDevolvido:0, comissao:0};
     return a._porDia[d];
   }
   // Comissão Paga: informação acessória (ver comentário na coluna do ranking) --
@@ -5901,6 +6171,7 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
     const v = x.status==='Venda' ? (x.valorSeguro||0) : (x.status==='Cancelamento' ? -(x.valorSeguro||0) : 0);
     a.seguro += v;
     const dd = diaDe(a, x.data); dd.seguro += v;
+    if(x.data < SISTEMA_NOVO_INICIO){ a.seguroEmb += v; dd.seguroEmb += v; }
   });
   // OCD sem pagamento (Data OCD + Valor OCD), casado por Agência Emissão (já
   // canonicalizada em _filtrarOCDGeracao) -- faltava aqui, por isso a coluna OUTRAS
@@ -5913,7 +6184,7 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
   });
 
   const lista = Object.values(porAgencia).map(a=>{
-    a.outras = a.receita - a.seguro + a.ocd;
+    a.outras = a.receita - a.seguroEmb + a.ocd;
     a.receitaTotal = a.tarifa + a.embarqueTaxa + a.receitaEmbarcada + a.seguro + a.outras;
     return a;
   });
@@ -5949,8 +6220,8 @@ function _renderRankingAgencias(rows, vr, ve, seguroRows, ocdGeracaoRows){
     chavesSoma.forEach(k=>totais[k]+=a[k]||0);
     const idx = _agenciaGrupos.length;
     const itensPorDia = Object.values(a._porDia).map(d=>Object.assign({
-      outras: d.receita-d.seguro+d.ocd,
-      receitaTotal: d.tarifa+d.embarqueTaxa+d.receitaEmbarcada+d.seguro+(d.receita-d.seguro+d.ocd),
+      outras: d.receita-d.seguroEmb+d.ocd,
+      receitaTotal: d.tarifa+d.embarqueTaxa+d.receitaEmbarcada+d.seguro+(d.receita-d.seguroEmb+d.ocd),
     }, d)).sort((x,y)=>(x.data||'').localeCompare(y.data||''));
     _agenciaGrupos.push(Object.assign({tipoModal:'agencia', itensPorDia}, a));
     html += '<tr class="clickable" data-idx="'+idx+'">'+cols.map(c=>{
@@ -6008,8 +6279,7 @@ function _agruparSeguroPor(rows, campo){
     // Fórmula corrigida em 2026-09-21 (confirmado pelo usuário): VENDIDO é a venda bruta
     // -- soma do Valor Seguro de TODAS as linhas (Venda + Cancelamento) --, CANCELADO é só
     // a soma das linhas de Cancelamento, e LÍQUIDO = VENDIDO - CANCELADO.
-    if(x.status==='Venda' || x.status==='Cancelamento') g.vendido += x.valorSeguro||0;
-    if(x.status==='Venda') { g.apolices++; }
+    if(x.status==='Venda') { g.vendido += x.valorSeguro||0; g.apolices++; }
     else if(x.status==='Cancelamento') { g.cancelado+=x.valorSeguro||0; }
     if(x.status==='Venda' || x.status==='Cancelamento'){
       const localVenda = incluirLocal ? (_resolverNomeAgencia((x.agencia||'').trim()) || 'NÃO CLASSIFICADO') : null;
@@ -6026,9 +6296,9 @@ function _agruparSeguroPor(rows, campo){
     // Cancelamento, já que o cancelado anula o próprio bruto daquela linha).
     g.itensPorDiaStatus = Object.values(g._porDiaStatus).map(d=>({
       data:d.data, status:d.status, agencia:d.agencia, apolices:d.apolices,
-      vendido: d.valor,
+      vendido: d.status==='Cancelamento' ? 0 : d.valor,
       cancelado: d.status==='Cancelamento' ? d.valor : 0,
-      liquido: d.status==='Cancelamento' ? 0 : d.valor,
+      liquido: d.status==='Cancelamento' ? -d.valor : d.valor,
     })).sort((a,b)=>(a.data||'').localeCompare(b.data||'') || a.status.localeCompare(b.status) || (a.agencia||'').localeCompare(b.agencia||''));
     return g;
   });
@@ -6089,7 +6359,7 @@ function renderSeguro(){
   // soma do Valor Seguro de TODAS as linhas do relatório (Venda + Cancelamento) --,
   // CANCELADO é só a soma das linhas com status Cancelamento, e LÍQUIDO = VENDIDO -
   // CANCELADO (esse é o valor que segue pro Resumo Diário via _seguroLiquido).
-  const vendido = rows.reduce((s,x)=>s+(x.valorSeguro||0),0);
+  const vendido = rows.filter(x=>x.status==='Venda').reduce((s,x)=>s+(x.valorSeguro||0),0); // 2026-10-17: cancelados sempre abatidos
   const cancelado = rows.filter(x=>x.status==='Cancelamento').reduce((s,x)=>s+(x.valorSeguro||0),0);
   const liquido = vendido - cancelado;
   const apolices = rows.filter(x=>x.status==='Venda').length;
@@ -6632,7 +6902,7 @@ function _indicadoresDiaBase(d, usarReal){
   // Outras Receitas -- pedido explícito do usuário (2026-08-05). Reflete em Visão Geral
   // e Resumo Diário porque os dois consomem esta mesma função por dia.
   const ocdGeracaoDia = sum((DB.ocdGeracao||{})[d]||[], x=>x.valorOcd);
-  const outrasReceitas = outrasReceitasBruta - seguroOpcional + ocdGeracaoDia;
+  const outrasReceitas = outrasReceitasBruta - (d<SISTEMA_NOVO_INICIO ? seguroOpcional : 0) + ocdGeracaoDia;
 
   // % Cartão Crédito/Débito/PIX: valor aproximado (pedido explícito do usuário, sem
   // necessidade de reconciliar com outro relatório) a partir do relatório Forma de
@@ -6917,7 +7187,7 @@ function renderIndicadoresMensal(){
 
   secao('ARD — ACOMPANHAMENTO DE RECEITA MENSAL');
   linhaAditiva('RECEITA DE VENDAS - AGÊNCIAS', 'receitaTotalVendas', fmtR$, undefined, {classe:'ind-total'});
-  linhaAditiva('Receita Passagens Totalbus', 'receitaPassagensTotalbus', fmtR$, totalPeriodo.receitaTotalVendas);
+  linhaAditiva('Receita Passagens Agências', 'receitaPassagensTotalbus', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Receita Embarcada (Agências)', 'receitaEmbarcadaAgencias', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Convênios', 'convenios', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Embarcada (Motoristas/Cobradores)', 'embarcadaMotoristas', fmtR$, totalPeriodo.receitaTotalVendas);
@@ -7177,7 +7447,7 @@ function renderIndicadores(){
 
   secao('ARD — ACOMPANHAMENTO DE RECEITA DIÁRIO');
   linhaAditiva('RECEITA DE VENDAS - AGÊNCIAS', 'receitaTotalVendas', fmtR$, undefined, {classe:'ind-total'});
-  linhaAditiva('Receita Passagens Totalbus', 'receitaPassagensTotalbus', fmtR$, totalPeriodo.receitaTotalVendas);
+  linhaAditiva('Receita Passagens Agências', 'receitaPassagensTotalbus', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Receita Embarcada (Agências)', 'receitaEmbarcadaAgencias', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Convênios', 'convenios', fmtR$, totalPeriodo.receitaTotalVendas);
   linhaAditiva('Embarcada (Motoristas/Cobradores)', 'embarcadaMotoristas', fmtR$, totalPeriodo.receitaTotalVendas);
