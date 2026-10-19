@@ -183,6 +183,8 @@ table.data tr.clickable:hover td{background:var(--navy-soft) !important;}
    entre letras para o texto caber sem espremer as colunas de valores. */
 #rankingAgenciasTable th{font-size:9px;letter-spacing:0;padding:8px 6px;line-height:1.25;}
 #rankingAgenciasTable td:first-child,#rankingAgenciasTable th:first-child{white-space:nowrap;}
+/* 2026-10-19: valores do Ranking de Agências sempre numa linha só (o "R$" não quebra pra linha de cima); a coluna se expande */
+#rankingAgenciasTable td{white-space:nowrap;}
 /* Cabeçalho congelado (sticky) nas tabelas Detalhes e Ranking de Vendas Por Agência:
    "overflow:hidden" em table.data (usado para arredondar os cantos) impede o
    position:sticky do th de funcionar, porque fica entre o th e o .scroll-box (o
