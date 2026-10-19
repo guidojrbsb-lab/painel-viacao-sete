@@ -972,11 +972,30 @@ function _reaplicarEscalasManuaisConvenio(){
   });
   return mudouAlgo;
 }
+// Regras fixas por agência (pedido do usuário, 2026-10-17): GOPASS é PRESTAÇÃO DE SERVIÇO (todos os seus valores,
+// comissão etc. entram na rubrica de Prestação de Serviço) mesmo que o relatório a traga como INTERNET; e correção
+// pontual da comissão de um dia (relatório trouxe valor errado).
+const TIPO_AGENCIA_FIXO = { 'GOPASS': 'PRESTACAO DE SERVICO' };
+const CORRECOES_COMISSAO_AGENCIA = { '2026-10-16|GOPASS': 34.51 };
+function _corrigirLinhaAgencia(x, d){
+  let mudou = false;
+  const nome = String(x.agencia||'').replace(/\s+/g,' ').trim().toUpperCase();
+  if(TIPO_AGENCIA_FIXO[nome] && x.tipo !== TIPO_AGENCIA_FIXO[nome]){ x.tipo = TIPO_AGENCIA_FIXO[nome]; mudou = true; }
+  const k = d+'|'+nome;
+  if(CORRECOES_COMISSAO_AGENCIA[k] !== undefined && x.comissao !== CORRECOES_COMISSAO_AGENCIA[k]){ x.comissao = CORRECOES_COMISSAO_AGENCIA[k]; mudou = true; }
+  return mudou;
+}
+function _reaplicarCorrecoesAgencias(){
+  let mudou = false;
+  Object.keys(DB.agencias||{}).forEach(d=>{ (DB.agencias[d]||[]).forEach(x=>{ if(_corrigirLinhaAgencia(x, d)) mudou = true; }); });
+  return mudou;
+}
 function _normalizarComercial(){
   for(const k of ['rlh','analitico','linhas','agencias','seguro','encomendas','embarcado','vendasEmbarcadaAgencia','vendasResumo','convenios','formaPagamento','receitaPadrao','ocd','ocdGeracao']) DB[k] = DB[k] || {};
   DB.ajustesSaldoConvenio = DB.ajustesSaldoConvenio || [];
   _reaplicarRedirecionamentosConvenio();
   _reaplicarCorrecoesDataConvenio();
+  _reaplicarCorrecoesAgencias();
   _reaplicarCorrecoesTrechoConvenio();
   _reaplicarExclusoesConvenio();
   _reaplicarEscalasManuaisConvenio();
@@ -1181,6 +1200,7 @@ async function migrarBaseAntiga(){
   // _reaplicarCorrecoesDataConvenio) -- corrige e MOVE pro balde do dia certo qualquer
   // bilhete já salvo com data de serviço desatualizada, sem exigir reenvio do relatório.
   if(_reaplicarCorrecoesDataConvenio()) mudou = true;
+  if(_reaplicarCorrecoesAgencias()) mudou = true;
   // Idem para CORRECOES_TRECHO_BILHETE (ver comentário completo em
   // _reaplicarCorrecoesTrechoConvenio) -- corrige a ORIGEM/DESTINO de qualquer bilhete já
   // salvo que veio do relatório com o trecho errado, sem exigir reenvio do relatório.
@@ -1668,6 +1688,7 @@ function parseAgencia(aoa, data){
       });
     }
   }
+  rows.forEach(x=>_corrigirLinhaAgencia(x, data));
   DB.agencias[data] = rows;
 }
 
@@ -1973,7 +1994,7 @@ function parseLunaAgencias(aoa){
 // =====================================================================
 const SISTEMA_NOVO_INICIO = '2026-10-16';
 let _snIgnoradas = 0;
-const _SN_INTERNET = /BUSON|CLICKBUS|WHITE LABEL|CLICK OFERTA|BUSER|DISTRIBUSION|GOPASS|VENDA ONLINE/i;
+const _SN_INTERNET = /BUSON|CLICKBUS|WHITE LABEL|CLICK OFERTA|BUSER|DISTRIBUSION|VENDA ONLINE/i; // GOPASS: Prestação de Serviço (TIPO_AGENCIA_FIXO)
 function _snNorm(s){ return String(s||'').replace(/\s+/g,' ').replace(/\(\s+/g,'(').replace(/\s+\)/g,')').trim().toUpperCase(); }
 function _snSigla(nome){ const m = String(nome).match(/-\s*([A-Z0-9]{2,8})\s*-\s*([A-Z]{2})\s*$/i); return m ? {sigla:m[1].toUpperCase(), uf:m[2].toUpperCase()} : {sigla:'', uf:''}; }
 function parseSistemaAgencias(aoa){
@@ -2040,7 +2061,7 @@ function parseSistemaAgencias(aoa){
     const tipo = ehInternet(nome) ? 'INTERNET' : (ehConv(nome) ? 'REQUISIÇÃO' : (ehProp(nome) ? 'PROPRIAS' : 'PRESTACAO DE SERVICO'));
     // Convênios (requisição) e VIACAO SETE LTDA: a receita é apurada no relatório de Convênios -- aqui só a quantidade
     const zera = tipo==='REQUISIÇÃO' || tipo==='PROPRIAS';
-    const uf = info.uf || (ehInternet(nome) ? (UF_INTERNET[(nome.match(_SN_INTERNET)||[''])[0].toUpperCase()] || 'SP') : '');
+    const uf = info.uf || (/^GOPASS$/i.test(nome) ? 'PR' : ehInternet(nome) ? (UF_INTERNET[(nome.match(_SN_INTERNET)||[''])[0].toUpperCase()] || 'SP') : '');
     const a = D.ag[nomeC] || (D.ag[nomeC] = {uf, cod:info.sigla, agencia:nomeC, qtdBil:0, tarifa:0, seguro:0, pedagio:0, bagagem:0, embarqueTaxa:0, devolucao:0,
       qtdGap:0, tarifaGap:0, devolucaoGap:0, recTotal:0, impostos:0, recLiquida:0, comissao:0, tipo, qtdCanc:0, origem:'SISTEMA'});
     a.qtdBil += qtd;
@@ -2053,6 +2074,7 @@ function parseSistemaAgencias(aoa){
   const datas = Object.keys(porDia).sort();
   datas.forEach(d=>{
     const D = porDia[d];
+    Object.values(D.ag).forEach(x=>_corrigirLinhaAgencia(x, d));
     DB.agencias[d] = Object.values(D.ag);
     DB.vendasResumo[d] = Object.values(D.vr);
     DB.formaPagamento[d] = D.fp;
