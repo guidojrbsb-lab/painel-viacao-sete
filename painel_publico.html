@@ -2730,6 +2730,8 @@ const CORRECOES_DATA_SERVICO_BILHETE = {
   '181340': '2026-10-13',
   // Pedido do usuário em 2026-10-16: Fazenda Progresso, bilhete 182790 (FAZENDA PROGRESSO x RIBEIRO GONÇALVES) -> 15/10/2026.
   '182790': '2026-10-15',
+  // Pedido do usuário em 2026-10-20: Fazenda Ribeirão, bilhete 85835 (URUCUI x BAIXA GRANDE DO RIBEIRO, Marcos Antonio Gomes da Costa) -> 19/10/2026.
+  '85835': '2026-10-19',
 };
 // Corrige retroativamente a ORIGEM (ou DESTINO) de um bilhete específico que veio do
 // relatório com a cidade errada -- por exemplo, um erro no balcão que grava uma cidade de
@@ -3452,6 +3454,8 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['BENEDITO LEITE', 'SANTA FE'], valor: 140.00 },
       { cidades: ['FAZENDA PROGRESSO', 'TERESINA'], valor: 135.00 },
       { cidades: ['FAZENDA PROGRESSO', 'URUCUI'], valor: 35.00 },
+      // Bilhete 182776 (MANOEL EMIDIO x TERESINA, 19/10/2026), confirmado pelo usuário em 2026-10-20.
+      { cidades: ['MANOEL EMIDIO', 'TERESINA'], valor: 140.00 },
       { cidades: ['SANTA FE', 'TERESINA'], valor: 130.00 },
       { cidades: ['TERESINA', 'URUCUI'], valor: 160.00 },
       { cidades: ['SEBASTIAO LEAL', 'RIBEIRO GONCALVES'], valor: 70.00 },
