@@ -1783,7 +1783,9 @@ function parseEncomendas(aoa, data){
   if(headerRowIdx===-1) return;
   const idx = name => headerRow.findIndex(h=>typeof h==='string' && h.trim().toLowerCase()===name.toLowerCase());
   const iData=idx('Data'), iDespacho=idx('Despacho'), iAgencia=idx('Agência'), iPostador=idx('Postador'), iOrigem=idx('Origem'),
-        iDestino=idx('Destino'), iTomador=idx('Tomador'), iValorTotal=idx('Valor Total'),
+        iDestino=idx('Destino'), iTomador=idx('Tomador'),
+        // 2026-10-20: o relatório de Postagens do PRAXIO LUNA chama a coluna de "Valor Total" de "Valor do Frete".
+        iValorTotal=(idx('Valor Total')>=0 ? idx('Valor Total') : idx('Valor do Frete')),
         iValorRecebido=idx('Valor Recebido'), iForma=idx('Formas de Pagamento');
   // O relatório de Encomendas pode reunir vários dias num único arquivo (o cabeçalho
   // "PERÍODO:" cobre o intervalo inteiro, ex.: 01/07 a 22/07) — cada linha tem sua
@@ -6927,7 +6929,10 @@ function _indicadoresDiaBase(d, usarReal){
   // "Receita Passagens Totalbus" tem que bater com o KPI "RECEITA DE PASSAGENS" da aba
   // Agências (mesma fonte, relatório Receita Diária por Agência), não com o campo
   // "receitaPassagens" do relatório de Linhas/Analítico — são apurações diferentes.
-  const receitaPassagensTotalbus = sum((DB.agencias||{})[d]||[], _receitaPassagensAgencia);
+  // 2026-10-21: a partir do sistema novo (PRAXIO LUNA, linhas origem 'SISTEMA', 16/10 em diante) o Resumo Diário usa a
+  // coluna TOTAL BRUTO do relatório Vendas por Agência (= Vl Pass.+Liberação + Tx.Emb), sem abater Devolução (fica para o
+  // próximo mês). Convênios/Próprias já vêm com recTotal zerado. Dias anteriores seguem a regra antiga.
+  const receitaPassagensTotalbus = sum((DB.agencias||{})[d]||[], x => (x.origem==='SISTEMA' && d>=SISTEMA_NOVO_INICIO) ? (x.recTotal||0) : _receitaPassagensAgencia(x));
 
   const convenios = _receitaConveniosDia(d);
   const encomendas = sum((DB.encomendas||{})[d]||[], x=>x.valorTotal);
