@@ -265,7 +265,7 @@ table.rk-table tr.grupo-nao-identificado td{color:var(--muted-soft);font-style:i
       <style>
         .chip-f{display:inline-block;background:var(--navy-soft);color:var(--navy);border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;font-weight:700;font-size:12px;}
         .chip-f.tr{background:#fdecee;color:var(--red);}
-        #parcDiaTable th,#parcRankTable th{cursor:default;}
+        #parcDiaTable th{cursor:default;}
       </style>
       <div class="filtro-box" id="filtroBoxParc">
         <h2 onclick="this.parentElement.classList.toggle('collapsed')">Filtros <span class="info-badge">clique para recolher/expandir</span></h2>
@@ -294,11 +294,6 @@ table.rk-table tr.grupo-nao-identificado td{color:var(--muted-soft);font-style:i
             <button onclick="baixarPDFParceiros()" style="background:var(--red);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;">Baixar PDF</button>
           </span></h2>
         <table class="rk-table" id="parcDiaTable"></table>
-      </div>
-
-      <div class="panel">
-        <h2>Ranking por Frota <span class="info-badge">clique na linha para ver os dias em que o veículo apareceu</span></h2>
-        <table class="rk-table" id="parcRankTable"></table>
       </div>
     </div>
   </main>
@@ -1254,7 +1249,6 @@ function filtrarParceiros(){
 function _parcChips(lista, cls){
   return lista.length ? lista.map(f=>'<span class="chip-f '+cls+'">'+f+'</span>').join('') : '<span style="color:var(--muted-soft);">—</span>';
 }
-let _parcRanking = [];
 const PARC_VALOR_PARTIDA = 240, PARC_VALOR_TRANSITO = 120;
 function _parcBRL(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function renderParceiros(){
@@ -1279,17 +1273,6 @@ function renderParceiros(){
       + regs.map(r=>'<tr><td>'+formatarDataBR(r.data)+'</td><td>'+_parcDiaSemana(r.data)+'</td><td>'+r.empresa+'</td><td>'+_parcChips(r.partida,'')+'</td><td>'+_parcChips(r.transito,'tr')+'</td><td class="num">'+_parcBRL(r.partida.length*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(r.transito.length*PARC_VALOR_TRANSITO)+'</td><td class="num"><b>'+_parcBRL(r.partida.length*PARC_VALOR_PARTIDA+r.transito.length*PARC_VALOR_TRANSITO)+'</b></td></tr>').join('')
       + '<tr style="font-weight:700;background:var(--bg-soft,#f1f5f9);"><td colspan="3">TOTAL</td><td>'+nPart+' partida(s)</td><td>'+nTr+' em trânsito</td><td class="num">'+_parcBRL(nPart*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(nTr*PARC_VALOR_TRANSITO)+'</td><td class="num">'+_parcBRL(nPart*PARC_VALOR_PARTIDA+nTr*PARC_VALOR_TRANSITO)+'</td></tr></tbody>'
     : '<tbody><tr><td style="padding:14px;color:var(--muted);">Nenhum registro no período/empresa selecionados.</td></tr></tbody>';
-
-  const por = {};
-  regs.forEach(r=>{
-    const add = (f,t)=>{ const o = por[f] || (por[f] = {frota:f, empresas:new Set(), partidas:0, transitos:0, dias:[]}); o.empresas.add(r.empresa); o[t==='P'?'partidas':'transitos']++; o.dias.push({data:r.data, tipo:t==='P'?'Partida':'Em trânsito', empresa:r.empresa}); };
-    r.partida.forEach(f=>add(f,'P')); r.transito.forEach(f=>add(f,'T'));
-  });
-  _parcRanking = Object.values(por).sort((a,b)=>(b.partidas+b.transitos)-(a.partidas+a.transitos) || a.frota.localeCompare(b.frota));
-  document.getElementById('parcRankTable').innerHTML = _parcRanking.length
-    ? '<thead><tr><th>Frota</th><th>Empresa</th><th class="num">Partidas</th><th class="num">Em trânsito</th><th class="num">Total de registros</th><th class="num">Valor Partidas</th><th class="num">Valor Trânsito</th><th class="num">Valor Total</th></tr></thead><tbody>'
-      + _parcRanking.map((o,i)=>'<tr class="clickable" data-pi="'+i+'"><td><b>'+o.frota+'</b></td><td>'+Array.from(o.empresas).join(', ')+'</td><td class="num">'+o.partidas+'</td><td class="num">'+o.transitos+'</td><td class="num">'+(o.partidas+o.transitos)+'</td><td class="num">'+_parcBRL(o.partidas*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(o.transitos*PARC_VALOR_TRANSITO)+'</td><td class="num"><b>'+_parcBRL(o.partidas*PARC_VALOR_PARTIDA+o.transitos*PARC_VALOR_TRANSITO)+'</b></td></tr>').join('')+'</tbody>'
-    : '<tbody><tr><td style="padding:14px;color:var(--muted);">Sem dados.</td></tr></tbody>';
 }
 function _parcLinhasExport(){
   const regs = filtrarParceiros();
@@ -1334,15 +1317,6 @@ function baixarPDFParceiros(){
     '<table><tr>'+cab.map(v=>'<th>'+v+'</th>').join('')+'</tr>'+corpo+'</table></body></html>');
   win.document.close(); win.focus(); setTimeout(()=>win.print(), 350);
 }
-document.getElementById('parcRankTable').addEventListener('click', e=>{
-  const tr = e.target.closest('tr[data-pi]'); if(!tr) return;
-  const o = _parcRanking[Number(tr.dataset.pi)]; if(!o) return;
-  document.getElementById('modalTitulo').textContent = 'Frota '+o.frota+' ('+o.dias.length+' registro'+(o.dias.length===1?'':'s')+')';
-  const dias = o.dias.slice().sort((a,b)=>a.data<b.data?1:-1);
-  document.getElementById('modalCorpo').innerHTML = '<table><thead><tr><th>Data</th><th>Dia</th><th>Empresa</th><th>Situação</th></tr></thead><tbody>'
-    + dias.map(d=>'<tr><td>'+formatarDataBR(d.data)+'</td><td>'+_parcDiaSemana(d.data)+'</td><td>'+d.empresa+'</td><td>'+d.tipo+'</td></tr>').join('')+'</tbody></table>';
-  document.getElementById('modalOverlay').classList.add('aberto');
-});
 
 function atualizarTudo(){
   renderOcorrencias();
