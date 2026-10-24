@@ -159,6 +159,7 @@ table.rk-table tr.grupo-nao-identificado td{color:var(--muted-soft);font-style:i
     <button data-tab="indicadores" class="active"><span class="ic">&#128202;</span>Indicadores</button>
     <button data-tab="ocorrencias"><span class="ic">&#9888;</span>Ocorrências</button>
     <button data-tab="monitriip"><span class="ic">&#128225;</span>Monitriip</button>
+    <button data-tab="parceiros"><span class="ic">&#129309;</span>Parceiros</button>
   </nav>
 
   <main>
@@ -259,6 +260,47 @@ table.rk-table tr.grupo-nao-identificado td{color:var(--muted-soft);font-style:i
       </div>
 
     </div>
+
+    <div id="tab-parceiros" class="tab hidden">
+      <style>
+        .chip-f{display:inline-block;background:var(--navy-soft);color:var(--navy);border-radius:999px;padding:2px 10px;margin:2px 4px 2px 0;font-weight:700;font-size:12px;}
+        .chip-f.tr{background:#fdecee;color:var(--red);}
+        #parcDiaTable th,#parcRankTable th{cursor:default;}
+      </style>
+      <div class="filtro-box" id="filtroBoxParc">
+        <h2 onclick="this.parentElement.classList.toggle('collapsed')">Filtros <span class="info-badge">clique para recolher/expandir</span></h2>
+        <div class="filtro-corpo">
+          <div class="filtro-campo">
+            <label>Data inicial</label>
+            <input type="date" id="parcDataIni" onchange="renderParceiros()">
+          </div>
+          <div class="filtro-campo">
+            <label>Data final</label>
+            <input type="date" id="parcDataFim" onchange="renderParceiros()">
+          </div>
+          <div class="filtro-campo">
+            <label>Empresa parceira</label>
+            <select id="parcEmpresa" onchange="renderParceiros()"><option value="">Todas</option></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis" id="parcKpiRow"></div>
+
+      <div class="panel">
+        <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">Frota por Dia <span class="info-badge">veículos em partida (azul) e em trânsito (vermelho), por empresa parceira</span>
+          <span style="margin-left:auto;display:flex;gap:10px;">
+            <button onclick="baixarCSVParceiros()" style="background:var(--navy);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;">Baixar CSV</button>
+            <button onclick="baixarPDFParceiros()" style="background:var(--red);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer;">Baixar PDF</button>
+          </span></h2>
+        <table class="rk-table" id="parcDiaTable"></table>
+      </div>
+
+      <div class="panel">
+        <h2>Ranking por Frota <span class="info-badge">clique na linha para ver os dias em que o veículo apareceu</span></h2>
+        <table class="rk-table" id="parcRankTable"></table>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -268,6 +310,8 @@ table.rk-table tr.grupo-nao-identificado td{color:var(--muted-soft);font-style:i
     <input type="file" id="fileInput" multiple accept=".csv" style="display:none">
     <button class="secondary" onclick="limparBase()">Limpar base local</button>
     <button class="secondary" onclick="exportarBaseOperacao()">Exportar base (para link público)</button>
+    <button class="secondary" onclick="document.getElementById('parcInput').click()">Carregar conversa WhatsApp (Parceiros)</button>
+    <input type="file" id="parcInput" multiple accept=".txt" style="display:none">
   </span>
   <span class="status" id="uploadStatus">Nenhum arquivo carregado ainda.</span>
 </div>
@@ -356,6 +400,7 @@ function _garantirEstruturaDB(){
   DB.monitriip = DB.monitriip || {};
   DB.monitriip.porMes = DB.monitriip.porMes || {};
   DB.monitriip.viagens = DB.monitriip.viagens || {};
+  if(typeof _parcGarantir === 'function') _parcGarantir();
 }
 function saveDB(){
   if(MODO_PUBLICO) return;
@@ -1116,9 +1161,193 @@ function _ordenarModalMonitriip(col){
   _renderModalMonitriip();
 }
 
+
+// =====================================================================
+// PARCEIROS -- frota de empresas parceiras (ex.: ITAPEMIRIM) em PARTIDA e EM TRÂNSITO
+// Fonte: mensagens diárias do grupo de tráfego no WhatsApp ("Dia dd/mm/aa / Partida ... /
+// Carro em transito ..."). DB.parceiros.registros['AAAA-MM-DD|EMPRESA'] = {data,empresa,partida[],transito[]}.
+// PARCEIROS_SEED traz o histórico já lido (02/10 a 22/10/2026); novos .txt exportados do
+// WhatsApp podem ser carregados pelo botão "Carregar conversa WhatsApp (Parceiros)" -- o mesmo
+// dia/empresa é substituído, nunca duplicado.
+// =====================================================================
+const PARCEIROS_SEED = [["2026-10-02","ITAPEMIRIM",["20.746"],["60.166","20.576","60.446"]],["2026-10-03","ITAPEMIRIM",["20.946"],["60.336","20.676","60.376"]],["2026-10-04","ITAPEMIRIM",[],["21.026","20.776","20.426","60.246"]],["2026-10-05","ITAPEMIRIM",[],["60.656","60.336","20.676"]],["2026-10-06","ITAPEMIRIM",["21.026","20.946"],["60.686","20.706","60.446","60.336","20.426"]],["2026-10-07","ITAPEMIRIM",[],["20.976","20.736","60.656"]],["2026-10-08","ITAPEMIRIM",["60.336"],["60.666","60.686","20.736","60.256","20.866","20.676"]],["2026-10-09","ITAPEMIRIM",["20.706"],["20.436","20.976","20.436","60.426"]],["2026-10-10","ITAPEMIRIM",["20.426","20.866"],["60.136","60.666","60.336","60.246","60.333"]],["2026-10-11","ITAPEMIRIM",["20.746","20.676"],["60.176","20.436","21.066","20.436","20.596"]],["2026-10-12","ITAPEMIRIM",["21.066"],["60.136","20.706","60.306"]],["2026-10-14","ITAPEMIRIM",[],["60.336","20.436","60.306","60.246"]],["2026-10-15","ITAPEMIRIM",["20.706"],["20.746","20.546","60.326","21.026","21.146","20.776"]],["2026-10-16","ITAPEMIRIM",["60.426"],["60.336","20.436","20.946","60.366"]],["2026-10-17","ITAPEMIRIM",["20.906"],["20.776","20.806","60.326","60.176"]],["2026-10-18","ITAPEMIRIM",[],["60.666","60.536","20.946","21.076","20.506"]],["2026-10-19","ITAPEMIRIM",[],["60.336","60.176","21.146","60.586"]],["2026-10-20","ITAPEMIRIM",[],["20.776","60.426","60.366","60.176","60.536"]],["2026-10-21","ITAPEMIRIM",["20.946"],["60.586","21.076","20.656"]],["2026-10-22","ITAPEMIRIM",["20.416"],["60.326","60.426","60.336","20.656","21.006"]]];
+function _parcGarantir(){
+  DB.parceiros = DB.parceiros || {};
+  DB.parceiros.registros = DB.parceiros.registros || {};
+  PARCEIROS_SEED.forEach(([data,empresa,partida,transito])=>{
+    const k = data+'|'+empresa;
+    const ex = DB.parceiros.registros[k];
+    if(!ex || ex.seed) DB.parceiros.registros[k] = {data, empresa, partida, transito, seed:true};
+  });
+}
+function _parcNormFrota(n){
+  const d = String(n).replace(/\D/g,'');
+  return d.length===5 ? d.slice(0,2)+'.'+d.slice(2) : d;
+}
+function parseWhatsAppParceiros(texto){
+  const msgs = []; let cur = null;
+  texto.replace(/‎/g,'').split(/\r?\n/).forEach(l=>{
+    const m = l.match(/^\[(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+[^\]]*\]\s*([^:]+?):\s?(.*)$/);
+    if(m){ cur = {remetente:m[2].trim(), corpo:[m[3]]}; msgs.push(cur); }
+    else if(cur) cur.corpo.push(l);
+  });
+  const out = [];
+  msgs.forEach(msg=>{
+    const empresa = msg.remetente.split(' - ').pop().trim().toUpperCase();
+    const md = msg.corpo.join('\n').match(/Dia\s+(\d{1,2})\/(\d{1,2})\/(\d{2,4})/i);
+    if(!md) return;
+    let ano = parseInt(md[3],10); if(ano<100) ano += 2000;
+    const data = ano+'-'+String(md[2]).padStart(2,'0')+'-'+String(md[1]).padStart(2,'0');
+    let partida = [], transito = [];
+    msg.corpo.forEach(ln=>{
+      const mp = ln.match(/^\s*Partida\b(.*)$/i);
+      const mt = ln.match(/^\s*(?:Carro|Crarro|Carros)\s+em\s+tr[aâ]nsito\b(.*)$/i);
+      if(mp) partida = partida.concat((mp[1].match(/\d[\d.]*\d/g)||[]).map(_parcNormFrota));
+      if(mt) transito = transito.concat((mt[1].match(/\d[\d.]*\d/g)||[]).map(_parcNormFrota));
+    });
+    // Repetidas na mensagem ficam como vieram (pedido do usuário) -- sem remover duplicadas.
+    out.push({data, empresa, partida, transito});
+  });
+  return out;
+}
+function _aplicarParceiros(regs){
+  _parcGarantir();
+  regs.forEach(r=>{ DB.parceiros.registros[r.data+'|'+r.empresa] = r; });
+  return regs.length;
+}
+document.getElementById('parcInput').addEventListener('change', async ev=>{
+  const files = Array.from(ev.target.files); if(!files.length) return;
+  const st = document.getElementById('uploadStatus');
+  let tot = 0;
+  try{
+    for(const f of files){ tot += _aplicarParceiros(parseWhatsAppParceiros(await f.text())); }
+    saveDB();
+    st.textContent = 'Parceiros: '+tot+' dia(s) de registro lido(s) da conversa.';
+    _parcAncorado = false;
+    atualizarTudo();
+  }catch(e){ console.error(e); st.textContent = 'ERRO ao ler a conversa de Parceiros: '+e.message; }
+  ev.target.value = '';
+});
+const _DIAS_SEM = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function _parcDiaSemana(iso){ const [a,m,d]=iso.split('-').map(Number); return _DIAS_SEM[new Date(a,m-1,d).getDay()]; }
+let _parcAncorado = false;
+function _parcTodos(){ return Object.values((DB.parceiros||{}).registros||{}); }
+function _parcAncorarFiltros(){
+  const todos = _parcTodos(); if(!todos.length) return;
+  const datas = todos.map(r=>r.data).sort();
+  document.getElementById('parcDataIni').value = datas[0];
+  document.getElementById('parcDataFim').value = datas[datas.length-1];
+  _parcAncorado = true;
+}
+function _parcPopularEmpresas(){
+  const sel = document.getElementById('parcEmpresa'); const atual = sel.value;
+  const emps = Array.from(new Set(_parcTodos().map(r=>r.empresa))).sort();
+  sel.innerHTML = '<option value="">Todas</option>' + emps.map(e=>'<option value="'+e+'">'+e+'</option>').join('');
+  sel.value = emps.includes(atual) ? atual : '';
+}
+function filtrarParceiros(){
+  const di = document.getElementById('parcDataIni').value, df = document.getElementById('parcDataFim').value;
+  const emp = document.getElementById('parcEmpresa').value;
+  return _parcTodos().filter(r=>(!di||r.data>=di) && (!df||r.data<=df) && (!emp||r.empresa===emp))
+    .sort((a,b)=> a.data<b.data ? 1 : a.data>b.data ? -1 : a.empresa.localeCompare(b.empresa));
+}
+function _parcChips(lista, cls){
+  return lista.length ? lista.map(f=>'<span class="chip-f '+cls+'">'+f+'</span>').join('') : '<span style="color:var(--muted-soft);">—</span>';
+}
+let _parcRanking = [];
+const PARC_VALOR_PARTIDA = 240, PARC_VALOR_TRANSITO = 120;
+function _parcBRL(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function renderParceiros(){
+  if(!DB.parceiros) _parcGarantir();
+  _parcPopularEmpresas();
+  if(!_parcAncorado) _parcAncorarFiltros();
+  const regs = filtrarParceiros();
+  const nPart = regs.reduce((s,r)=>s+r.partida.length,0);
+  const nTr = regs.reduce((s,r)=>s+r.transito.length,0);
+  const frotas = new Set(); regs.forEach(r=>r.partida.concat(r.transito).forEach(f=>frotas.add(f)));
+  const kp = document.getElementById('parcKpiRow'); kp.innerHTML = '';
+  kp.appendChild(kpiCard('Dias com registro', fmtInt(regs.length)));
+  kp.appendChild(kpiCard('Veículos em partida', fmtInt(nPart)));
+  kp.appendChild(kpiCard('Veículos em trânsito', fmtInt(nTr)));
+  kp.appendChild(kpiCard('Frotas distintas', fmtInt(frotas.size)));
+  kp.appendChild(kpiCard('Valor Partidas (R$ 240)', _parcBRL(nPart*PARC_VALOR_PARTIDA)));
+  kp.appendChild(kpiCard('Valor Em trânsito (R$ 120)', _parcBRL(nTr*PARC_VALOR_TRANSITO)));
+  kp.appendChild(kpiCard('Valor Total', _parcBRL(nPart*PARC_VALOR_PARTIDA+nTr*PARC_VALOR_TRANSITO)));
+
+  document.getElementById('parcDiaTable').innerHTML = regs.length
+    ? '<thead><tr><th>Data</th><th>Dia</th><th>Empresa parceira</th><th>Frota em Partida</th><th>Frota em Trânsito</th><th class="num">Valor Partida</th><th class="num">Valor Trânsito</th><th class="num">Valor Total</th></tr></thead><tbody>'
+      + regs.map(r=>'<tr><td>'+formatarDataBR(r.data)+'</td><td>'+_parcDiaSemana(r.data)+'</td><td>'+r.empresa+'</td><td>'+_parcChips(r.partida,'')+'</td><td>'+_parcChips(r.transito,'tr')+'</td><td class="num">'+_parcBRL(r.partida.length*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(r.transito.length*PARC_VALOR_TRANSITO)+'</td><td class="num"><b>'+_parcBRL(r.partida.length*PARC_VALOR_PARTIDA+r.transito.length*PARC_VALOR_TRANSITO)+'</b></td></tr>').join('')
+      + '<tr style="font-weight:700;background:var(--bg-soft,#f1f5f9);"><td colspan="3">TOTAL</td><td>'+nPart+' partida(s)</td><td>'+nTr+' em trânsito</td><td class="num">'+_parcBRL(nPart*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(nTr*PARC_VALOR_TRANSITO)+'</td><td class="num">'+_parcBRL(nPart*PARC_VALOR_PARTIDA+nTr*PARC_VALOR_TRANSITO)+'</td></tr></tbody>'
+    : '<tbody><tr><td style="padding:14px;color:var(--muted);">Nenhum registro no período/empresa selecionados.</td></tr></tbody>';
+
+  const por = {};
+  regs.forEach(r=>{
+    const add = (f,t)=>{ const o = por[f] || (por[f] = {frota:f, empresas:new Set(), partidas:0, transitos:0, dias:[]}); o.empresas.add(r.empresa); o[t==='P'?'partidas':'transitos']++; o.dias.push({data:r.data, tipo:t==='P'?'Partida':'Em trânsito', empresa:r.empresa}); };
+    r.partida.forEach(f=>add(f,'P')); r.transito.forEach(f=>add(f,'T'));
+  });
+  _parcRanking = Object.values(por).sort((a,b)=>(b.partidas+b.transitos)-(a.partidas+a.transitos) || a.frota.localeCompare(b.frota));
+  document.getElementById('parcRankTable').innerHTML = _parcRanking.length
+    ? '<thead><tr><th>Frota</th><th>Empresa</th><th class="num">Partidas</th><th class="num">Em trânsito</th><th class="num">Total de registros</th><th class="num">Valor Partidas</th><th class="num">Valor Trânsito</th><th class="num">Valor Total</th></tr></thead><tbody>'
+      + _parcRanking.map((o,i)=>'<tr class="clickable" data-pi="'+i+'"><td><b>'+o.frota+'</b></td><td>'+Array.from(o.empresas).join(', ')+'</td><td class="num">'+o.partidas+'</td><td class="num">'+o.transitos+'</td><td class="num">'+(o.partidas+o.transitos)+'</td><td class="num">'+_parcBRL(o.partidas*PARC_VALOR_PARTIDA)+'</td><td class="num">'+_parcBRL(o.transitos*PARC_VALOR_TRANSITO)+'</td><td class="num"><b>'+_parcBRL(o.partidas*PARC_VALOR_PARTIDA+o.transitos*PARC_VALOR_TRANSITO)+'</b></td></tr>').join('')+'</tbody>'
+    : '<tbody><tr><td style="padding:14px;color:var(--muted);">Sem dados.</td></tr></tbody>';
+}
+function _parcLinhasExport(){
+  const regs = filtrarParceiros();
+  const cab = ['Data','Dia','Empresa parceira','Frota em Partida','Frota em Trânsito','Qtd Partida','Qtd Trânsito','Valor Partida','Valor Trânsito','Valor Total'];
+  const f2 = v=>Number(v).toFixed(2).replace('.',',');
+  let tp=0, tt=0;
+  const linhas = regs.map(r=>{
+    const vp=r.partida.length*PARC_VALOR_PARTIDA, vt=r.transito.length*PARC_VALOR_TRANSITO; tp+=r.partida.length; tt+=r.transito.length;
+    return [formatarDataBR(r.data), _parcDiaSemana(r.data), r.empresa, r.partida.join(' / '), r.transito.join(' / '), r.partida.length, r.transito.length, f2(vp), f2(vt), f2(vp+vt)];
+  });
+  const vpT=tp*PARC_VALOR_PARTIDA, vtT=tt*PARC_VALOR_TRANSITO;
+  linhas.push(['TOTAL','','','','',tp,tt,f2(vpT),f2(vtT),f2(vpT+vtT)]);
+  return {cab, linhas};
+}
+function _parcTituloExport(){
+  const di=document.getElementById('parcDataIni').value, df=document.getElementById('parcDataFim').value, emp=document.getElementById('parcEmpresa').value;
+  return 'Parceiros - Frota por Dia ('+(di?formatarDataBR(di):'início')+' a '+(df?formatarDataBR(df):'fim')+(emp?' - '+emp:'')+')';
+}
+function baixarCSVParceiros(){
+  const {cab,linhas} = _parcLinhasExport();
+  const csv = [cab].concat(linhas).map(l=>l.join(';')).join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'parceiros_frota_por_dia.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function baixarPDFParceiros(){
+  const {cab,linhas} = _parcLinhasExport();
+  const titulo = _parcTituloExport();
+  const ult = linhas[linhas.length-1];
+  const resumo = 'Veículos em partida: '+ult[5]+' &nbsp;|&nbsp; Em trânsito: '+ult[6]+' &nbsp;|&nbsp; Valor Total: R$ '+ult[9];
+  const corpo = linhas.map((l,i)=>'<tr'+(i===linhas.length-1?' class="tot"':'')+'>'+l.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('');
+  const win = window.open('', '_blank'); if(!win) return;
+  win.document.write('<html><head><meta charset="UTF-8"><title>'+titulo+'</title><style>'+
+    'body{font-family:Arial,sans-serif;padding:24px;color:#1b2432;}h2{color:#132354;margin-bottom:4px;}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:14px;}'+
+    'th{background:#132354;color:#fff;padding:6px 8px;text-align:left;}td{padding:6px 8px;border-bottom:1px solid #e2e6ee;}'+
+    'tr.tot td{font-weight:bold;background:#eef1f8;}.resumo{margin-top:6px;font-size:13px;font-weight:bold;color:#132354;}'+
+    '@page{size:landscape;}</style></head><body><h2>'+titulo+'</h2><div class="resumo">'+resumo+'</div>'+
+    '<table><tr>'+cab.map(v=>'<th>'+v+'</th>').join('')+'</tr>'+corpo+'</table></body></html>');
+  win.document.close(); win.focus(); setTimeout(()=>win.print(), 350);
+}
+document.getElementById('parcRankTable').addEventListener('click', e=>{
+  const tr = e.target.closest('tr[data-pi]'); if(!tr) return;
+  const o = _parcRanking[Number(tr.dataset.pi)]; if(!o) return;
+  document.getElementById('modalTitulo').textContent = 'Frota '+o.frota+' ('+o.dias.length+' registro'+(o.dias.length===1?'':'s')+')';
+  const dias = o.dias.slice().sort((a,b)=>a.data<b.data?1:-1);
+  document.getElementById('modalCorpo').innerHTML = '<table><thead><tr><th>Data</th><th>Dia</th><th>Empresa</th><th>Situação</th></tr></thead><tbody>'
+    + dias.map(d=>'<tr><td>'+formatarDataBR(d.data)+'</td><td>'+_parcDiaSemana(d.data)+'</td><td>'+d.empresa+'</td><td>'+d.tipo+'</td></tr>').join('')+'</tbody></table>';
+  document.getElementById('modalOverlay').classList.add('aberto');
+});
+
 function atualizarTudo(){
   renderOcorrencias();
   renderMonitriip();
+  renderParceiros();
 }
 
 // =====================================================================
