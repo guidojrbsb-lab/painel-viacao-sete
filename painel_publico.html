@@ -978,13 +978,21 @@ function _reaplicarEscalasManuaisConvenio(){
 // comissão etc. entram na rubrica de Prestação de Serviço) mesmo que o relatório a traga como INTERNET; e correção
 // pontual da comissão de um dia (relatório trouxe valor errado).
 const TIPO_AGENCIA_FIXO = { 'GOPASS': 'PRESTACAO DE SERVICO' };
-const CORRECOES_COMISSAO_AGENCIA = { '2026-10-16|GOPASS': 34.51 };
+const CORRECOES_COMISSAO_AGENCIA = {};
+// Comissão fixa por agência (pedido do usuário, 2026-10-25): GOPASS = 8% sobre a RECEITA PASSAGENS do dia (tarifa ou
+// liberação, já líquida de devolução), ignorando a comissão que o relatório traz. Vale só p/ essa agência (regra geral intacta).
+// Substitui a correção pontual anterior de 16/10 (34,51), que passa a sair da mesma regra (8% de 410,00 = 32,80).
+const COMISSAO_PERCENTUAL_AGENCIA = { 'GOPASS': 0.08 };
 function _corrigirLinhaAgencia(x, d){
   let mudou = false;
   const nome = String(x.agencia||'').replace(/\s+/g,' ').trim().toUpperCase();
   if(TIPO_AGENCIA_FIXO[nome] && x.tipo !== TIPO_AGENCIA_FIXO[nome]){ x.tipo = TIPO_AGENCIA_FIXO[nome]; mudou = true; }
   const k = d+'|'+nome;
   if(CORRECOES_COMISSAO_AGENCIA[k] !== undefined && x.comissao !== CORRECOES_COMISSAO_AGENCIA[k]){ x.comissao = CORRECOES_COMISSAO_AGENCIA[k]; mudou = true; }
+  if(COMISSAO_PERCENTUAL_AGENCIA[nome] !== undefined){
+    const alvo = Math.round(_receitaPassagensAgencia(x) * COMISSAO_PERCENTUAL_AGENCIA[nome] * 100) / 100;
+    if(Math.abs((x.comissao||0) - alvo) > 0.001){ x.comissao = alvo; mudou = true; }
+  }
   return mudou;
 }
 function _reaplicarCorrecoesAgencias(){
