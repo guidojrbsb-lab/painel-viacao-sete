@@ -687,6 +687,9 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
     <button class="secondary" onclick="exportarExcelEspecie()">Exportar Excel de Espécie</button>
     <button class="secondary" onclick="document.getElementById('fileInputEspecie').click()">Importar Classificação Espécie (DRE)</button>
     <input type="file" id="fileInputEspecie" accept=".xls,.xlsx" style="display:none">
+    <!-- INADIMPLÊNCIA PREFEITURAS (2026-10-31): planilha enviada 1x por mês, ao fechar o mês -- grupo informativo da DRE - Caixa (ver importarInadimplencia). -->
+    <button class="secondary" onclick="document.getElementById('fileInputInadimplencia').click()">Importar Inadimplência Prefeituras (DRE)</button>
+    <input type="file" id="fileInputInadimplencia" accept=".xls,.xlsx" style="display:none">
   </span>
   <span class="status" id="uploadStatus">Nenhum arquivo carregado ainda. Carregue os extratos bancários na aba Bancos.</span>
 </div>
@@ -788,6 +791,7 @@ function _normalizarFinanceiro(){
   DB.bancos = DB.bancos || {};
   DB.classificacao = DB.classificacao || {};
   DB.especie = DB.especie || {};
+  DB.inadimplencia = DB.inadimplencia || {};
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   _reaplicarReclassificacoesBancoPontual();
   _removerDuplicatasStoneNaoIdentificado();
@@ -954,6 +958,7 @@ async function loadDB(){
   DB.bancos = DB.bancos || {};
   DB.classificacao = DB.classificacao || {};
   DB.especie = DB.especie || {};
+  DB.inadimplencia = DB.inadimplencia || {};
   DB.comissaoGrossUp = DB.comissaoGrossUp || {};
   if(_migrarContaSantander()) await saveDB();
 }
@@ -971,7 +976,7 @@ async function saveDB(){
 }
 async function limparBase(){
   if(!confirm('Isso vai apagar todos os dados do Painel Financeiro carregados neste navegador. Confirma?')) return;
-  DB = { resumo: {}, bancos: {}, classificacao: {}, especie: {}, comissaoGrossUp: {} };
+  DB = { resumo: {}, bancos: {}, classificacao: {}, especie: {}, inadimplencia: {}, comissaoGrossUp: {} };
   await saveDB();
   atualizarTudo();
   document.getElementById('uploadStatus').textContent = 'Base local do Financeiro limpa.';
@@ -3235,7 +3240,90 @@ function _montarDREContabil(mes, ano){
     FINANCIAMENTOS: guias['FINANCIAMENTOS'] || { total: 0, grupos: {} },
     // Informativo -- nunca usado em totalDespesasOperacionais/ebitda/ll (ver comentário em EXTRA_FONTES).
     EXTRA: _mesclarGuias(guias, EXTRA_FONTES),
+    // Informativo (2026-10-31) -- idem EXTRA: nunca entra em totalDespesasOperacionais/ebitda/ll. Ver _montarInadimplenciaDREC.
+    INADIMPLENCIA: _montarInadimplenciaDREC(mes, ano),
   };
+}
+// INADIMPLÊNCIA PREFEITURAS (2026-10-31, pedido do usuário): grupo INFORMATIVO da DRE - Caixa, abaixo de
+// PAGAMENTOS EXTRA - V7 -- NÃO entra em EBITDA nem LL (ver _montarDREContabil/renderDREContabil). Fonte: planilha
+// mensal "RELAÇÃO DE CONVÊNIOS - INADIMPLÊNCIA" (aba "INADIMPLÊNCIA - CONVÊNIOS": 1 linha por correntista, 1 coluna por
+// MÊS DE COMPETÊNCIA DAS NOTAS). Regra de negócio: o valor é lançado no MÊS CAIXA = competência + 1 (notas de julho
+// entram na DRE - Caixa de agosto, as de agosto em setembro etc.). DB.inadimplencia = { 'AAAA-MM' (competência): { 'PREFEITURA X': valor } }.
+function _caixaDaCompetenciaInad(comp){ // 'AAAA-MM' -> {mes, ano} do mês caixa (competência + 1)
+  const [a, m] = comp.split('-').map(Number);
+  return m===12 ? { mes: 1, ano: a+1 } : { mes: m+1, ano: a };
+}
+function _montarInadimplenciaDREC(mes, ano){
+  const out = { total: 0, grupos: {} };
+  Object.keys(DB.inadimplencia||{}).forEach(comp=>{
+    const cx = _caixaDaCompetenciaInad(comp);
+    if(cx.mes!==mes || cx.ano!==ano) return;
+    const [ac, mc] = comp.split('-').map(Number);
+    const dataISO = comp+'-'+String(new Date(ac, mc, 0).getDate()).padStart(2,'0');
+    const subNome = 'NOTAS DE '+MESES_PT[mc-1]+'/'+ac;
+    Object.keys(DB.inadimplencia[comp]||{}).forEach(pref=>{
+      const v = Number(DB.inadimplencia[comp][pref])||0;
+      if(!(v>0)) return;
+      const gr = out.grupos[pref] || (out.grupos[pref] = { total: 0, subgrupos: {} });
+      const sg = gr.subgrupos[subNome] || (gr.subgrupos[subNome] = { total: 0, itens: [] });
+      sg.itens.push({ data: dataISO, banco: 'INADIMPLÊNCIA', descricao: 'Notas de '+MESES_PT[mc-1]+'/'+ac+' pendentes (caixa '+MESES_PT[mes-1]+'/'+ano+')', contraparte: pref, valor: v });
+      sg.total += v; gr.total += v; out.total += v;
+    });
+  });
+  return out;
+}
+// Importa a planilha mensal de inadimplência. Cada coluna-mês que trouxer algum número (mesmo 0) SUBSTITUI a competência
+// inteira correspondente em DB.inadimplencia (reenviar corrige/baixa valores); colunas de meses sem nenhum número ficam intactas.
+async function importarInadimplencia(file){
+  const statusEl = document.getElementById('uploadStatus');
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array', cellDates:false});
+    const nomeAba = wb.SheetNames.find(n=>/INADIMPL/i.test(_normColapsado(n))) || wb.SheetNames[wb.SheetNames.length-1];
+    const ws = wb.Sheets[nomeAba];
+    _corrigirDimensaoPlanilha(ws);
+    const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+    let hIdx = -1, cNome = -1;
+    for(let i=0;i<aoa.length && hIdx<0;i++){
+      (aoa[i]||[]).forEach((c,j)=>{ if(hIdx<0 && String(c||'').trim().toUpperCase()==='CORRENTISTAS'){ hIdx = i; cNome = j; } });
+    }
+    if(hIdx<0){ statusEl.textContent = 'Planilha de Inadimplência não reconhecida (cabeçalho "CORRENTISTAS" não encontrado).'; return; }
+    const compDeCabecalho = v=>{
+      if(typeof v==='number' && XLSX.SSF && XLSX.SSF.parse_date_code){ const d = XLSX.SSF.parse_date_code(v); return d ? d.y+'-'+String(d.m).padStart(2,'0') : null; }
+      const t = _normColapsado(String(v||''));
+      let m = t.match(/^(\d{1,2})\/(\d{4})$/); if(m) return m[2]+'-'+String(m[1]).padStart(2,'0');
+      m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m) return m[3]+'-'+String(m[2]).padStart(2,'0');
+      m = t.match(/^([A-ZÇÃ]+)\s*\/?\s*(\d{4})$/); if(m){ const i = MESES_PT.indexOf(m[1]); return i>=0 ? m[2]+'-'+String(i+1).padStart(2,'0') : null; }
+      return null;
+    };
+    const colunas = []; // {j, comp}
+    (aoa[hIdx]||[]).forEach((c,j)=>{ if(j>cNome){ const comp = compDeCabecalho(c); if(comp) colunas.push({j, comp}); } });
+    if(!colunas.length){ statusEl.textContent = 'Planilha de Inadimplência sem colunas de mês reconhecidas.'; return; }
+    const novo = {}; colunas.forEach(c=>{ novo[c.comp] = {}; });
+    const temNumero = {};
+    for(let i=hIdx+1;i<aoa.length;i++){
+      const row = aoa[i]||[];
+      const nome = String(row[cNome]||'').trim();
+      if(!nome) continue;
+      if(/^TOTAIS?$/i.test(nome)) break;
+      colunas.forEach(c=>{
+        const v = row[c.j];
+        if(typeof v!=='number') return;
+        temNumero[c.comp] = true;
+        if(v>0.004) novo[c.comp][nome.toUpperCase()] = Math.round(v*100)/100;
+      });
+    }
+    DB.inadimplencia = DB.inadimplencia || {};
+    const atualizados = [];
+    colunas.forEach(c=>{ if(temNumero[c.comp]){ DB.inadimplencia[c.comp] = novo[c.comp]; atualizados.push(c.comp); } });
+    await saveDB();
+    atualizarTudo();
+    const total = atualizados.reduce((s,k)=> s + Object.values(DB.inadimplencia[k]).reduce((a,b)=>a+b,0), 0);
+    statusEl.textContent = 'Inadimplência Prefeituras importada: '+atualizados.length+' competência(s) ('+atualizados.map(k=>k.slice(5)+'/'+k.slice(0,4)).join(', ')+'), total R$ '+total.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'.';
+  }catch(e){
+    console.error('Erro ao importar Inadimplência', e);
+    statusEl.textContent = 'ERRO ao importar Inadimplência: '+e.message;
+  }
 }
 const _dreContabilExpandido = {}; // rubrica -> bool (estado ÚNICO/global de expandir/recolher --
 // pedido do usuário em 2026-09-22: abrir uma rubrica abre TODOS os meses de uma vez, já que
@@ -3470,10 +3558,11 @@ function renderDREContabil(){
     const df = d.DF.total, financiamentos = d.FINANCIAMENTOS.total;
     const ll = ebitda - df - financiamentos;
     const extra = d.EXTRA.total;
+    const inad = d.INADIMPLENCIA.total; // informativo -- fora de EBITDA/LL
     // % continua sobre RECEITA LÍQUIDA (=100%), calculado por mês (cada mês tem sua
     // própria base de 100%).
     const pct = v => receitaLiquida ? (v/receitaLiquida*100) : 0;
-    return { mes, ano, d, receitaBruta, impostos, receitaLiquida, dp,dv,da,dc,dir,comissao,outras, totalDespesasOperacionais, ebitda, df, financiamentos, ll, extra, pct };
+    return { mes, ano, d, receitaBruta, impostos, receitaLiquida, dp,dv,da,dc,dir,comissao,outras, totalDespesasOperacionais, ebitda, df, financiamentos, ll, extra, inad, pct };
   });
 
   // Mês mais recente MOSTRADO (última coluna do intervalo filtrado) -- usado como padrão
@@ -3488,6 +3577,7 @@ function renderDREContabil(){
   // célula mostra "-" (ver _valDREC), mas a linha continua alinhada nos demais meses.
   const showOutras = calc.some(c=> Math.abs(c.outras) > 0.004);
   const showExtra = calc.some(c=> Math.abs(c.extra) > 0.004);
+  const showInad = calc.some(c=> Math.abs(c.inad) > 0.004);
 
   // Corrigido 2026-09-22: as 2 linhas de cabeçalho precisam estar dentro de um <thead>
   // de verdade (não só soltas antes do <tbody>) -- sem isso o seletor CSS
@@ -3528,6 +3618,7 @@ function renderDREContabil(){
   const pmFin = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.financiamentos, pct:c.pct(c.financiamentos), grupos:c.d.FINANCIAMENTOS.grupos}));
   const pmLL = calc.map(c=>({total:c.ll, pct:c.pct(c.ll)}));
   const pmExtra = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.extra, pct:null, grupos:c.d.EXTRA.grupos}));
+  const pmInad = calc.map(c=>({mes:c.mes, ano:c.ano, total:c.inad, pct:null, grupos:c.d.INADIMPLENCIA.grupos}));
 
   // Base do %/R$ das colunas de resumo (2026-09-24) -- soma da RECEITA LÍQUIDA de todos os
   // meses do período filtrado, igual à receitaLiquidaAcumulada documentada em _linhaDREC.
@@ -3554,9 +3645,14 @@ function renderDREContabil(){
 
   html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', pmLL, 'var(--blue-ll)', receitaLiquidaAcumulada);
 
-  if(showExtra){
+  if(showExtra || showInad){
     html += '<tr><td colspan="'+(1+calc.length*2+4)+'" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
-    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, 'Grupo informativo: valores classificados aqui não entram no cálculo de EBITDA nem do Lucro Líquido -- aparecem só para consulta.', receitaLiquidaAcumulada);
+  }
+  if(showExtra){
+    html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, undefined, receitaLiquidaAcumulada);
+  }
+  if(showInad){
+    html += _linhaDREC('INADIMPLENCIA', 'INADIMPLÊNCIA PREFEITURAS', pmInad, true, undefined, receitaLiquidaAcumulada);
   }
 
   html += '</tbody>';
@@ -4667,6 +4763,12 @@ document.getElementById('fileInputEspecie').addEventListener('change', async (ev
   ev.target.value = '';
 });
 
+document.getElementById('fileInputInadimplencia').addEventListener('change', async (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  await importarInadimplencia(file);
+  ev.target.value = '';
+});
 function toggleControlesModoPublico(){
   document.getElementById('headerPublico').style.display = MODO_PUBLICO ? 'flex' : 'none';
   if(!MODO_PUBLICO) return;
