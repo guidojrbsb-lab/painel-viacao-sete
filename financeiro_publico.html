@@ -429,6 +429,31 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
    borda esquerda mais grossa marcam visualmente que é um bloco à parte dos meses.*/
 #dreContabilTabela td.dre-resumo{background:#eef1f8;}
 #dreContabilTabela td.dre-resumo-1a-col{border-left:2px solid var(--navy);}
+#dreInadTabela{border-collapse:separate;border-spacing:0;font-size:11.5px;white-space:nowrap;}
+#dreInadTabela th,#dreInadTabela td{padding:6px 10px;border-bottom:1px solid var(--border);border-right:1px solid #eef0f4;}
+#dreInadTabela thead th{position:sticky;background:var(--navy);color:#fff;font-weight:600;font-size:10.5px;text-align:center;z-index:2;border-right:1px solid rgba(255,255,255,.15);border-bottom:none;}
+#dreInadTabela thead tr.dre-thead-r1 th{top:0;}
+#dreInadTabela thead tr:first-child th:first-child{border-top-left-radius:var(--radius-md);}
+#dreInadTabela thead tr:first-child th:last-child{border-top-right-radius:var(--radius-md);}
+#dreInadTabela td:first-child,#dreInadTabela th:first-child{position:sticky;left:0;z-index:3;background:#fff;text-align:left;min-width:220px;max-width:220px;white-space:normal;font-weight:600;}
+#dreInadTabela thead th:first-child{z-index:4;background:var(--navy);color:#fff;}
+#dreInadTabela td{text-align:right;color:var(--ink);}
+#dreInadTabela td.dre-mes-pct{color:var(--muted);min-width:40px;padding-left:6px;padding-right:6px;}
+#dreInadTabela td.dre-mes-r{min-width:52px;padding-left:6px;padding-right:6px;}
+#dreInadTabela tbody tr:nth-child(even):not(.total-row) td{background:#fafbfd;}
+#dreInadTabela tbody tr:nth-child(even):not(.total-row) td:first-child{background:#fafbfd;}
+#dreInadTabela tr.total-row td{background:var(--navy-soft);font-weight:700;}
+#dreInadTabela tr.total-row td:first-child{background:var(--navy-soft);}
+#dreInadTabela tr.clickable:hover td{background:#f5f7fb;}
+#dreInadTabela tr.clickable:hover td:first-child{background:#eef1f8;}
+#dreInadTabela tbody tr:last-child td{border-bottom:none;}
+#dreInadTabela tbody tr:last-child td:first-child{border-bottom-left-radius:var(--radius-md);}
+#dreInadTabela tbody tr:last-child td:last-child{border-bottom-right-radius:var(--radius-md);}
+#dreInadTabela td.dre-resumo{background:#eef1f8;}
+#dreInadTabela td.dre-resumo-1a-col{border-left:2px solid var(--navy);}
+#dreInadTabela thead th{position:static !important;}
+#dreInadTabela td,#dreInadTabela td.dre-mes-pct,#dreInadTabela td:first-child{color:#000 !important;}
+.dre-obs-titulo{margin:26px 0 8px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#000;text-transform:uppercase;}
 /* Cabeçalho congelado nos popups de detalhe da aba Bancos (pedido dos sócios,
    2026-08-07) -- mesmo motivo/técnica já documentada acima para as tabelas de
    Ranking do Comercial: "overflow:hidden" em table.data (usado pra arredondar os
@@ -635,6 +660,13 @@ table.ind-table tr:nth-child(even):not(.ind-secao):not(.ind-total) td:first-chil
 
       <div class="dre-mes-wrap">
         <table id="dreContabilTabela"><thead></thead><tbody></tbody></table>
+      </div>
+      <!-- OBSERVAÇÕES ADICIONAIS (2026-11-01): INADIMPLÊNCIA PREFEITURAS fica numa tabela separada, fora da DRE (informativa, fonte preta). -->
+      <div id="dreInadWrap" style="display:none;">
+        <div class="dre-obs-titulo">Observações adicionais</div>
+        <div class="dre-mes-wrap">
+          <table id="dreInadTabela"><thead></thead><tbody></tbody></table>
+        </div>
       </div>
     </section>
 
@@ -2161,7 +2193,7 @@ const CONVENIO_REGRAS_TEXTO = [
   // "AS SOC" = Assistência Social). "PMU" é a abreviação de Prefeitura Municipal de
   // Uruçuí observada num dos extratos, além do nome por extenso "URUCUI". "FUS"
   // confirmado pelo usuário em 2026-08-07 como sinal da Prefeitura de Uruçuí SAÚDE.
-  [/(URUCU[IÍ]|\bPMU\b).*(ASSIST|AS\s*SOC)|(ASSIST|AS\s*SOC).*(URUCU[IÍ]|\bPMU\b)/, 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA'],
+  [/(URUCU[IÍ]|\bPMU\b).*(ASSIST|AS\s*SOC)|(ASSIST|AS\s*SOC).*(URUCU[IÍ]|\bPMU\b)/, 'PREFEITURA DE URUÇUÍ ASSISTÊNCIA SOCIAL'],
   [/(URUCU[IÍ]|\bPMU\b).*\bADM|ADM.*(URUCU[IÍ]|\bPMU\b)/, 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO'],
   [/(URUCU[IÍ]|\bPMU\b).*WSV|WSV.*(URUCU[IÍ]|\bPMU\b)/, 'PREFEITURA DE URUÇUÍ WSV'],
   [/(URUCU[IÍ]|\bPMU\b).*(SAUDE|\bFUS\b)|(SAUDE|\bFUS\b).*(URUCU[IÍ]|\bPMU\b)/, 'PREFEITURA DE URUÇUÍ SAÚDE'],
@@ -3359,9 +3391,9 @@ function _pctDREC(v){ return (v===null || Math.abs(v||0) < 0.005) ? '-' : v.toFi
 // mesmo critério das colunas mensais (cada uma sobre sua própria RECEITA LÍQUIDA). Repare
 // que o percentual da MÉDIA MENSAL é idêntico ao do TOTAL ACUMULADO -- dividir a linha e a
 // RECEITA LÍQUIDA pela mesma quantidade de meses não muda a proporção entre elas.
-function _linhaDREC(key, label, porMes, vermelho, badge, receitaLiquidaAcumulada){
+function _linhaDREC(key, label, porMes, vermelho, badge, receitaLiquidaAcumulada, corForcada){
   const aberto = !!_dreContabilExpandido[key];
-  const cor = vermelho ? 'color:var(--red);' : 'color:var(--navy);';
+  const cor = corForcada ? 'color:'+corForcada+';' : (vermelho ? 'color:var(--red);' : 'color:var(--navy);');
   const seta = '<span style="display:inline-block;width:16px;">'+(aberto?'&#9660;':'&#9654;')+'</span>';
   // `badge` aceita true (texto padrão, usado por OUTRAS DESPESAS) ou uma string com texto
   // próprio (usado por EXTRA, ver renderDREContabil) -- mesmo mecanismo visual, tooltip diferente.
@@ -3374,7 +3406,7 @@ function _linhaDREC(key, label, porMes, vermelho, badge, receitaLiquidaAcumulada
   });
   cels += _celulasResumoDREC(porMes, receitaLiquidaAcumulada, cor+'font-weight:bold;');
   let html = '<tr class="clickable" onclick="_toggleDreContabilGuia(\''+key+'\')">'+cels+'</tr>';
-  if(aberto) html += _linhasGruposDREC(key, porMes, vermelho);
+  if(aberto) html += _linhasGruposDREC(key, porMes, vermelho, corForcada);
   return html;
 }
 // Monta as 4 células (R$/%/R$ de TOTAL ACUMULADO + R$/%/R$ de MÉDIA MENSAL) fixas ao final
@@ -3401,9 +3433,9 @@ function _celulasResumoDREC(porMes, receitaLiquidaAcumulada, estiloTexto){
 // SUBGRUPO fica dentro do popup (nível 1) aberto ao clicar na célula. Cada célula de valor
 // é clicável INDIVIDUALMENTE e abre o popup só com os lançamentos DAQUELE mês -- células
 // sem grupo naquele mês (g undefined) não são clicáveis.
-function _linhasGruposDREC(rubricaKey, porMes, vermelho){
+function _linhasGruposDREC(rubricaKey, porMes, vermelho, corForcada){
   let html = '';
-  const cor = vermelho ? 'color:var(--red);' : '';
+  const cor = corForcada ? 'color:'+corForcada+';' : (vermelho ? 'color:var(--red);' : '');
   const nomesSet = new Set();
   porMes.forEach(m=> Object.keys(m.grupos||{}).forEach(n=>nomesSet.add(n)));
   const grupoNomes = Array.from(nomesSet).sort((a,b)=>a.localeCompare(b,'pt-BR'));
@@ -3645,18 +3677,23 @@ function renderDREContabil(){
 
   html += _linhaTotalDREC('LL (LUCRO LÍQUIDO)', pmLL, 'var(--blue-ll)', receitaLiquidaAcumulada);
 
-  if(showExtra || showInad){
+  if(showExtra){
     html += '<tr><td colspan="'+(1+calc.length*2+4)+'" style="padding-top:14px;padding-bottom:2px;border-top:1px dashed var(--muted);font-size:11px;color:var(--muted);">ABAIXO DO LL — NÃO SOMA NEM DEDUZ NA DRE (apenas consulta)</td></tr>';
   }
   if(showExtra){
     html += _linhaDREC('EXTRA', 'PAGAMENTOS EXTRA - V7', pmExtra, true, undefined, receitaLiquidaAcumulada);
   }
-  if(showInad){
-    html += _linhaDREC('INADIMPLENCIA', 'INADIMPLÊNCIA PREFEITURAS', pmInad, true, undefined, receitaLiquidaAcumulada);
-  }
 
   html += '</tbody>';
   tabela.innerHTML = html;
+  // INADIMPLÊNCIA PREFEITURAS: tabela própria "Observações adicionais" (fora da DRE, fonte preta).
+  const wrapInad = document.getElementById('dreInadWrap'), tabelaInad = document.getElementById('dreInadTabela');
+  if(wrapInad && tabelaInad){
+    wrapInad.style.display = showInad ? '' : 'none';
+    tabelaInad.innerHTML = showInad
+      ? thead + '<tbody>' + _linhaDREC('INADIMPLENCIA', 'INADIMPLÊNCIA PREFEITURAS', pmInad, false, undefined, receitaLiquidaAcumulada, '#000') + '</tbody>'
+      : '<thead></thead><tbody></tbody>';
+  }
   // Cabeçalho de 2 linhas 100% congelado (2026-09-24, pedido do usuário): a 2ª linha do
   // thead (R$/%/R$) precisa de um "top" igual à ALTURA REAL da 1ª linha (DISCRIMINAÇÃO/
   // meses/TOTAL ACUMULADO/MÉDIA MENSAL) pra grudar logo abaixo dela sem sobrepor -- não dá
