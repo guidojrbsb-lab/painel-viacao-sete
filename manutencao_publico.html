@@ -196,6 +196,88 @@ table.data td.cel-num,table.data th.cel-num{text-align:right;font-variant-numeri
 .indp #indTabela.frota td.lab{text-align:left;min-width:190px;}
 @media print{.indp .ind-bar,.indp .ind-secoes,.indp .ind-filtro{display:none !important;}}
 
+.rv-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.rv-kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);padding:8px 14px;min-width:120px;box-shadow:var(--shadow-sm)}
+.rv-kpi b{display:block;font-size:22px;color:var(--navy)}.rv-kpi span{font-size:11px;color:var(--muted)}
+.rv-k-atr b{color:var(--red)}
+.rv-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.rv-sp{flex:1}
+.rv-m,.rv-b{border:1px solid var(--border-strong);background:#fff;color:var(--navy);border-radius:var(--radius-sm);padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.rv-m:hover,.rv-b:hover{background:var(--navy-soft)}
+.rv-m.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.rv-m-pas{border-style:dashed}.rv-m-atr{color:var(--red);border-color:var(--red)}
+.rv-m-atr.on{background:var(--red);color:#fff}
+.rv-b-p{background:var(--navy);color:#fff}
+.rv-leg{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.rv-leg i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-3px;margin-right:3px;font-style:normal;text-align:center;font-size:10px;line-height:14px}
+.rv-s{background:#2e9e4f}.rv-c{background:#d33a3a}.rv-a{background:#fff;border:2px solid #e08a00}.rv-r{background:#fff;border:1px solid #2e9e4f;color:#2e9e4f}
+.rv-obs{font-size:11.5px;color:var(--muted)}
+.rv-scroll{overflow:auto;max-height:calc(100vh - 290px);background:#fff;border:1px solid var(--border);border-radius:var(--radius-md)}
+.rv-t{border-collapse:separate;border-spacing:0;font-size:11.5px}
+.rv-t th,.rv-t td{border-bottom:1px solid var(--border);border-right:1px solid #f0f1f5;text-align:center;padding:0;height:22px}
+.rv-t thead th{position:sticky;top:0;background:#f3f5fa;z-index:3;color:var(--navy);font-size:10.5px}
+.rv-t thead tr.rv-num th{top:22px}
+.rv-t tfoot th{position:sticky;bottom:0;background:#f3f5fa;z-index:3;font-size:11px;color:var(--navy)}
+.rv-t tfoot th small{color:var(--muted);font-weight:400}
+.rv-exc{background:#fde0e0 !important;color:#b71930 !important}
+.rv-dom{color:#b71930 !important}.rv-hoje{background:#ffe9a8 !important}
+.rv-t .rv-f{position:sticky;background:#fff;z-index:2;padding:0 5px;white-space:nowrap}
+.rv-t thead .rv-f{z-index:5;background:#f3f5fa}
+.rv-f0{left:0;min-width:48px}.rv-f1{left:48px;min-width:54px}.rv-f2{left:102px;min-width:80px}.rv-f3{left:182px;min-width:42px}.rv-f4{left:224px;min-width:42px;border-right:2px solid var(--border-strong) !important}
+.rv-t tfoot .rv-f0{text-align:left}
+.rv-pref{font-weight:800;color:var(--navy);cursor:pointer;font-size:13px}.rv-st{color:var(--muted);font-size:10.5px}.rv-km{color:var(--muted)}
+.rv-d-v{color:#1e7d34;font-weight:700}.rv-d-a{color:#c47a00;font-weight:700}.rv-d-r{color:#b71930;font-weight:700}
+.rv-c0{min-width:26px;width:26px}.rv-dcol{background:#fafafc}
+.rv-ev{cursor:pointer;font-weight:700;color:#fff}
+.rv-ev-s{background:#2e9e4f;color:#fff}.rv-ev-c{background:#d33a3a;color:#fff}
+.rv-ev-atr{outline:2px solid #e08a00;outline-offset:-2px}
+.rv-ev-ok{opacity:.45}
+.rv-ev-s2{background:#d6f1de;color:#1e7d34;border:1px solid #2e9e4f}.rv-ev-c2{background:#fbdcdc;color:#b71930;border:1px solid #d33a3a}
+.rv-pr td{border-bottom:none !important}
+.rv-sem-prog .rv-f{background:#f1f1f1;color:var(--muted-soft)}
+.rv-lista{border-collapse:collapse;width:100%;font-size:12.5px}.rv-lista th,.rv-lista td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:center}.rv-lista th{background:#f3f5fa;color:var(--navy)}
+.rv-tag{color:#fff;border-radius:6px;padding:2px 8px;font-size:11.5px}
+.rv-vazio{padding:30px;text-align:center;color:var(--muted)}
+.rv-ov{position:fixed;inset:0;background:rgba(10,18,40,.45);z-index:9999;display:none;align-items:center;justify-content:center}
+.rv-box{background:#fff;border-radius:var(--radius-lg);padding:18px 20px;width:min(480px,92vw);box-shadow:var(--shadow-lg);font-size:13px}
+.rv-mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--navy);font-size:15px}.rv-mh button{border:none;background:none;font-size:22px;cursor:pointer}
+.rv-form{display:flex;flex-direction:column;gap:8px;margin:10px 0}.rv-form label{display:flex;flex-direction:column;font-size:11.5px;color:var(--muted);gap:3px}.rv-form input{padding:7px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:13px}
+.rv-chk{display:flex;gap:8px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.rv-t tr.rv-pr .rv-c0,.rv-t tr.rv-re .rv-c0{background:#fff}
+.rv-t tr.rv-pr .rv-c0.rv-dcol,.rv-t tr.rv-re .rv-c0.rv-dcol{background:#fafafc}
+.rv-t tr.rv-pr .rv-f2,.rv-t tr.rv-pr .rv-f4{background:#e6eefb;color:#132354}
+.rv-t tr.rv-re .rv-f2,.rv-t tr.rv-re .rv-f4{background:#f7f0dd}
+.rv-t tr.rv-pr .rv-f2{font-weight:700;font-size:12px}
+.rv-t td.rv-pref{background:#132354;color:#fff;font-size:14px}
+.rv-t td.rv-f1{background:#cfdcf5;color:#132354;font-weight:800;font-size:12.5px}
+.rv-t td.rv-f3{font-weight:800;font-size:14px;min-width:52px}
+.rv-t td.rv-f3.rv-d-v{background:#2e9e4f;color:#fff}
+.rv-t td.rv-f3.rv-d-a{background:#f0a020;color:#1a1a1a}
+.rv-t td.rv-f3.rv-d-r{background:#d33a3a;color:#fff}
+.rv-t tr.rv-sem-prog .rv-f,.rv-t tr.rv-sem-prog .rv-f2,.rv-t tr.rv-sem-prog .rv-f4{background:#e4e4e4;color:#8a8a8a}
+.rv-t tr.rv-sem-prog td.rv-pref{background:#8a8f9c;color:#fff}
+.rv-t tr.rv-pr .rv-ev,.rv-t tr.rv-re .rv-ev{font-size:12px}
+.rv-hbar{display:flex;gap:8px;align-items:center;margin-bottom:8px;font-size:12.5px}.rv-hbar select{padding:5px;border:1px solid var(--border-strong);border-radius:var(--radius-sm)}
+.rv-hh{margin-top:12px;max-height:240px;overflow:auto;font-size:12px}.rv-lista-s th,.rv-lista-s td{padding:4px 6px;font-size:11.5px}
+.rv-box{width:min(640px,94vw) !important}
+.rv-q{background:#1f6fd1}.rv-ev-15{background:#1f6fd1;color:#fff}.rv-ev-152{background:#d6e6fb;color:#1555a8;border:1px solid #1f6fd1}
+.rv-t tr.rv-pr .rv-c0.rv-hc,.rv-t tr.rv-re .rv-c0.rv-hc{background:#fff7cf}.rv-t tfoot th.rv-hc:not(.rv-exc){background:#ffeeb0}
+.rv-ii{background:#6d3fc0}.rv-ev-i{background:#6d3fc0;color:#fff}.rv-ev-i2{background:#e4d9f6;color:#4b2a93;border:1px solid #6d3fc0}
+.rv-t tfoot th.rv-ok{background:#d9f2e0;color:#1e7d34}.rv-t tfoot th b{font-size:12px}
+@page{size:A4 landscape;margin:8mm}
+@media print{
+*{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+#sidebar,.rv-bar,header,#uploadBar{display:none !important}
+main{padding:0 !important}
+.rv-scroll{max-height:none !important;overflow:visible !important;border:none}
+.rv-t{zoom:.78}
+.rv-t thead th,.rv-t tfoot th,.rv-t .rv-f{position:static !important}
+.rv-t thead{display:table-header-group}.rv-t tfoot{display:table-footer-group}
+.rv-t tr{page-break-inside:avoid}
+.rv-ev-ok{opacity:1 !important}
+.rv-ev-s,.rv-ev-c,.rv-ev-15,.rv-ev-i{color:#fff !important}
+.rv-ev{font-weight:700}
+}
 </style></head>
 <body>
 <!-- Barra fixa só do modo público (link do Vercel), mesmo padrão dos outros 3 setores. -->
@@ -220,6 +302,7 @@ table.data td.cel-num,table.data th.cel-num{text-align:right;font-variant-numeri
   <nav class="sidebar" id="sidebar">
     <button data-tab="indicadores" class="active"><span class="ic">&#128202;</span>Indicadores</button>
     <button data-tab="combustivel"><span class="ic">&#9981;</span>Combustível</button>
+    <button data-tab="revisoes"><span class="ic">&#128295;</span>Revisões</button>
   </nav>
   <main>
     <section class="tab" id="tab-indicadores">
@@ -302,6 +385,9 @@ table.data td.cel-num,table.data th.cel-num{text-align:right;font-variant-numeri
           <tbody></tbody>
         </table>
       </div>
+    </section>
+    <section class="tab hidden" id="tab-revisoes">
+      <div id="rvRaiz"></div>
     </section>
   </main>
 </div>
@@ -1096,7 +1182,7 @@ document.getElementById('fileInputFotos').addEventListener('change', async (ev)=
   ev.target.value = '';
 });
 
-const TITULOS_ABA_MANUT = { indicadores: 'Indicadores', combustivel: 'Controle de Combustível' };
+const TITULOS_ABA_MANUT = { indicadores: 'Indicadores', combustivel: 'Controle de Combustível', revisoes: 'Programação de Revisões' };
 document.getElementById('sidebar').addEventListener('click', (ev)=>{
   const btn = ev.target.closest('button[data-tab]');
   if(!btn) return;
@@ -1105,6 +1191,7 @@ document.getElementById('sidebar').addEventListener('click', (ev)=>{
   document.querySelectorAll('main .tab').forEach(s=>s.classList.add('hidden'));
   document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
   document.getElementById('tituloAba').textContent = TITULOS_ABA_MANUT[btn.dataset.tab] || 'Controle de Combustível';
+  if(btn.dataset.tab==='revisoes' && window.REV) REV.render();
 });
 
 function toggleControlesModoPublico(){
@@ -1130,9 +1217,453 @@ document.getElementById('cbData').value = _hojeISO();
 loadDB().then(()=>{
   _resetarFiltroCombustivelParaUltimoMes();
   renderCombustivel();
+  if(window.REV) REV.render();
   toggleControlesModoPublico();
   document.getElementById('uploadStatus').textContent = MODO_PUBLICO ? document.getElementById('uploadStatus').textContent : 'Base local carregada.';
 });
+</script>
+<script>
+/* ===== Aba PROGRAMAÇÃO DE REVISÕES (Manutenção) -- criada em 2026-11-06 a partir de PROGRAMAÇÃO REVISÕES - GERAL.xlsx =====
+   Regras (validadas pelo usuário): próxima revisão = última revisão + (60.000 km / PMM) x 30,4375 dias, sobre o KM real informado;
+   tipo definido pelo marco de 60 mil mais próximo (ímpar = SIMPLES 60K verde; par = COMPLETA 120K vermelha); PMM 0 = sem programação;
+   domingos/feriados mantêm a data; atrasadas ficam no mês em que deveriam ocorrer. PMM é manual (automático fica para depois). */
+(function(){
+const SEED=[[20, 16609.8, "2026-08-10", 920000], [22, 16609.8, "2026-08-07", 960000], [29, 15471.27, "2026-07-18", 750000], [33, 14590.67, "2026-10-15", 680000], [34, 15471.27, "2026-08-28", 720000], [35, 14590.67, "2026-04-16", 600000], [36, 15471.27, "2026-09-28", 560000], [37, 10604.71, "2026-08-20", 470000], [39, 10604.71, "2026-10-22", 550000], [40, 10604.71, "2026-10-30", 410000], [41, 10604.71, "2026-10-16", 400000], [42, 14590.67, "2026-09-22", 440000], [43, 0, "2026-11-05", 320000], [44, 0, "2026-10-17", 320000], [45, 10604.71, "2026-10-14", 340000], [46, 18405.96, "2026-10-21", 360000], [47, 10604.71, "2026-10-31", 420000], [48, 10604.71, "2026-07-27", 360000], [49, 18405.96, "2026-10-24", 360000], [50, 18405.96, "2026-09-12", 300000], [51, 18405.96, "2026-10-30", 300000], [52, 17556.85, "2026-10-24", 300000], [53, 17556.85, "2026-10-02", 300000], [54, 17556.85, "2026-07-11", 240000], [55, 14519.27, "2026-10-23", 240000], [56, 18405.96, "2026-10-02", 180000], [57, 14519.27, "2026-11-05", 180000], [58, 17556.85, "2026-10-29", 180000], [59, 14519.27, "2026-08-06", 60000]];
+const CHECK={"15": [["REVISÃO PREVENTIVA de 15.000 km", "", "", "", "", "", ""], ["", "VEÍCULO: ___________", "", "DATA: ____/____/____", "", "", "KM: ______________"], ["", "CAPOTARIA", "", "MECÂNICA", "", "ELÉTRICA/REFRIGERAÇÃO", ""], ["", "", "Verificarificar  fixação das Poltronas", "", "Examinar amortecedores / Bolsa de ar", "", "Limpar filtro manta"], ["", "", "Verificarificar  encosto e bancos", "", "Examinar tensão/estado correias", "", "Limpar lentes diant./traseiras"], ["", "", "", "", "", "", "Verificar Correias/Polias/do A/C"], ["", "BORRACHARIA", "", "", "", "", "Verificar Embreagem do A/C"], ["", "", "", "", "", "", "Verificar iluminação interna"], ["", "", "Aferir Pressão / Posicionamento", "", "", "", "Verificar iluminação interna e ext."], ["", "", "Efetuar Rodízio", "", "", "", "Verificar painel de instrumento"], ["", "", "Verificar  estepe e fixação .", "", "", "", "Verificar paletas e limpadores de para-brisa"], ["", "", "Verificar desgaste e Profundidade", "", "", "", ""], ["OBSERVAÇÃO", "", "", "", "", "", ""], ["", "", "", "", "", "NOME:", ""], ["", "", "", "", "", "MATRÍCULA", ""], ["", "", "", "", "", "ASS:", ""], ["REVISÃO PREVENTIVA de 15.000 km", "", "", "", "", "", ""], ["", "VEÍCULO: ___________", "", "DATA: ____/____/____", "", "", "KM: ______________"], ["", "CAPOTARIA", "", "MECÂNICA", "", "ELÉTRICA/REFRIGERAÇÃO", ""], ["", "", "Verificarificar  fixação das Poltronas", "", "Examinar amortecedores / Bolsa de ar", "", "Limpar filtro manta"], ["", "", "Verificarificar  encosto e bancos", "", "Examinar tensão/estado correias", "", "Limpar lentes diant./traseiras"], ["", "", "", "", "", "", "Verificar Correias/Polias/do A/C"], ["", "BORRACHARIA", "", "", "", "", "Verificar Embreagem do A/C"], ["", "", "", "", "", "", "Verificar iluminação interna"], ["", "", "Aferir Pressão / Posicionamento", "", "", "", "Verificar iluminação interna e ext."], ["", "", "Efetuar Rodízio", "", "", "", "Verificar painel de instrumento"], ["", "", "Verificar  estepe e fixação .", "", "", "", "Verificar paletas e limpadores de para-brisa"], ["", "", "Verificar desgaste e Profundidade", "", "", "", ""], ["OBSERVAÇÃO", "", "", "", "", "", ""], ["", "", "", "", "", "NOME:", ""], ["", "", "", "", "", "MATRÍCULA", ""], ["", "", "", "", "", "ASS:", ""]], "60": [["REVISÃO PREVENTIVA de 60.000 km", "", "", "", "", "", ""], ["", "VEÍCULO: ___________", "", "DATA: ____/____/____", "", "", "KM: ______________"], ["", "CAPOTARIA", "", "MECÂNICA", "", "LUBRIFICANTES", ""], ["", "", "Verificarificar  fixação das Poltronas", "", "Drenar sedimentos", "", "Limpeza do coletor de pó"], ["", "", "Verificarificar  encosto e bancos", "", "Examinar  folga da manga de eixo", "", "Lubrificação em geral ( graxa )"], ["", "", "", "", "Examinar amortecedores / Bolsa de ar", "", "Examinar  diesel eltrônico"], ["", "BORRACHARIA", "", "", "Examinar barra de direção", "", "Trocar filtro racor"], ["", "", "", "", "Examinar coluna de direção", "", "Trocar filtro e óleo motor"], ["", "", "Aferir Pressão / Posicionamento", "", "Exam. conexões pneumática da cx de mudança", "", "Verificar . nível de óleo cx marcha"], ["", "", "Alinhar e Balancear", "", "Examinar coxins de fixação do motor", "", "Verificar. nível de óleo  diferencial"], ["", "", "Efetuar Rodízio", "", "Examinar cruzetas e arvore de transmissão", "", "Verificar. nível de óleo cx direção"], ["", "", "Verificar  estepe e fixação .", "", "Examinar desgaste /Func. das Lonas de Freio", "", "Verificar. nível de óleo embreagem"], ["", "", "Verificar desgaste e Profundidade", "", "Examinar fixação dos estabilizadores", "", ""], ["", "", "", "", "Examinar folga de cubo de roda", "", ""], ["", "ELÉTRICA/REFRIGERAÇÃO", "", "", "Examinar freios ( Serviço , estac. e motor )", "", ""], ["", "", "", "", "Examinar Haste de reação", "", ""], ["", "", "Efetuar rodizio de baterias", "", "Examinar suporte do ventilador", "", ""], ["", "", "Examinar. carga de gás  e nível de óleo do A/C", "", "Examinar tampa do radiador", "CARROCERIA", ""], ["", "", "Examinar. esticador da correia do A/C", "", "Examinar tensão/estado correias", "", ""], ["", "", "Examinar. fixação da tampa do evaporador", "", "Examinar terminal do alternador", "", "Detetizar"], ["", "", "Examinar embuchamento e mesa do conjunto do A/C", "", "Examinar Tubulação de diesel", "", "Efetuar polimento"], ["", "", "Examinar fixação do compressor de A/c", "", "Examinar Valv. de reten. do circ. pneumático", "", "Verificar  espelhos internos e Examinarternos"], ["", "", "Examinar. funcionamento do tacografo", "", "Ler/Apagar códigos de falha", "", "Verificar  Lixeira e caixa térmica"], ["", "", "Examinar. vazamentos e drenos do A/C", "", "Limpar resevatório e dreno altomático", "", "Verificar Alçapões , poltronas e difusores de ar"], ["", "", "Limpar filtro manta", "", "Limpar suspiro cardan", "", "Verificar Banco de Motorista"], ["", "", "Limpar lentes diant./traseiras", "", "Lubrificar bornes de bateria", "", "Verificar Estado das cortinas"], ["", "", "Limpeza no A/C ( Evaporador / Condensador )", "", "Reapertar parafusos da carter", "", "Verificar fixação dos para-choques"], ["", "", "Regular facho dos farois", "", "Reapertar porca do compressor de ar", "", "Verificar Janelas e puxadores de emergencia"], ["", "", "Verificar .Correias/Polias/Eembreagem do A/C", "", "Repertar parafuso de trasmissão", "", "Verificar Mecanismo de acionam. das portas/malas"], ["", "", "Verificar .luminosidade e estado das lanternas", "", "Verificar filtro de ar", "", "Verificar Tampas de Bagageiros"], ["", "", "Verificar. fixação dos cabos", "", "Verificarificar / Corrigir vazamentos", "", "Verificar torneiras ,descarga e tampa WC"], ["", "", "Verificar. funcionamento do A/C .", "", "Verificar chave geral", "", "Verificar. Tampa do assoalho"], ["", "", "Verificar. iluminação interna e Examinart.", "", "Verificar embuchamento do eixo \"S\"", "", ""], ["", "", "Verificar. intinerário e sistema de vídeo", "", "Verificar estan. do sistema de escapamento", "", ""], ["", "", "Verificar. mangueiras do A/C , conectores e fiação .", "", "Verificar estanqueidadedo sistema de admissão", "", ""], ["", "", "Verificar. painel de instrumento", "", "Verificar mecanismo de embreagem", "", ""], ["", "", "Verificar. paletas e lipadores de para-brisa", "", "Verificar tensão do alternador", "", ""], ["", "", "Verificar. tensão e carga de bateria", "", "", "", ""], ["", "", "Verificar. Ventiladores evaporador e condensador", "", "", "", ""], ["OBSERVAÇÃO", "", "", "", "", "", ""], ["ASSINATURAS EXECUTANTES", "", "", "", "", "", ""], ["", "MECÂNICO", "", "ELETRICISTA", "", "BORRACHEIRO", ""], ["", "MAT:", "", "MAT:", "", "MAT:", ""], ["", "NOME:", "", "NOME:", "", "NOME:", ""], ["", "ASS:", "", "ASS:", "", "ASS:", ""]], "120": [["REVISÃO PREVENTIVA de 120.000 km", "", "", "", "", "", ""], ["", "VEÍCULO: ___________", "", "DATA: ____/____/____", "", "", "KM: ______________"], ["", "CAPOTARIA", "", "MECÂNICA", "", "LUBRIFICANTES", ""], ["", "", "Verificarificar  fixação das Poltronas", "", "Ajustar folga de valvulas", "", "Examinar diesel eltrônico"], ["", "", "Verificarificar  encosto e bancos", "", "Drenar sedimentos", "", "Limpeza do coletor de pó"], ["", "", "", "", "Examinar  fixação do sistema de direção", "", "Lubrificação em geral ( graxa )"], ["", "BORRACHARIA", "", "", "Examinar  folga da manga de eixo", "", "Trocar  fluido  da direção"], ["", "", "", "", "Examinar  valvula Consep 4 vias", "", "Trocar filtro da cx. de marcha"], ["", "", "Aferir Pressão / Posicionamento", "", "Examinar amortecedores / Bolsa de ar", "", "Trocar filtro e óleo motor"], ["", "", "Alinhar e Balancear", "", "Examinar barra de direção", "", "Trocar filtro racor"], ["", "", "Efetuar Rodízio", "", "Examinar coluna de direção", "", "Trocar óleo  diferencial"], ["", "", "Verificar  estepe e fixação .", "", "Examinar conexões pneumática da cx de mudança", "", "Trocar óleo cx direção"], ["", "", "Verificar desgaste e Profundidade", "", "Examinar coxins de fixação do motor", "", "Trocar óleo cx marcha"], ["", "", "", "", "Examinar cruzetas e arvore de transmissão", "", "Trocar óleo do diferencial"], ["", "ELÉTRICA/REFRIGERAÇÃO", "", "", "Examinar desgaste /Func. das Lonas de Freio", "", "Trocar óleo embreagem"], ["", "", "", "", "Examinar fixação dos estabilizadores", "", ""], ["", "", "Efetuar rodizio de baterias", "", "Examinar folga de cubo de roda", "", ""], ["", "", "Examinar. carga de gás  e nível de óleo do A/C", "", "Examinar freios ( Serviço , estac. e motor )", "", ""], ["", "", "Examinar. esticador da correia do A/C", "", "Examinar Haste de reação", "", ""], ["", "", "Examinar. fixação da tampa do evaporador", "", "Examinar suporte do ventilador", "CARROCERIA", ""], ["", "", "Examinar embuchamento e mesa do conjunto do A/C", "", "Examinar tampa do radiador", "", ""], ["", "", "Examinar fixação do compressor de A/c", "", "Examinar tensão/estado correias", "", "Detetizar"], ["", "", "Examinar. funcionamento do tacografo", "", "Examinar terminal do alternador", "", "Efetuar polimento"], ["", "", "Examinar. vazamentos e drenos do A/C", "", "Examinar Tubulação de diesel", "", "Verificar  espelhos internos e Examinarternos"], ["", "", "Limpar filtro manta", "", "Examinar Valv. de reten. do circ. pneumático", "", "Verificar  Lixeira e caixa térmica"], ["", "", "Limpar lentes diant./traseiras", "", "Examinar valvula niveladora", "", "Verificar Alçapões , poltronas e difusores de ar"], ["", "", "Limpeza no A/C ( Evaporador / Condensador )", "", "Ler/Apagar códigos de falha", "", "Verificar Banco de Motorista"], ["", "", "Regular facho dos farois", "", "Limpar resevatório e dreno altomático", "", "Verificar Estado das cortinas"], ["", "", "Trocar  motores dos ventiladores de A/C", "", "Limpar suspiro cardan", "", "Verificar existencia de fendas/ trincas na estrutura"], ["", "", "Verificar .Correias/Polias/Eembreagem do A/C", "", "Lubrificar bornes de bateria", "", "Verificar existencia de parafusos/rebites soltos"], ["", "", "Verificar .luminosidade e estado das lanternas", "", "Reapertar parafusos da carter", "", "Verificar fixação dos para-choques"], ["", "", "Verificar. fixação dos cabos", "", "Reapertar parafusos do cabeçote", "", "Verificar Janelas e puxadores de emergencia"], ["", "", "Verificar. funcionamento do A/C .", "", "Reapertar porca do compressor de ar", "", "Verificar Mecanismo de acionam. das portas/malas"], ["", "", "Verificar. iluminação interna e Examinart.", "", "Repertar parafuso de trasmissão", "", "Verificar Tampas de Bagageiros"], ["", "", "Verificar. intinerário e sistema de vídeo", "", "Revisar cuicas diant./tras.", "", "Verificar torneiras ,descarga e tampa WC"], ["", "", "Verificar. mangueiras do A/C , conectores e fiação .", "", "Trocar  cubos de roda", "", "Verificar. Tampa do assoalho"], ["", "", "Verificar. nível do fluido da bateria", "", "Trocar  filtro do sistema ARLA", "", "Lavagem seco de poltornas , assoalho , teto"], ["", "", "Verificar. painel de instrumento", "", "Trocar  filtro válvula PU", "", "porta pacotes , laterais , cortinas e alcativas"], ["", "", "Verificar. paletas e lipadores de para-brisa", "", "Trocar catracas de freio", "", ""], ["", "", "Verificar. Ventiladores evaporador e condensador", "", "Trocar filtro de ar", "", ""], ["", "", "", "", "Verificar chave geral", "", ""], ["", "", "", "", "Verificar embuchamento do eixo \"S\"", "", ""], ["", "", "", "", "Verificar estan. do sistema de escapamento", "", ""], ["", "", "", "", "Verificar estanqueidadedo sistema de admissão", "", ""], ["", "", "", "", "Verificar mecanismo de embreagem", "", ""], ["", "", "", "", "Verificar tensão do alternador", "", ""], ["", "", "", "", "Verificarificar / Corrigir vazamentos", "", ""], ["OBSERVAÇÃO", "", "", "", "", "", ""], ["ASSINATURAS EXECUTANTES", "", "", "", "", "", ""], ["", "MECÂNICO", "", "ELETRICISTA", "", "BORRACHEIRO", ""], ["", "MAT:", "", "MAT:", "", "MAT:", ""], ["", "NOME:", "", "NOME:", "", "NOME:", ""], ["", "ASS:", "", "ASS:", "", "ASS:", ""]]};
+const CAP=[6,10,9,10,9,11,8];
+const DIAS_SEM=['D','S','T','Q','Q','S','S'];
+const NOME_SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,'0');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const T=s=>{const a=s.split('-').map(Number);return Date.UTC(a[0],a[1]-1,a[2]);};
+const iso=t=>new Date(t).toISOString().slice(0,10);
+const addD=(s,n)=>iso(T(s)+n*864e5);
+const dif=(a,b)=>Math.round((T(a)-T(b))/864e5);
+const br=s=>s?s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(0,4):'';
+const fmt=n=>Math.round(n).toLocaleString('pt-BR');
+const wd=s=>new Date(T(s)).getUTCDay();
+function hoje(){const n=new Date();return n.getFullYear()+'-'+p2(n.getMonth()+1)+'-'+p2(n.getDate());}
+const ym=s=>s.slice(0,7);
+const E={mes:null,modo:'mes'};
+
+const SEED_VER='2026-11-06b';
+function dados(){
+  if(!DB.revisoes||!DB.revisoes.frota) DB.revisoes={seedVer:SEED_VER,frota:SEED.map(x=>({p:x[0],pmm:x[1],d:x[2],km:x[3],hist:[]}))};
+  DB.revisoes.frota.forEach(c=>{c.hist=c.hist||[];});
+  DB.revisoes.insp=DB.revisoes.insp||{}; DB.revisoes.inspReal=DB.revisoes.inspReal||{}; DB.revisoes.semanas=DB.revisoes.semanas||[];
+  if(DB.revisoes.seedVer!==SEED_VER){
+    /* planilha atualizada em 06/11/2026 (PMM corrigido dos prefixos 57 e 59): reaplica o PMM da planilha; base so muda se ainda sem baixas */
+    SEED.forEach(x=>{const c=DB.revisoes.frota.find(k=>k.p===x[0]); if(!c) return; c.pmm=x[1]; if(!c.hist.length){c.d=x[2];c.km=x[3];}});
+    DB.revisoes.seedVer=SEED_VER; if(!MODO_PUBLICO) saveDB();
+  }
+  return DB.revisoes;
+}
+function fimHorizonte(){
+  /* programação preenchida até dez/2027 (pedido do usuário em 06/11/2026); se o ano virar, o horizonte acompanha os 6 meses seguintes ao mês atual */
+  const h=hoje(); let y=+h.slice(0,4), m=+h.slice(5,7)+5;
+  while(m>12){m-=12;y++;}
+  const roll=iso(Date.UTC(y,m,0));
+  return roll>'2027-12-31'?roll:'2027-12-31';
+}
+function passoDias(c){return c.pmm>0?Math.round(kmPasso(c)/c.pmm*30.4375):0;}
+function base(c){
+  const u=c.hist[c.hist.length-1];
+  return u?{d:u.data,km:u.km,marco:(ciclo15(c)&&u.m15==null)?marcoDe(c,u.km):u.marco}:{d:c.d,km:c.km,marco:marcoDe(c,c.km)};
+}
+function tipoDe(marco){return marco%2===1?'S':'C';}
+/* Revisão de 15K: exclusiva dos prefixos 55, 57 e 59 (pedido do usuário em 06/11/2026). Para eles o passo é 15.000 km; a cada 4 marcos
+   de 15K cai a revisão de 60K (marco ímpar de 60K = Simples) ou de 120K (marco par = Completa); nos demais marcos é revisão de 15K. */
+const C15=[55,57,59];
+function ciclo15(c){return C15.indexOf(c.p)>=0;}
+function kmPasso(c){return ciclo15(c)?15000:60000;}
+function marcoDe(c,km){return Math.ceil(km/kmPasso(c)-0.5);}
+function tipoMarco(c,m){return ciclo15(c)?(m%4!==0?'15':tipoDe(m/4)):tipoDe(m);}
+function nomeTipo(t){return t==='I'?'Inspeção':t==='S'?'Simples 60K':(t==='C'?'Completa 120K':'Preventiva 15K');}
+function rotCel(t){return t==='I'?'I':t==='S'?'60':(t==='C'?'120':'15');}
+function clsEv(t){return t==='I'?'rv-ev-i':t==='S'?'rv-ev-s':(t==='C'?'rv-ev-c':'rv-ev-15');}
+function clsEv2(t){return t==='I'?'rv-ev-i2':t==='S'?'rv-ev-s2':(t==='C'?'rv-ev-c2':'rv-ev-152');}
+function chkKey(t){return t==='S'?'60':(t==='C'?'120':'15');}
+function chkRot(t){return t==='S'?'60.000':(t==='C'?'120.000':'15.000');}
+function calcular(c){
+  const H=hoje(), fim=fimHorizonte();
+  const prog=[], real=c.hist.map((h,i)=>({kind:'real',idx:i,prog:h.prog,data:h.data,km:h.km,tipo:h.tipo,marco:h.marco}));
+  const b=base(c), passo=passoDias(c);
+  if(passo>0){
+    let cur=b.d, km=b.km, marco=b.marco, n=0;
+    while(true){
+      cur=addD(cur,passo); km+=kmPasso(c); marco+=1;
+      if(cur>fim||n>60) break;
+      prog.push({kind:'prog',n:n,data:cur,km:Math.round(km/(ciclo15(c)?5000:10000))*(ciclo15(c)?5000:10000),tipo:tipoMarco(c,marco),marco:marco,atrasada:cur<H});
+      n++;
+    }
+  }
+  return {passo:passo,prog:prog,real:real,base:b};
+}
+function ordenar(a){return a.slice().sort((x,y)=>{
+  const fx=x.pmm>0?0:1, fy=y.pmm>0?0:1; if(fx!==fy) return fx-fy; return x.p-y.p;});}
+function todosEventos(){
+  const D=dados(), out=[];
+  D.frota.forEach(c=>{const r=calcular(c);
+    r.prog.forEach(e=>out.push(Object.assign({p:c.p},e)));
+    r.real.forEach(e=>out.push(Object.assign({p:c.p},e)));
+  });
+  return out;
+}
+function listaMeses(){
+  const D=dados(), H=hoje(); let min=ym(H);
+  D.frota.forEach(c=>{const r=calcular(c); r.prog.forEach(e=>{if(ym(e.data)<min) min=ym(e.data);}); r.real.forEach(e=>{if(ym(e.data)<min) min=ym(e.data);});});
+  const max=ym(fimHorizonte()), out=[];
+  let y=+min.slice(0,4), m=+min.slice(5,7);
+  while(true){const k=y+'-'+p2(m); out.push(k); if(k>=max) break; m++; if(m>12){m=1;y++;}}
+  return out;
+}
+function render(){
+  const raiz=$('rvRaiz'); if(!raiz) return;
+  const D=dados(), H=hoje(), pub=MODO_PUBLICO;
+  const meses=listaMeses();
+  if(!E.mes||meses.indexOf(E.mes)<0) E.mes=ym(H);
+  const ev=[]; D.frota.forEach(c=>{const r=calcular(c); r.prog.forEach(e=>ev.push(Object.assign({p:c.p},e)));});
+  const atras=ev.filter(e=>e.atrasada).sort((a,b)=>a.data<b.data?-1:1);
+  const prox7=ev.filter(e=>!e.atrasada&&dif(e.data,H)<=7).length;
+  const noMes=ev.filter(e=>ym(e.data)===E.mes);
+  const nS=noMes.filter(e=>e.tipo==='S').length, nC=noMes.filter(e=>e.tipo==='C').length, n15=noMes.filter(e=>e.tipo==='15').length;
+  let realMes=0; D.frota.forEach(c=>c.hist.forEach(h=>{if(ym(h.data)===E.mes) realMes++;}));
+  let h='<div class="rv-kpis">'+
+    '<div class="rv-kpi rv-k-atr"><b>'+atras.length+'</b><span>Atrasadas</span></div>'+
+    '<div class="rv-kpi"><b>'+prox7+'</b><span>Próximos 7 dias</span></div>'+
+    '<div class="rv-kpi"><b>'+noMes.length+'</b><span>Programadas em '+MESES[+E.mes.slice(5)-1]+'/'+E.mes.slice(2,4)+' ('+nS+' simples, '+nC+' completas, '+n15+' de 15K)</span></div>'+
+    '<div class="rv-kpi"><b>'+realMes+'</b><span>Realizadas no mês</span></div></div>';
+  h+='<div class="rv-bar">'+meses.map(k=>'<button type="button" class="rv-m'+(E.modo==='mes'&&k===E.mes?' on':'')+(k<ym(H)?' rv-m-pas':'')+'" onclick="REV.mes(\''+k+'\')">'+MESES[+k.slice(5)-1]+'/'+k.slice(2,4)+'</button>').join('')+
+    '<button type="button" class="rv-m rv-m-atr'+(E.modo==='atr'?' on':'')+'" onclick="REV.atrasadas()">Atrasadas ('+atras.length+')</button>'+
+    '<button type="button" class="rv-m'+(E.modo==='hist'?' on':'')+'" onclick="REV.hist()">Histórico</button>'+
+    '<span class="rv-sp"></span>'+
+    '<button type="button" class="rv-b" onclick="REV.csv()">Exportar CSV</button>'+
+    '<button type="button" class="rv-b" onclick="window.print()">Exportar PDF</button>'+
+    (pub?'':'<button type="button" class="rv-b" onclick="REV.importar()">Importar planilha</button><input type="file" id="rvFile" accept=".xlsx" style="display:none"><button type="button" class="rv-b" onclick="REV.importarInsp()">Importar inspeções semanais</button><input type="file" id="rvFileI" accept=".xlsx" style="display:none">')+
+    '<button type="button" class="rv-b rv-b-p" onclick="REV.semanal()">Programação semanal</button>'+
+    '</div>';
+  h+='<div class="rv-leg"><span><i class="rv-s"></i> Simples 60K</span><span><i class="rv-c"></i> Completa 120K</span><span><i class="rv-q"></i> Preventiva 15K (só prefixos 55, 57 e 59)</span><span><i class="rv-ii"></i> I Inspeção</span><span><i class="rv-a"></i> Atrasada</span><span><i class="rv-r">✓</i> Realizada</span><span class="rv-obs">Clique em uma revisão para dar baixa, ver detalhes ou imprimir o checklist.</span></div>';
+  h+= E.modo==='atr' ? htmlAtrasadas(atras) : (E.modo==='hist' ? htmlHist() : htmlGrade(E.mes,D));
+  raiz.innerHTML=h;
+  const f=$('rvFile'); if(f) f.onchange=ev2=>{const a=ev2.target.files[0]; if(a) importarArq(a); ev2.target.value='';};
+  const fi=$('rvFileI'); if(fi) fi.onchange=ev3=>{const a=ev3.target.files[0]; if(a) importarInspArq(a); ev3.target.value='';};
+}
+function htmlGrade(mes,D){
+  const H=hoje(), y=+mes.slice(0,4), m=+mes.slice(5), nd=new Date(y,m,0).getDate();
+  const cab=['Prefixo','PMM','Última rev.','Dias','Status'];
+  let h='<div class="rv-scroll"><table class="rv-t"><thead><tr class="rv-sem">'+cab.map((x,i)=>'<th rowspan="2" class="rv-f rv-f'+i+'">'+x+'</th>').join('');
+  for(let d=1;d<=nd;d++){const w=wd(mes+'-'+p2(d)); h+='<th class="'+(w===0?'rv-dom':'')+'">'+DIAS_SEM[w]+'</th>';}
+  h+='</tr><tr class="rv-num">';
+  for(let d=1;d<=nd;d++){const dt=mes+'-'+p2(d); h+='<th class="'+(wd(dt)===0?'rv-dom':'')+(dt===H?' rv-hoje':'')+'">'+d+'</th>';}
+  h+='</tr></thead><tbody>';
+  const cont=new Array(nd+1).fill(0), contI=new Array(nd+1).fill(0), contOk=new Array(nd+1).fill(0);
+  const IE=inspEventos(), IB=inspBaixasPorCarro();
+  ordenar(D.frota).forEach(c=>{
+    const r=calcular(c), b=r.base, dias=dif(H,b.d);
+    let cls=''; if(r.passo>0){const q=dias/r.passo; cls=q>1?'rv-d-r':(q>=0.8?'rv-d-a':'rv-d-v');}
+    const semProg=!(c.pmm>0);
+    h+='<tr class="rv-pr'+(semProg?' rv-sem-prog':'')+'"><td rowspan="2" class="rv-f rv-f0 rv-pref" onclick="REV.veiculo('+c.p+')" title="Editar dados do veículo">'+c.p+'</td>'+
+      '<td rowspan="2" class="rv-f rv-f1">'+(semProg?'<span title="Sem programação automática">0</span>':fmt(c.pmm))+'</td>'+
+      '<td class="rv-f rv-f2">'+br(b.d)+'</td><td rowspan="2" class="rv-f rv-f3 '+cls+'">'+dias+'</td><td class="rv-f rv-f4 rv-st">Prog</td>';
+    const mapP={}, mapR={};
+    const ie=IE[c.p]||{}, mapRI={}; (IB[c.p]||[]).forEach(b=>{ if(ym(b.data)===mes) mapRI[+b.data.slice(8)]=b; });
+    r.prog.forEach(e=>{if(ym(e.data)===mes){(mapP[+e.data.slice(8)]=mapP[+e.data.slice(8)]||[]).push(e);}});
+    r.real.forEach(e=>{
+      if(e.prog&&ym(e.prog)===mes){(mapP[+e.prog.slice(8)]=mapP[+e.prog.slice(8)]||[]).push(e);}
+      if(ym(e.data)===mes){(mapR[+e.data.slice(8)]=mapR[+e.data.slice(8)]||[]).push(e);}
+    });
+    for(let d=1;d<=nd;d++){
+      const a=mapP[d]; let t='', k='rv-c0', onc='', tt='';
+      if(a){const e=a[0]; cont[d]++; if(e.kind==='real') contOk[d]++; t=rotCel(e.tipo);
+        k='rv-ev '+clsEv(e.tipo)+(e.kind==='real'?' rv-ev-ok':(e.atrasada?' rv-ev-atr':''));
+        tt=nomeTipo(e.tipo)+' - '+br(e.kind==='real'?e.prog:e.data)+' - '+fmt(e.km)+' km'+(e.kind==='real'?' (realizada em '+br(e.data)+')':(e.atrasada?' - ATRASADA '+dif(H,e.data)+' dias':''));
+        onc=' onclick="REV.abrir('+c.p+',\''+e.kind+'\','+(e.kind==='real'?e.idx:e.n)+')"';}
+      else{const dt=mes+'-'+p2(d), ev=ie[dt]; if(ev){ cont[d]++; contI[d]++; if(ev.baixa) contOk[d]++; t='I'; k='rv-ev rv-ev-i'+(ev.baixa?' rv-ev-ok':''); tt='Inspeção - '+br(dt)+' - '+ev.linha+(ev.baixa?' (realizada em '+br(ev.baixa.data)+')':''); onc=' onclick="REV.abrirI('+c.p+',\''+dt+'\')"'; }}
+      h+='<td class="'+k+(wd(mes+'-'+p2(d))===0?' rv-dcol':'')+(mes+'-'+p2(d)===H?' rv-hc':'')+'" title="'+esc(tt)+'"'+onc+'>'+t+'</td>';
+    }
+    h+='</tr><tr class="rv-re'+(semProg?' rv-sem-prog':'')+'"><td class="rv-f rv-f2 rv-km">'+fmt(b.km)+' km</td><td class="rv-f rv-f4 rv-st">Real</td>';
+    for(let d=1;d<=nd;d++){
+      const a=mapR[d]; let t='', k='rv-c0', onc='', tt='';
+      if(a){const e=a[0]; t='✓'; k='rv-ev rv-ev-real '+clsEv2(e.tipo);
+        tt='Realizada em '+br(e.data)+' - '+fmt(e.km)+' km - '+nomeTipo(e.tipo);
+        onc=' onclick="REV.abrir('+c.p+',\'real\','+e.idx+')"';}
+      else if(mapRI[d]){const bx=mapRI[d]; t='✓'; k='rv-ev rv-ev-real rv-ev-i2'; tt='Inspeção realizada em '+br(bx.data)+(bx.obs?' - '+bx.obs:''); onc=' onclick="REV.abrirI('+c.p+',\''+bx.prog+'\')"';}
+      h+='<td class="'+k+(wd(mes+'-'+p2(d))===0?' rv-dcol':'')+(mes+'-'+p2(d)===H?' rv-hc':'')+'" title="'+esc(tt)+'"'+onc+'>'+t+'</td>';
+    }
+    h+='</tr>';
+  });
+  h+='</tbody><tfoot><tr><th colspan="5" class="rv-f rv-f0 rv-tot">Realizadas / programadas no dia</th>';
+  for(let d=1;d<=nd;d++){const dtf=mes+'-'+p2(d), w=wd(dtf); const tot=cont[d], ok=contOk[d]; const pronto=tot>0&&ok>=tot;
+    h+='<th class="'+(pronto?'rv-ok':'')+(dtf===H?' rv-hc':'')+'" title="'+NOME_SEM[w]+': '+ok+' realizada(s) de '+tot+' programada(s) ('+(tot-contI[d])+' revisão(ões) + '+contI[d]+' inspeção(ões))">'+(tot?'<b>'+ok+'</b><small>/'+tot+'</small>':'')+'</th>';}
+  h+='</tr></tfoot></table></div>';
+  return h;
+}
+function htmlAtrasadas(lista){
+  if(!lista.length) return '<div class="rv-vazio">Nenhuma revisão atrasada.</div>';
+  const H=hoje(), D=dados();
+  let h='<div class="rv-scroll"><table class="rv-lista"><thead><tr><th>Prefixo</th><th>Tipo</th><th>Programada para</th><th>Dias de atraso</th><th>KM da revisão</th><th>PMM</th><th></th></tr></thead><tbody>';
+  lista.forEach(e=>{const c=D.frota.find(x=>x.p===e.p);
+    h+='<tr><td><b>'+e.p+'</b></td><td><span class="rv-tag '+clsEv(e.tipo)+'">'+nomeTipo(e.tipo)+'</span></td><td>'+br(e.data)+'</td><td class="rv-d-r">'+dif(H,e.data)+'</td><td>'+fmt(e.km)+'</td><td>'+fmt(c.pmm)+'</td><td><button type="button" class="rv-b" onclick="REV.abrir('+e.p+',\'prog\','+e.n+')">Abrir</button></td></tr>';});
+  return h+'</tbody></table></div>';
+}
+function linhasHist(p){
+  const out=[];
+  dados().frota.forEach(c=>{ if(p&&c.p!==p) return;
+    out.push({p:c.p,tipo:tipoMarco(c,marcoDe(c,c.km)),prog:'',data:c.d,km:c.km,origem:'Registro inicial (planilha)'});
+    c.hist.forEach(h=>out.push({p:c.p,tipo:h.tipo,prog:h.prog,data:h.data,km:h.km,origem:'Baixa no painel'}));
+  });
+  const ir=dados().inspReal||{}; Object.keys(ir).forEach(k=>{const pp=+k.split('|')[1]; if(p&&pp!==p) return; const bb=ir[k]; out.push({p:pp,tipo:'I',prog:k.split('|')[0],data:bb.data,km:null,origem:'Baixa de inspeção'+(bb.obs?' - '+bb.obs:'')});});
+  out.sort((a,b)=>a.p-b.p||(a.data<b.data?1:(a.data>b.data?-1:0)));
+  return out;
+}
+function tabelaHist(rows,cls){
+  if(!rows.length) return '<div class="rv-vazio">Nenhuma revisão registrada.</div>';
+  let h='<table class="'+(cls||'rv-lista')+'"><thead><tr><th>Prefixo</th><th>Tipo</th><th>Programada</th><th>Realizada</th><th>KM</th><th>Desvio</th><th>Origem</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    let dv='-'; if(r.prog){const d=dif(r.data,r.prog); dv=d===0?'no dia':(d>0?d+' d de atraso':(-d)+' d antes');}
+    h+='<tr><td><b>'+r.p+'</b></td><td>'+nomeTipo(r.tipo)+'</td><td>'+(r.prog?br(r.prog):'-')+'</td><td>'+br(r.data)+'</td><td>'+(r.km==null?'-':fmt(r.km))+'</td><td>'+dv+'</td><td>'+r.origem+'</td></tr>';});
+  return h+'</tbody></table>';
+}
+function htmlHist(){
+  const D=dados();
+  let h='<div class="rv-hbar"><label>Veículo <select onchange="REV.histFiltro(this.value)"><option value="">Todos</option>'+ordenar(D.frota).map(c=>'<option value="'+c.p+'"'+(E.hp===c.p?' selected':'')+'>'+c.p+'</option>').join('')+'</select></label>'+
+    '<button type="button" class="rv-b" onclick="REV.histPdf()">Imprimir / salvar PDF</button><button type="button" class="rv-b" onclick="REV.histCsv()">Exportar CSV</button></div>';
+  return h+'<div class="rv-scroll">'+tabelaHist(linhasHist(E.hp||null))+'</div>';
+}
+function histPdf(){
+  const w=window.open('','_blank'); if(!w){alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site.');return;}
+  const t=E.hp?'Veículo '+E.hp:'Todos os veículos';
+  w.document.write('<html><head><meta charset="utf-8"><title>Histórico de revisões</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:18px}h2{margin:0 0 4px}table{border-collapse:collapse;width:100%;margin-top:10px}th,td{border:1px solid #888;padding:4px 7px;text-align:center}th{background:#e8ecf5}</style></head><body><h2>Viação Sete - Histórico de revisões</h2><div>'+t+' - emitido em '+br(hoje())+'</div>'+tabelaHist(linhasHist(E.hp||null),'')+'</body></html>');
+  w.document.close(); setTimeout(()=>{w.focus();w.print();},300);
+}
+function histCsv(){
+  const L=['Prefixo;Tipo;Programada;Realizada;KM;Origem'];
+  linhasHist(E.hp||null).forEach(r=>L.push([r.p,nomeTipo(r.tipo),r.prog?br(r.prog):'',br(r.data),(r.km==null?'':Math.round(r.km)),r.origem].join(';')));
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+L.join('\n')],{type:'text/csv;charset=utf-8;'})); a.download='historico_revisoes_'+hoje()+'.csv'; a.click();
+}
+/* ---- INSPEÇÕES (I) e programação semanal: criado em 2026-11-07. Inspeção só aparece no dia em que o veículo NÃO tem outra revisão (15K/60K/120K);
+   preventiva prevalece. Tem baixa própria (inspReal). Planilha semanal importada fica em DB.revisoes.insp[data]=[{p,linha}] e DB.revisoes.semanas. ---- */
+function inspEventos(){
+  const D=dados(), I=D.insp||{}, R=D.inspReal||{}, prev={}, out={};
+  D.frota.forEach(c=>{const r=calcular(c), s=new Set(); r.prog.forEach(e=>s.add(e.data)); r.real.forEach(e=>{if(e.prog) s.add(e.prog);}); prev[c.p]=s;});
+  Object.keys(I).forEach(dt=>I[dt].forEach(x=>{
+    if(prev[x.p]&&prev[x.p].has(dt)) return;
+    (out[x.p]=out[x.p]||{})[dt]={kind:'insp',p:x.p,data:dt,linha:x.linha,tipo:'I',baixa:R[dt+'|'+x.p]||null};
+  }));
+  return out;
+}
+function inspBaixasPorCarro(){
+  const R=dados().inspReal||{}, out={};
+  Object.keys(R).forEach(k=>{const a=k.split('|'); (out[+a[1]]=out[+a[1]]||[]).push({prog:a[0],data:R[k].data,obs:R[k].obs});});
+  return out;
+}
+function abrirI(p,dt){
+  const D=dados(), x=((D.insp||{})[dt]||[]).find(y=>y.p===p); if(!x) return;
+  const b=(D.inspReal||{})[dt+'|'+p], H=hoje(), pub=MODO_PUBLICO;
+  let h='<div class="rv-mh"><b>Prefixo '+p+' - Inspeção</b><button type="button" onclick="REV.fechar()">×</button></div>';
+  h+='<p>Programada para <b>'+br(dt)+'</b> ('+NOME_SEM[wd(dt)]+'). Linha: <b>'+esc(x.linha)+'</b>.</p>';
+  if(b){
+    h+='<p>Realizada em <b>'+br(b.data)+'</b>.'+(b.obs?' Obs.: '+esc(b.obs):'')+'</p>';
+    if(!pub) h+='<button type="button" class="rv-b rv-b-p" onclick="REV.desfazerI('+p+',\''+dt+'\')">Desfazer baixa</button>';
+  } else if(!pub){
+    h+='<div class="rv-form"><label>Data realizada<input type="date" id="rvDtI" value="'+(dt>H?H:dt)+'"></label>'+
+      '<label>Observação (opcional)<input type="text" id="rvObsI" placeholder="Ex.: feita em outro dia, veículo trocado..."></label>'+
+      '<button type="button" class="rv-b rv-b-p" onclick="REV.baixarI('+p+',\''+dt+'\')">Marcar como realizada</button></div>';
+  }
+  modal(h);
+}
+async function baixarI(p,dt){
+  const d=document.getElementById('rvDtI').value; if(!d){alert('Informe a data realizada.');return;}
+  const D=dados(); D.inspReal=D.inspReal||{};
+  D.inspReal[dt+'|'+p]={data:d,obs:(document.getElementById('rvObsI').value||'').trim()};
+  fechar(); await persistir();
+}
+async function desfazerI(p,dt){
+  if(!confirm('Desfazer a baixa desta inspeção?')) return;
+  const D=dados(); if(D.inspReal) delete D.inspReal[dt+'|'+p];
+  fechar(); await persistir();
+}
+function linhaCurta(l){return String(l||'').replace(/\((MA|PI|BA)\)/g,'').replace(/\s+/g,' ').trim();}
+function importarInsp(){ if(MODO_PUBLICO) return; const f=$('rvFileI'); if(f) f.click(); }
+async function importarInspArq(f){
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
+    const nome=wb.SheetNames.find(n=>/INSPE/i.test(n))||wb.SheetNames[0];
+    const g=XLSX.utils.sheet_to_json(wb.Sheets[nome],{header:1,raw:true,defval:null});
+    let ini=null, fim=null, hdr=-1, cols={};
+    const DS=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+    g.forEach((row,i)=>{
+      row.forEach(v=>{ if(typeof v==='string'&&!ini){const m=v.match(/(\d{2})\/(\d{2})\/(\d{4})\s*A\s*(\d{2})\/(\d{2})\/(\d{4})/i); if(m){ini=m[3]+'-'+m[2]+'-'+m[1]; fim=m[6]+'-'+m[5]+'-'+m[4];}} });
+      if(hdr<0){const c={}; let n=0; row.forEach((v,j)=>{ if(typeof v==='string'){const k=DS.indexOf(v.trim().toUpperCase().replace('SAB','SÁB')); if(k>=0){c[j]=k;n++;}} }); if(n>=5){hdr=i;cols=c;}}
+    });
+    if(!ini||hdr<0){alert('Não encontrei o período (ex.: "PERÍODO: 09/11/2026 A 15/11/2026") e os dias SEG a DOM na planilha.');return;}
+    if(wd(ini)!==1||dif(fim,ini)!==6){alert('O período precisa ir de segunda a domingo ('+br(ini)+' a '+br(fim)+').');return;}
+    const D=dados(); D.insp=D.insp||{}; D.inspReal=D.inspReal||{}; D.semanas=D.semanas||[];
+    const novo={}; let total=0;
+    for(let i=hdr+1;i<g.length;i++){
+      const row=g[i], linha=linhaCurta(row[1]); if(!linha) continue;
+      Object.keys(cols).forEach(j=>{ const v=row[j]; const p=typeof v==='number'?v:(typeof v==='string'&&/^\d+$/.test(v.trim())?+v.trim():null); if(p==null) return;
+        const dt=addD(ini,cols[j]); const arr=(novo[dt]=novo[dt]||[]); if(!arr.some(x=>x.p===p)){arr.push({p:p,linha:linha}); total++;} });
+    }
+    if(!total){alert('Nenhum prefixo encontrado na planilha.');return;}
+    for(let i=0;i<7;i++) delete D.insp[addD(ini,i)];
+    Object.keys(novo).forEach(dt=>{D.insp[dt]=novo[dt];});
+    D.semanas=D.semanas.filter(s=>s.ini!==ini); D.semanas.push({ini:ini,fim:fim,arquivo:f.name,total:total});
+    E.mes=ym(ini); E.modo='mes';
+    await persistir();
+    alert('Inspeções da semana '+br(ini)+' a '+br(fim)+' importadas: '+total+' programações.');
+  }catch(e){console.error(e);alert('Erro ao ler a planilha: '+e.message);}
+}
+function semanal(){
+  const D=dados(), sem=(D.semanas||[]).slice().sort((a,b)=>a.ini<b.ini?1:-1);
+  if(!sem.length){alert('Importe primeiro a planilha de inspeções semanais.');return;}
+  const H=hoje(), def=(sem.find(s=>H>=s.ini&&H<=s.fim)||sem[0]).ini;
+  modal('<div class="rv-mh"><b>Programação semanal</b><button type="button" onclick="REV.fechar()">×</button></div>'+
+    '<div class="rv-form"><label>Semana (SEG a DOM)<select id="rvSem">'+sem.map(s=>'<option value="'+s.ini+'"'+(s.ini===def?' selected':'')+'>'+br(s.ini)+' a '+br(s.fim)+'</option>').join('')+'</select></label>'+
+    '<button type="button" class="rv-b rv-b-p" onclick="REV.semanalGerar(document.getElementById(\'rvSem\').value)">Gerar e imprimir</button></div>');
+}
+function semanalGerar(ini){
+  const D=dados(), H=hoje(), sem=(D.semanas||[]).find(s=>s.ini===ini); if(!sem) return;
+  fechar();
+  const dias=[0,1,2,3,4,5,6].map(i=>addD(ini,i)), IE=inspEventos();
+  const totP=new Array(7).fill(0), totI=new Array(7).fill(0), linhas=[];
+  const PC={S:'p-s',C:'p-c','15':'p-15'};
+  ordenar(D.frota).slice().sort((a,b)=>a.p-b.p).forEach(c=>{
+    const r=calcular(c); let algum=false;
+    const tds=dias.map((d,i)=>{
+      const it=[]; r.prog.forEach(e=>{if(e.data===d) it.push(e);}); r.real.forEach(e=>{if(e.prog===d) it.push(Object.assign({},e,{feito:true}));});
+      if(it.length){const e=it[0]; algum=true; totP[i]++;
+        return '<td class="'+PC[e.tipo]+'"><b>'+rotCel(e.tipo)+'K'+(e.feito?'✓':'')+(e.atrasada&&!e.feito?'!':'')+'</b></td>';}
+      const ev=(IE[c.p]||{})[d];
+      if(ev){algum=true; totI[i]++; return '<td class="p-i"><b>I'+(ev.baixa?'✓':'')+'</b></td>';}
+      return '<td></td>';
+    });
+    if(algum) linhas.push('<tr><th>'+c.p+'</th>'+tds.join('')+'</tr>');
+  });
+  const atr=[]; D.frota.forEach(c=>{calcular(c).prog.forEach(e=>{if(e.atrasada&&e.data<ini) atr.push({p:c.p,e:e});});});
+  atr.sort((a,b)=>a.p-b.p||(a.e.data<b.e.data?-1:1));
+  const w=window.open('','_blank'); if(!w){alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site.');return;}
+  const css='@page{size:A4 landscape;margin:9mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,sans-serif;font-size:11px;margin:0;color:#111}'+
+    'h2{margin:0;font-size:16px}.top{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #132354;padding-bottom:4px;margin-bottom:6px}'+
+    'table{border-collapse:collapse;width:auto;table-layout:fixed}th,td{border:1px solid #777;text-align:center;padding:0 2px;font-size:10.5px;height:23px;overflow:hidden;white-space:nowrap}thead th{background:#132354;color:#fff}tbody th{background:#e9edf7;font-size:12px}'+
+    'td small{display:block;font-size:8.5px;font-weight:normal;line-height:1.1}td b{font-size:11px}.p-s{background:#2e9e4f;color:#fff}.p-c{background:#d33a3a;color:#fff}.p-15{background:#1f6fd1;color:#fff}.p-i{background:#6d3fc0;color:#fff}.vt{width:50px}'+
+    'tfoot td{background:#f0f0f0;font-weight:bold}.atr{margin-top:8px;border:2px solid #d33a3a;padding:5px 8px;font-size:11px}.atr b{color:#b71930}.leg{margin-top:6px;font-size:10px;display:flex;gap:12px;flex-wrap:wrap}.leg i{display:inline-block;width:11px;height:11px;vertical-align:-2px;margin-right:3px}'+
+    '.wrap{display:flex;gap:26px;align-items:stretch}.sig{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding:0 18px 0 8px}.sig .b{display:flex;gap:16px;align-items:flex-end;padding-top:56px}.sig .l{flex:1;border-top:1.5px solid #000;padding-top:4px;text-align:center;font-size:12px;font-weight:bold}.sig .d{width:150px;border-top:1.5px solid #000;padding-top:4px;text-align:center;font-size:12px}';
+  let h='<html><head><meta charset="utf-8"><title>Programação semanal '+br(ini)+' a '+br(sem.fim)+'</title><style>'+css+'</style></head><body>'+
+    '<div class="top"><h2>Viação Sete - Manutenção - Programação semanal</h2><div>Período: <b>'+br(ini)+' a '+br(sem.fim)+'</b> (SEG a DOM) - emitido em '+br(H)+'</div></div>';
+  if(!linhas.length) h+='<p>Nenhum veículo programado nesta semana.</p>';
+  else{
+    h+='<div class="wrap"><div>';
+    h+='<table><colgroup><col style="width:52px">'+dias.map(()=>'<col style="width:46px">').join('')+'</colgroup><thead><tr><th>Veículo</th>'+dias.map(d=>'<th>'+NOME_SEM[wd(d)].toUpperCase()+'<br>'+d.slice(8)+'/'+d.slice(5,7)+'</th>').join('')+'</tr></thead><tbody>'+linhas.join('')+'</tbody>'+
+      '<tfoot><tr><td>Total</td>'+dias.map((d,i)=>'<td title="'+totP[i]+' revisão(ões) + '+totI[i]+' inspeção(ões)">'+((totP[i]+totI[i])||'')+'</td>').join('')+'</tr></tfoot></table>';
+      h+='</div><div class="sig">'+['Mecânico responsável pela inspeção','Encarregado da manutenção','Diretoria'].map(t=>'<div class="b"><div class="l">'+t+'</div><div class="d">Data</div></div>').join('')+'</div></div>';
+  }
+  if(atr.length) h+='<div class="atr"><b>ATENÇÃO - Preventivas atrasadas (fora desta semana):</b> '+atr.map(a=>a.p+' - '+nomeTipo(a.e.tipo)+' (prevista '+br(a.e.data)+', '+dif(H,a.e.data)+' dias)').join(' | ')+'</div>';
+  h+='<div class="leg"><span><i style="background:#6d3fc0"></i>I Inspeção</span><span><i style="background:#1f6fd1"></i>15K</span><span><i style="background:#2e9e4f"></i>60K Simples</span><span><i style="background:#d33a3a"></i>120K Completa</span><span>! = atrasada · ✓ = realizada · Total = revisões + inspeções do dia</span><span>'+linhas.length+' veículos com programação (os demais não saem na folha)</span></div>'+
+    '</body></html>';
+  w.document.write(h); w.document.close(); setTimeout(()=>{w.focus();w.print();},400);
+}
+function modal(html){
+  let m=$('rvModal');
+  if(!m){m=document.createElement('div');m.id='rvModal';m.className='rv-ov';m.onclick=e=>{if(e.target===m) fechar();};document.body.appendChild(m);}
+  m.innerHTML='<div class="rv-box">'+html+'</div>'; m.style.display='flex';
+}
+function fechar(){const m=$('rvModal'); if(m) m.style.display='none';}
+function acharEv(p,kind,idx){
+  const c=dados().frota.find(x=>x.p===p), r=calcular(c);
+  return {c:c,r:r,e:kind==='real'?r.real[idx]:r.prog[idx]};
+}
+function abrir(p,kind,idx){
+  const o=acharEv(p,kind,idx), e=o.e, c=o.c; if(!e) return;
+  const nome=nomeTipo(e.tipo), H=hoje(), pub=MODO_PUBLICO;
+  let h='<div class="rv-mh"><b>Prefixo '+p+' - Revisão '+nome+'</b><button type="button" onclick="REV.fechar()">×</button></div>';
+  if(kind==='real'){
+    h+='<p>Programada para <b>'+br(e.prog)+'</b>. Realizada em <b>'+br(e.data)+'</b> com <b>'+fmt(e.km)+' km</b>.</p>';
+    if(!pub&&e.idx===c.hist.length-1) h+='<button type="button" class="rv-b rv-b-p" onclick="REV.desfazer('+p+')">Desfazer baixa</button> ';
+  } else {
+    h+='<p>Prevista para <b>'+br(e.data)+'</b> ('+NOME_SEM[wd(e.data)]+') com cerca de <b>'+fmt(e.km)+' km</b>. PMM: '+fmt(c.pmm)+'.'+(e.atrasada?' <b class="rv-d-r">Atrasada há '+dif(H,e.data)+' dias.</b>':'')+'</p>';
+    if(!pub){
+      if(e.n===0){
+        h+='<div class="rv-form"><label>Data realizada<input type="date" id="rvDt" value="'+(e.data>H?H:(e.atrasada?H:e.data))+'"></label><label>KM no hodômetro<input type="number" id="rvKm" value="'+e.km+'" step="1"></label>'+
+          '<button type="button" class="rv-b rv-b-p" onclick="REV.baixar('+p+')">Marcar como realizada</button></div>';
+      } else h+='<p class="rv-obs">Dê baixa na revisão anterior primeiro. A programação seguinte é recalculada a partir da data e do KM reais.</p>';
+    }
+  }
+  h+='<div class="rv-chk"><span>Checklist para impressão:</span><button type="button" class="rv-b" onclick="REV.checklist('+p+',\''+chkKey(e.tipo)+'\')">Imprimir '+chkRot(e.tipo)+'</button>'+(e.tipo==='15'?'':'<button type="button" class="rv-b" onclick="REV.checklist('+p+',\'15\')">15.000</button>')+'</div>';
+  modal(h);
+}
+function veiculo(p){
+  const c=dados().frota.find(x=>x.p===p);
+  const hh='<div class="rv-hh"><b>Histórico de revisões</b>'+tabelaHist(linhasHist(p),'rv-lista rv-lista-s')+'</div>';
+  if(MODO_PUBLICO){ modal('<div class="rv-mh"><b>Prefixo '+p+'</b><button type="button" onclick="REV.fechar()">×</button></div>'+hh); return; }
+  const base0=c.hist.length===0;
+  modal('<div class="rv-mh"><b>Prefixo '+p+' - Dados do veículo</b><button type="button" onclick="REV.fechar()">×</button></div>'+
+    '<div class="rv-form"><label>PMM (km por mês; 0 = sem programação)<input type="number" id="rvPmm" value="'+Math.round(c.pmm)+'"></label>'+
+    '<label>Data da última revisão<input type="date" id="rvD0" value="'+c.d+'"'+(base0?'':' disabled')+'></label>'+
+    '<label>KM da última revisão<input type="number" id="rvK0" value="'+c.km+'"'+(base0?'':' disabled')+'></label>'+
+    (base0?'':'<p class="rv-obs">Data e KM da base inicial ficam travados porque já existem revisões realizadas neste veículo.</p>')+
+    '<button type="button" class="rv-b rv-b-p" onclick="REV.salvarVeiculo('+p+')">Salvar</button></div>'+hh);
+}
+async function persistir(){ const ok=await saveDB(); render(); return ok; }
+async function salvarVeiculo(p){
+  const c=dados().frota.find(x=>x.p===p);
+  const pmm=parseFloat($('rvPmm').value); if(!(pmm>=0)){alert('PMM inválido.');return;}
+  c.pmm=pmm;
+  if(c.hist.length===0){const d=$('rvD0').value, k=parseFloat($('rvK0').value); if(!d||!(k>0)){alert('Informe data e KM da última revisão.');return;} c.d=d; c.km=k;}
+  fechar(); await persistir();
+}
+async function baixar(p){
+  const c=dados().frota.find(x=>x.p===p), r=calcular(c), e=r.prog[0]; if(!e) return;
+  const d=$('rvDt').value, k=parseFloat($('rvKm').value);
+  if(!d){alert('Informe a data realizada.');return;} if(!(k>0)){alert('Informe o KM do hodômetro.');return;}
+  c.hist.push({data:d,km:k,tipo:e.tipo,marco:e.marco,prog:e.data,m15:ciclo15(c)?1:undefined});
+  fechar(); await persistir();
+}
+async function desfazer(p){
+  if(!confirm('Desfazer a última baixa deste veículo? A programação volta ao estado anterior.')) return;
+  const c=dados().frota.find(x=>x.p===p); c.hist.pop(); fechar(); await persistir();
+}
+function checklist(p,tipo){
+  const rows=CHECK[tipo]; if(!rows) return;
+  const w=window.open('','_blank'); if(!w){alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site.');return;}
+  const n=rows[0].length;
+  let t='';
+  rows.forEach((r,i)=>{
+    const ne=r.filter(x=>x).length;
+    if(ne===1){ const s=r.find(x=>x).replace(/VEÍCULO: _+/,'VEÍCULO: '+p); t+='<tr><td colspan="'+n+'" class="'+(i<2?'tt':'sec')+'">'+esc(s)+'</td></tr>'; }
+    else t+='<tr>'+r.map(x=>'<td>'+esc(String(x).replace(/VEÍCULO: _+/,'VEÍCULO: '+p))+'</td>').join('')+'</tr>';
+  });
+  w.document.write('<html><head><meta charset="utf-8"><title>Checklist '+tipo+'.000 km - Prefixo '+p+'</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:14px}table{border-collapse:collapse;width:100%}td{border:1px solid #888;padding:3px 5px;vertical-align:top}.tt{font-weight:bold;font-size:14px;text-align:center;background:#eee}.sec{font-weight:bold;background:#f3f3f3}</style></head><body><table>'+t+'</table></body></html>');
+  w.document.close(); setTimeout(()=>{w.focus();w.print();},300);
+}
+function csv(){
+  const ev=todosEventos().sort((a,b)=>a.data<b.data?-1:(a.data>b.data?1:a.p-b.p)), H=hoje();
+  const L=['Prefixo;Tipo;Data;Dia da semana;KM;Situação'];
+  ev.forEach(e=>L.push([e.p,nomeTipo(e.tipo),br(e.data),NOME_SEM[wd(e.data)],Math.round(e.km),e.kind==='real'?'Realizada':(e.atrasada?'Atrasada':'Programada')].join(';')));
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8;'})); a.download='programacao_revisoes_'+H+'.csv'; a.click();
+}
+function importar(){ if(MODO_PUBLICO) return; $('rvFile').click(); }
+async function importarArq(f){
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+    const nome=wb.SheetNames.find(n=>/PROGRAMA/i.test(n)); if(!nome){alert('Aba "PROGRAMAÇÃO REV" não encontrada.');return;}
+    const g=XLSX.utils.sheet_to_json(wb.Sheets[nome],{header:1,raw:true,defval:null});
+    const novos=[];
+    for(let i=0;i<g.length-1;i++){
+      const a=g[i], b=g[i+1], p=a&&typeof a[0]==='number'?a[0]:null; if(p==null) continue;
+      let d=a[2]; if(typeof d==='number') d=new Date(Math.round((d-25569)*864e5)); if(!(d instanceof Date)||isNaN(d)) continue;
+      const km=b&&typeof b[2]==='number'?b[2]:null; if(!km) continue;
+      novos.push({p:p,pmm:+a[1]||0,d:iso(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())),km:km,hist:[]});
+    }
+    if(!novos.length){alert('Nenhum veículo reconhecido na aba.');return;}
+    if(!confirm(novos.length+' veículos encontrados. Isso substitui PMM, data e KM da última revisão e apaga as baixas já registradas. Confirma?')) return;
+    dados().frota=novos; await persistir();
+  }catch(e){console.error(e);alert('Erro ao ler a planilha: '+e.message);}
+}
+window.REV={abrirI:abrirI,baixarI:baixarI,desfazerI:desfazerI,importarInsp:importarInsp,semanal:semanal,semanalGerar:semanalGerar,hist:()=>{E.modo='hist';render();},histFiltro:v=>{E.hp=v?+v:null;render();},histPdf:histPdf,histCsv:histCsv,render:render,mes:k=>{E.mes=k;E.modo='mes';render();},atrasadas:()=>{E.modo='atr';render();},abrir:abrir,fechar:fechar,veiculo:veiculo,salvarVeiculo:salvarVeiculo,baixar:baixar,desfazer:desfazer,checklist:checklist,csv:csv,importar:importar};
+})();
 </script>
 <script>
 /* ===== Aba INDICADORES (1ª aba) - alimentada pela planilha INDICADORES - BANDEIRA e VIAÇÃO SETE.xlsx (roteamento por nome de aba) ===== */
