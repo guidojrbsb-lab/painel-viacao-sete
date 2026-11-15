@@ -1286,6 +1286,8 @@ function clsEv(t){return t==='I'?'rv-ev-i':t==='S'?'rv-ev-s':(t==='C'?'rv-ev-c':
 function clsEv2(t){return t==='I'?'rv-ev-i2':t==='S'?'rv-ev-s2':(t==='C'?'rv-ev-c2':'rv-ev-152');}
 function chkKey(t){return t==='S'?'60':(t==='C'?'120':'15');}
 function chkRot(t){return t==='S'?'60.000':(t==='C'?'120.000':'15.000');}
+// Programação manual de data (pedido do usuário 2026-11-10): prefixo 54, próxima revisão (marco 5 = 60K Simples) fixada em 07/11/2026. A cadeia seguinte parte desta data.
+const AJUSTES_DATA={54:{5:'2026-11-07'}};
 function calcular(c){
   const H=hoje(), fim=fimHorizonte();
   const prog=[], real=c.hist.map((h,i)=>({kind:'real',idx:i,prog:h.prog,data:h.data,km:h.km,tipo:h.tipo,marco:h.marco}));
@@ -1294,6 +1296,7 @@ function calcular(c){
     let cur=b.d, km=b.km, marco=b.marco, n=0;
     while(true){
       cur=addD(cur,passo); km+=kmPasso(c); marco+=1;
+      if(AJUSTES_DATA[c.p]&&AJUSTES_DATA[c.p][marco]) cur=AJUSTES_DATA[c.p][marco];
       if(cur>fim||n>60) break;
       prog.push({kind:'prog',n:n,data:cur,km:Math.round(km/(ciclo15(c)?5000:10000))*(ciclo15(c)?5000:10000),tipo:tipoMarco(c,marco),marco:marco,atrasada:cur<H});
       n++;
@@ -1445,8 +1448,16 @@ function histCsv(){
 }
 /* ---- INSPEÇÕES (I) e programação semanal: criado em 2026-11-07. Inspeção só aparece no dia em que o veículo NÃO tem outra revisão (15K/60K/120K);
    preventiva prevalece. Tem baixa própria (inspReal). Planilha semanal importada fica em DB.revisoes.insp[data]=[{p,linha}] e DB.revisoes.semanas. ---- */
+// Inspeções programadas manualmente (pedido do usuário 2026-11-10): prefixo 57 em 09/11/2026. Somadas às da planilha semanal (reimportar a planilha não as apaga).
+const INSP_EXTRAS=[{p:57,data:'2026-11-09',linha:'-'}];
+function inspMapa(){
+  const I={}, D=dados();
+  Object.keys(D.insp||{}).forEach(dt=>{I[dt]=D.insp[dt].slice();});
+  INSP_EXTRAS.forEach(x=>{const a=(I[x.data]=I[x.data]||[]); if(!a.some(y=>y.p===x.p)) a.push({p:x.p,linha:x.linha});});
+  return I;
+}
 function inspEventos(){
-  const D=dados(), I=D.insp||{}, R=D.inspReal||{}, prev={}, out={};
+  const D=dados(), I=inspMapa(), R=D.inspReal||{}, prev={}, out={};
   D.frota.forEach(c=>{const r=calcular(c), s=new Set(); r.prog.forEach(e=>s.add(e.data)); r.real.forEach(e=>{if(e.prog) s.add(e.prog);}); prev[c.p]=s;});
   Object.keys(I).forEach(dt=>I[dt].forEach(x=>{
     if(prev[x.p]&&prev[x.p].has(dt)) return;
@@ -1460,7 +1471,7 @@ function inspBaixasPorCarro(){
   return out;
 }
 function abrirI(p,dt){
-  const D=dados(), x=((D.insp||{})[dt]||[]).find(y=>y.p===p); if(!x) return;
+  const D=dados(), x=(inspMapa()[dt]||[]).find(y=>y.p===p); if(!x) return;
   const b=(D.inspReal||{})[dt+'|'+p], H=hoje(), pub=MODO_PUBLICO;
   let h='<div class="rv-mh"><b>Prefixo '+p+' - Inspeção</b><button type="button" onclick="REV.fechar()">×</button></div>';
   h+='<p>Programada para <b>'+br(dt)+'</b> ('+NOME_SEM[wd(dt)]+'). Linha: <b>'+esc(x.linha)+'</b>.</p>';

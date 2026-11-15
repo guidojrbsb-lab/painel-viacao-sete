@@ -2251,6 +2251,11 @@ const CONVENIO_REGRAS_TEXTO = [
 // Sinal amplo de que o lançamento É algum tipo de repasse de prefeitura/convênio, mesmo
 // quando nenhuma regra específica acima bate (vira "CONVÊNIO NÃO IDENTIFICADO" em vez de
 // ficar de fora da tabela -- pedido explícito do usuário: "se suspeitar, traz os dados").
+// Exceção PONTUAL (2026-11-09, pedido do usuário): "FUNDO M A SOCIAL" cai por regra em CURIMATÁ, mas este lançamento específico
+// (Bradesco, 15/10/2026, R$3.008,03) é da PREFEITURA DE JERUMENHA. Não muda a regra -- só este lançamento (banco + data + valor).
+const CONVENIO_EXCECOES_PONTUAIS = [
+  { banco: 'BRADESCO', data: '2026-10-15', valor: 3008.03, convenio: 'PREFEITURA DE JERUMENHA' },
+];
 const CONVENIO_SINAL_AMPLO = /\bPREF\b|\bPM\b|\bPMU\b|MUNICIP|\bDPL\b|FAZENDA|SECRETARIA|GOVERNO\s*DO|ESTADO\s*DO/;
 function _normalizarTextoConvenio(s){
   return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
@@ -2286,6 +2291,8 @@ function _identificarPagamentosConvenio(){
       if(!CONVENIO_SINAL_AMPLO.test(textoBusca)) return;
       convenio = 'CONVÊNIO NÃO IDENTIFICADO';
     }
+    const exc = CONVENIO_EXCECOES_PONTUAIS.find(e=> e.banco===t.banco && e.data===t.data && Math.abs(e.valor - t.valor) < 0.005);
+    if(exc) convenio = exc.convenio;
     achados.push({ banco: t.banco, quemPagou: quemPagou || t.descricao, convenio, data: t.data, valor: t.valor });
   });
   return achados;

@@ -2845,6 +2845,9 @@ const CORRECOES_TRECHO_BILHETE = {
   '160467': { destino: 'TERESINA - PI' },
   '160468': { destino: 'TERESINA - PI' },
   '160469': { destino: 'TERESINA - PI' },
+  // Bilhete @-4122 (RUANA CARVALHO DE OLIVEIRA, Uruçuí Assistência Social, 04/11/2026): relatório gravou destino "Angical do Piauí" -- confirmado pelo
+  // usuário em 2026-11-15 que a viagem foi TERESINA x URUÇUÍ (alteração pontual, sem mudar regra; valor em CORRECOES_VALOR_BILHETE = 138,00).
+  '@-4122': { destino: 'URUCUI - PI' },
 };
 function _reaplicarCorrecoesTrechoConvenio(){
   let mudouAlgo = false;
@@ -3000,6 +3003,22 @@ const EXCLUSOES_BILHETE = new Set([
 // prioridade sobre a busca em REGRAS_VALOR_CONVENIO (mesma lógica de
 // ESCALAS_MANUAIS_BILHETE/valorCobradoManual, mas pra bilhete avulso).
 const CORRECOES_VALOR_BILHETE = {
+  'V7003-228': 91.00,
+  'V7003-229': 91.00,
+  'V7003-230': 91.00,
+  '@-4798': 91.00,
+  '@-4799': 91.00,
+  '@-4800': 91.00,
+  '@-4122': 138.00,
+  '@-4289/@-4290': 240.00,
+  '@-4316/@-4318': 240.00,
+  '@-5913/@-5914': 240.00,
+  '@-4035/@-4037': 185.00,
+  '@-4036/@-4038': 185.00,
+  '@-5727/@-5729': 185.00,
+  '@-5728/@-5730': 185.00,
+  '@-5787/@-5789': 185.00,
+  '@-5788/@-5790': 185.00,
   'V7003-960': 56.00,
   'V7003-961': 56.00,
   'V7003-1221': 56.00,
@@ -3317,11 +3336,16 @@ const REGRAS_VALOR_CONVENIO = {
     sinonimosCidade: { 'TIMON': 'TERESINA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
-      { cidades: ['TERESINA','URUCUI'], valor: 128.00 },
-      { cidades: ['FLORIANO','URUCUI'], valor: 81.00 },
+      // Pedido do usuário em 2026-11-15: o reajuste dos convênios de Uruçuí (Teresina x Uruçuí 138,00; Floriano x Uruçuí e Teresina x Floriano
+      // 91,00) passa a valer TAMBÉM no WSV, de 01/11/2026 em diante; até 31/10 seguem os valores antigos.
+      { cidades: ['TERESINA','URUCUI'], valor: 128.00, vigenciaAte: '2026-10-31' },
+      { cidades: ['TERESINA','URUCUI'], valor: 138.00, vigenciaDesde: '2026-11-01' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 81.00, vigenciaAte: '2026-10-31' },
+      { cidades: ['FLORIANO','URUCUI'], valor: 91.00, vigenciaDesde: '2026-11-01' },
       // Confirmado pelo usuário em 2026-09-16 (ida e volta, aplicado a todos os
       // convênios de Uruçuí).
-      { cidades: ['TERESINA','FLORIANO'], valor: 81.00 },
+      { cidades: ['TERESINA','FLORIANO'], valor: 81.00, vigenciaAte: '2026-10-31' },
+      { cidades: ['TERESINA','FLORIANO'], valor: 91.00, vigenciaDesde: '2026-11-01' },
       // 2026-10-07: o reajuste de set/2026 (Teresina/Floriano x Uruçuí etc.) NÃO se aplica a este
       // convênio (WSV) -- mantém os valores de sempre, sem vigência.
     ],
@@ -3455,7 +3479,9 @@ const REGRAS_VALOR_CONVENIO = {
       // a partir de Setembro/2026; mantém R$240,00 pros lançamentos de Jul/Ago já feitos.
       { cidades: ['TERESINA','REDENCAO DO GURGUEIA'], valor: 240.00, vigenciaAte: '2026-08-31' },
       { cidades: ['TERESINA','REDENCAO DO GURGUEIA'], valor: 215.00, vigenciaDesde: '2026-09-01' },
-      { cidades: ['TERESINA','BOM JESUS'], valor: 240.00 },
+      { cidades: ['TERESINA','BOM JESUS'], valor: 240.00, vigenciaAte: '2026-10-31' },
+      // Pedido do usuário em 2026-11-15: Teresina x Bom Jesus (ida e volta) = R$240,00 valendo de 01/11/2026 em diante.
+      { cidades: ['TERESINA','BOM JESUS'], valor: 240.00, vigenciaDesde: '2026-11-01', forcarSistema: true },
       { cidades: ['REDENCAO DO GURGUEIA','BRASILIA'], valor: 240.00 },
       { cidades: ['REDENCAO DO GURGUEIA','FLORIANO'], valor: 130.00 },
       { cidades: ['FLORIANO','TERESINA'], valor: 90.00 },

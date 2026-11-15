@@ -1166,6 +1166,11 @@ function _ordenarModalMonitriip(col){
 // dia/empresa é substituído, nunca duplicado.
 // =====================================================================
 const PARCEIROS_SEED = [["2026-10-02","ITAPEMIRIM",["20.746"],["60.166","20.576","60.446"]],["2026-10-03","ITAPEMIRIM",["20.946"],["60.336","20.676","60.376"]],["2026-10-04","ITAPEMIRIM",[],["21.026","20.776","20.426","60.246"]],["2026-10-05","ITAPEMIRIM",[],["60.656","60.336","20.676"]],["2026-10-06","ITAPEMIRIM",["21.026","20.946"],["60.686","20.706","60.446","60.336","20.426"]],["2026-10-07","ITAPEMIRIM",[],["20.976","20.736","60.656"]],["2026-10-08","ITAPEMIRIM",["60.336"],["60.666","60.686","20.736","60.256","20.866","20.676"]],["2026-10-09","ITAPEMIRIM",["20.706"],["20.436","20.976","20.436","60.426"]],["2026-10-10","ITAPEMIRIM",["20.426","20.866"],["60.136","60.666","60.336","60.246","60.333"]],["2026-10-11","ITAPEMIRIM",["20.746","20.676"],["60.176","20.436","21.066","20.436","20.596"]],["2026-10-12","ITAPEMIRIM",["21.066"],["60.136","20.706","60.306"]],["2026-10-14","ITAPEMIRIM",[],["60.336","20.436","60.306","60.246"]],["2026-10-15","ITAPEMIRIM",["20.706"],["20.746","20.546","60.326","21.026","21.146","20.776"]],["2026-10-16","ITAPEMIRIM",["60.426"],["60.336","20.436","20.946","60.366"]],["2026-10-17","ITAPEMIRIM",["20.906"],["20.776","20.806","60.326","60.176"]],["2026-10-18","ITAPEMIRIM",[],["60.666","60.536","20.946","21.076","20.506"]],["2026-10-19","ITAPEMIRIM",[],["60.336","60.176","21.146","60.586"]],["2026-10-20","ITAPEMIRIM",[],["20.776","60.426","60.366","60.176","60.536"]],["2026-10-21","ITAPEMIRIM",["20.946"],["60.586","21.076","20.656"]],["2026-10-22","ITAPEMIRIM",["20.416"],["60.326","60.426","60.336","20.656","21.006"]]];
+// Correções manuais (pedido do usuário, 2026-11-03): valem SEMPRE, inclusive sobre registros já importados do WhatsApp.
+// 14/10/2026 (quarta) ITAPEMIRIM ajustado a pedido do usuário (2026-11-03).
+// 13/10/2026 (terça) ITAPEMIRIM incluído a pedido do usuário (2026-11-03).
+// 03/10/2026 (sábado) ITAPEMIRIM: Partida 20.946 | Carro em trânsito 60.366 / 60.426 / 60.206.
+const PARCEIROS_CORRECOES = [["2026-10-03","ITAPEMIRIM",["20.946"],["60.366","60.426","60.206"]],["2026-10-13","ITAPEMIRIM",["20.546","20.596","21.066"],["60.176","60.666","60.426","20.706"]],["2026-10-14","ITAPEMIRIM",[],["60.336","20.436","60.306","60.246","21.066"]]];
 function _parcGarantir(){
   DB.parceiros = DB.parceiros || {};
   DB.parceiros.registros = DB.parceiros.registros || {};
@@ -1173,6 +1178,9 @@ function _parcGarantir(){
     const k = data+'|'+empresa;
     const ex = DB.parceiros.registros[k];
     if(!ex || ex.seed) DB.parceiros.registros[k] = {data, empresa, partida, transito, seed:true};
+  });
+  PARCEIROS_CORRECOES.forEach(([data,empresa,partida,transito])=>{
+    DB.parceiros.registros[data+'|'+empresa] = {data, empresa, partida, transito, seed:false, manual:true};
   });
 }
 function _parcNormFrota(n){
@@ -1208,6 +1216,7 @@ function parseWhatsAppParceiros(texto){
 function _aplicarParceiros(regs){
   _parcGarantir();
   regs.forEach(r=>{ DB.parceiros.registros[r.data+'|'+r.empresa] = r; });
+  _parcGarantir(); // reaplica as correções manuais
   return regs.length;
 }
 document.getElementById('parcInput').addEventListener('change', async ev=>{
@@ -1252,7 +1261,7 @@ function _parcChips(lista, cls){
 const PARC_VALOR_PARTIDA = 240, PARC_VALOR_TRANSITO = 120;
 function _parcBRL(v){ return 'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function renderParceiros(){
-  if(!DB.parceiros) _parcGarantir();
+  _parcGarantir();
   _parcPopularEmpresas();
   if(!_parcAncorado) _parcAncorarFiltros();
   const regs = filtrarParceiros();
