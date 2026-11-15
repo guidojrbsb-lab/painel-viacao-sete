@@ -2257,6 +2257,8 @@ const CONVENIOS_BILHETEIROS = {
   'DPL CONSTRUÇÕES': ['DPL01'],
   // Pedido do usuário em 2026-11-01: convênio SETRANS - PI, sem bilheteiros -- só recebe lançamentos via Ajuste de Saldo.
   'SETRANS - PI': [],
+  // Pedido do usuário em 2026-11-04: novo convênio do sistema LUNA, sem bilheteiros fixos -- recebe bilhetes por transferência pontual.
+  'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS': [],
 };
 const MAPA_BILHETEIRO_CONVENIO = {};
 Object.entries(CONVENIOS_BILHETEIROS).forEach(([conv, lista])=>{
@@ -2502,6 +2504,37 @@ const REDIRECIONAMENTOS_BILHETE = {
 // o pedido é só "mover estes bilhetes de convênio X pra Y", sem informação de qual
 // bilheteiro vendeu cada um.
 const REDIRECIONAMENTOS_CONVENIO_SOMENTE = {
+  // Pedido do usuário em 2026-11-11: bilhete @-5266 (BARBARA RAIELY FERREIRA, Uruçuí x Ribeiro Gonçalves, 08/11/2026) transferido de URUÇUÍ SAÚDE pra RIBEIRO GONÇALVES.
+  '@-5266': 'PREFEITURA DE RIBEIRO GONÇALVES',
+  // Pedido do usuário em 2026-11-04 (2ª leva): 10 bilhetes (01/10/2026, Uruçuí Saúde: 172288, 172290, 172291, 172300, 172301, 172303, 172304, 172364, 172365, 172431) transferidos pra PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO -- só transferência, sem mudar regra.
+  '172288': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172290': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172291': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172300': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172301': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172303': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172304': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172364': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172365': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172431': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  // Pedido do usuário em 2026-11-04: 10 bilhetes (01/10/2026, Uruçuí Saúde: 171585, 171625, 171626, 171689, 171985, 171986, 172245, 172246, 172286, 172287) transferidos pra PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO -- só transferência, sem mudar regra.
+  '171585': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '171625': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '171626': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '171689': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '171985': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '171986': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172245': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172246': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172286': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  '172287': 'PREFEITURA DE URUÇUÍ ADMINISTRAÇÃO',
+  // Pedido do usuário em 2026-11-04: 5 bilhetes (01/10/2026, Uruçuí Saúde: ALBERTINA FEITOSA DE SOUSA, ISAIAS PEREIRA DE SOUSA, JOSEFA CLAUDIA DA SILVA,
+  // FRANCISCA TEREZA DA SILVA, EVA FEITOSA DO NASCIMENTO) transferidos pra 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS' -- só transferência, sem mudar regra.
+  '170786': 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS',
+  '171471': 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS',
+  '171472': 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS',
+  '171473': 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS',
+  '171584': 'PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS',
   // Pedido do usuário em 2026-11-01: bilhete 3-3597 (VOUCHER, JOSE CARLOS PEREIRA DOS SANTOS, Floriano x Barra do Lance, R$40,00) -> PREFEITURA DE JERUMENHA.
   '3-3597': 'PREFEITURA DE JERUMENHA',
   // Pedido do usuário em 2026-10-01: ÚNICA e EXCLUSIVAMENTE estes 10 bilhetes
@@ -2839,6 +2872,33 @@ function _reaplicarCorrecoesTrechoConvenio(){
 // pelo NÚMERO INDIVIDUAL do bilhete, mesmo quando ele aparece mesclado com outro(s) por
 // escala (ex.: "146070/145801/71056") -- ver _reaplicarExclusoesConvenio.
 const EXCLUSOES_BILHETE = new Set([
+  // Convênio PREFEITURA DE URUÇUÍ SAÚDE (01/10/2026): 172720 (MANOEL PEREIRRA DE BRITO), 172721 (JUCIENE DA S BRITO), 172752 (FLORACI RIBEIRO DA SILVA),
+  // 172753 (MARCELA RIBEIRO SOBRINHO) -- pedido do usuário em 2026-11-04 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '172720', '172721', '172752', '172753',
+  // Convênio FAZENDA PROGRESSO (out/2026): 81780 (LIONETE RODRIGUES DA SILVA, 01/10) e 174518 (ANTONIO CARLOS OLIVEIRA, 02/10) -- pedido do usuário
+  // em 2026-11-04 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '81780', '174518',
+  // Convênio DPL CONSTRUÇÕES (out/2026): 173531 (EDUARDO PEREIRA DE SOUSA), 173945 (JESSIVAN NUNES MACEDO), 173946 (JOSE ALGUSTO GONCALVES LEAL), 82258
+  // (MAIRAN FREITAS), 82300 (LUCAS DE SOUSA MATOS), 82482 (WELITON CAMPELO EODRIGUES), 82765 (EMERSON RAMON C CARDOSO), 174152 (SAMUEL ADENES DE SOUSA),
+  // 174154 (JHONATE DA SILVA SANTOS) -- pedido do usuário em 2026-11-04 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '173531', '173945', '173946', '82258', '82300', '82482', '82765', '174152', '174154',
+  // Convênio FAZENDA RIBEIRÃO (out/2026): 168766 (FRANCISCO RIQUELME S FURTADO, 01/10), 173371 (ALDO DA SILVA CRUZ, 01/10) e 171560 (LAILTON DA
+  // SILVA SOUSA, 02/10) -- pedido do usuário em 2026-11-04 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '168766', '173371', '171560',
+  // + NAGILA CRISTINA BARBOSA PEREIRA (escala 173725/82369, 03/10) -- mesmo pedido, 2026-11-04.
+  '173725', '82369',
+  // Convênio PREFEITURA DE CORRENTE (02/10/2026, Barreiras x Corrente): bilhete 7468 (CASSIO CAUE CARVALHO ALMEIDA) -- pedido do usuário em
+  // 2026-11-03 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '7468',
+  // Convênio PREFEITURA DE SÃO RAIMUNDO NONATO (out/2026): JOSE DE MACEDO SILVA (escala 173268/82203, 01/10) e GIOVANA DIAS GUERRA FERREIRA
+  // (82695, 02/10) -- pedido do usuário em 2026-11-03 pra exclusão definitiva, sem alterar nenhuma regra de negócio.
+  '173268', '82203', '82695',
+  // + MARIA FERNANDA PAES RIBEIRO DIAS (82696, 02/10) -- mesmo pedido, 2026-11-03.
+  '82696',
+  // 4 bilhetes do Convênio PREFEITURA DE CURIMATÁ (01/10/2026, Curimatá x Teresina: ALANDIA FERREIRA DOS SANTOS 173748, CARLANDIA FERREIRA
+  // DOS SANTOS 173749, KATIELLE LOBO GUIMARAES 173754, SUELY GONZAGA DE SOUSA 173755) -- pedido do usuário em 2026-11-03 pra exclusão
+  // definitiva, sem alterar nenhuma regra de negócio.
+  '173748', '173749', '173754', '173755',
   // Bilhete YUSSEF KELSON DOS NJOS MARINHO, Convênio DPL Construções (AMARANTE x BAIXA
   // GRANDE DO RIBEIRO via TIMON/FLORIANO) -- confirmado pelo usuário em 2026-08-26 como
   // duplicidade, deve ser removido do relatório.
@@ -2940,6 +3000,47 @@ const EXCLUSOES_BILHETE = new Set([
 // prioridade sobre a busca em REGRAS_VALOR_CONVENIO (mesma lógica de
 // ESCALAS_MANUAIS_BILHETE/valorCobradoManual, mas pra bilhete avulso).
 const CORRECOES_VALOR_BILHETE = {
+  'V7003-960': 56.00,
+  'V7003-961': 56.00,
+  'V7003-1221': 56.00,
+  'V7003-642/V7002-85': 130.00,
+  '@-5266': 56.00,
+  '@-3497': 253.07,
+  '@-4862': 107.33,
+  '@-5020': 107.33,
+  '@-4729': 90.00,
+  '@-4821': 107.33,
+  '@-2250/@-2252': 253.07,
+  '@-2251/@-2253': 253.07,
+  '@-3590/@-3591': 253.07,
+  '@-3131': 253.07,
+  '@-3132': 253.07,
+  '@-3119/@-3121': 253.07,
+  '@-3120/@-3122': 253.07,
+  '@-3234': 253.07,
+  '@-3235': 253.07,
+  '@-3123': 253.07,
+  '@-3124': 253.07,
+  '@-4663': 107.33,
+  // Pedido do usuário em 2026-11-07: 5 escalas da Prefeitura de São Raimundo Nonato (Teresina x São Raimundo Nonato, 03/11/2026) que vieram do
+  // relatório com R$135,16 -- valor correto do convênio é R$135,17 (exceção só destes bilhetes, sem alterar a regra do convênio).
+  '@-3355/@-3356': 135.17,
+  '@-3435/@-3437': 135.17,
+  '@-3436/@-3438': 135.17,
+  '@-3672/@-3674': 135.17,
+  '@-3673/@-3675': 135.17,
+  // Pedido do usuário em 2026-11-04: bilhete 4413 (MARIA ARLETE DA SILVA, Prefeitura de Redenção do Gurguéia, Taguatinga x Redenção do Gurguéia,
+  // 01/10/2026) ajustado pontualmente de R$240,00 para R$213,80 -- exceção só deste bilhete, sem alterar a regra do convênio.
+  '4413': 213.80,
+  // Pedido do usuário em 2026-11-04: bilhete 171725 (DIERMESON C S CARVALHO, Fazenda Ribeirão, Baixa Grande do Ribeiro x Uruçuí, 02/10/2026)
+  // ajustado pontualmente de R$60,00 para R$62,50 -- exceção só deste bilhete, sem alterar a regra do convênio.
+  '171725': 62.50,
+  // Pedido do usuário em 2026-11-03: bilhete 4414 (GUSTAVO LEMOS DE OLIVEIRA, Prefeitura de Corrente, Taguatinga x Corrente, 01/10/2026)
+  // ajustado pontualmente de R$267,00 para R$267,58 -- exceção só deste bilhete, sem alterar a regra do convênio.
+  '4414': 267.58,
+  // Pedido do usuário em 2026-11-03: bilhete 173572 (REGINA PAULA DE CASTRO SOUSA, Prefeitura de São Raimundo Nonato, São Raimundo x Teresina,
+  // 01/10/2026) ajustado pontualmente de R$135,17 para R$208,98 -- exceção só deste bilhete, sem alterar a regra do convênio.
+  '173572': 208.98,
   // Pedido do usuário em 2026-11-01: 8 bilhetes da Prefeitura de Uruçuí Saúde (Teresina x Uruçuí, 17-18/10/2026) de R$148,00 p/ R$138,00.
   '@-97': 138.00,
   '@-98': 138.00,
@@ -3266,13 +3367,18 @@ const REGRAS_VALOR_CONVENIO = {
       // R. Gonçalves x Uruçuí (Benedito Leite) 50,00 | x Jerumenha 100,00 | x Floriano (Barão de Grajaú) 130,00 | x Teresina (Timon) 195,00.
       { cidades: ['TERESINA','RIBEIRO GONCALVES'], valor: 195.00, forcarSistema: true },
       { cidades: ['RIBEIRO GONCALVES','URUCUI'], valor: 56.00, vigenciaAte: '2026-09-30' },
-      { cidades: ['RIBEIRO GONCALVES','URUCUI'], valor: 50.00, vigenciaDesde: '2026-10-01', forcarSistema: true },
+      { cidades: ['RIBEIRO GONCALVES','URUCUI'], valor: 50.00, vigenciaDesde: '2026-10-01', vigenciaAte: '2026-10-31', forcarSistema: true },
+      // Confirmado pelo usuário em 2026-11-15: Ribeiro Gonçalves x Uruçuí = R$56,00 de NOVEMBRO/2026 em diante (outubro segue 50,00).
+      { cidades: ['RIBEIRO GONCALVES','URUCUI'], valor: 56.00, vigenciaDesde: '2026-11-01', forcarSistema: true },
+      // Confirmado pelo usuário em 2026-11-15: Uruçuí x Floriano = R$90,00 (ida e volta).
+      { cidades: ['URUCUI','FLORIANO'], valor: 90.00, forcarSistema: true },
       { cidades: ['RIBEIRO GONCALVES','FLORIANO'], valor: 130.00, forcarSistema: true },
       { cidades: ['RIBEIRO GONCALVES','JERUMENHA'], valor: 100.00, forcarSistema: true },
       { cidades: ['URUCUI','TERESINA'], valor: 160.00 },
     ],
   },
   'PREFEITURA DE ANTONIO ALMEIDA': {
+    // 2026-11-08: relatório traz 'Antônio Almeida' com acento (a regra usa ANTONIO ALMEIDA) -- sem isso o trecho ficava vermelho.
     sinonimosCidade: { 'TIMON': 'TERESINA' },
     sinonimosExibicao: { 'TIMON': 'TERESINA - PI' },
     rotas: [
@@ -3467,6 +3573,9 @@ const REGRAS_VALOR_CONVENIO = {
       { cidades: ['URUCUI','RIBEIRO GONCALVES'], valor: 50.00 },
       // Bilhete 85936 (URUCUI x BERTOLINIA, 16/10/2026), confirmado pelo usuário em 2026-10-19.
       { cidades: ['URUCUI','BERTOLINIA'], valor: 50.00 },
+      // Confirmados pelo usuário em 2026-11-08 (bilhetes @-4314 e V7003-939).
+      { cidades: ['TERESINA','RIBEIRO GONCALVES'], valor: 210.00 },
+      { cidades: ['BAIXA GRANDE DO RIBEIRO','SANTA FE'], valor: 100.00 },
     ],
   },
   'PREFEITURA DE BENEDITO LEITE': {
@@ -3613,10 +3722,30 @@ const REGRAS_VALOR_CONVENIO = {
     ],
   },
 };
+
+// Pedido do usuário em 2026-11-15: a regra de valor reconhece cidades que diferem só no acento. As chaves de cidade das regras
+// (rotas, classes, sinônimos) são normalizadas UMA vez aqui (sem acento, maiúsculas); os VALORES de sinonimosExibicao (texto exibido) ficam como estão.
+(function _normalizarAcentosRegrasConvenio(){
+  const n = _semAcentoCidade;
+  Object.keys(REGRAS_VALOR_CONVENIO).forEach(conv=>{
+    const r = REGRAS_VALOR_CONVENIO[conv]; if(!r) return;
+    (r.rotas||[]).forEach(x=>{ x.cidades = x.cidades.map(n); });
+    (r.classes||[]).forEach(x=>{ x.cidades = x.cidades.map(n); });
+    if(r.sinonimosCidade){ const o={}; Object.keys(r.sinonimosCidade).forEach(k=>{ o[n(k)] = n(r.sinonimosCidade[k]); }); r.sinonimosCidade=o; }
+    if(r.sinonimosExibicao){ const o={}; Object.keys(r.sinonimosExibicao).forEach(k=>{ o[n(k)] = r.sinonimosExibicao[k]; }); r.sinonimosExibicao=o; }
+  });
+})();
+// Convênio novo (2026-11-04): usa as MESMAS rotas/valores de PREFEITURA DE URUÇUÍ SAÚDE, p/ os bilhetes transferidos manterem o valor cobrado.
+REGRAS_VALOR_CONVENIO['PREFEITURA DE URUCUI ASSISTÊNCIA SOCIAL WS'] = JSON.parse(JSON.stringify(REGRAS_VALOR_CONVENIO['PREFEITURA DE URUÇUÍ SAÚDE']));
 // Extrai só o nome da cidade de campos como "TERESINA - PI" ou "TIMON(MA)".
+// Normaliza o texto de uma cidade: sem acento/cedilha, maiúsculas, espaços únicos. Duas grafias que diferem só no acento
+// (ex.: "Barão de Grajaú" x "Barao de Grajau", "Uruçuí" x "Urucui") passam a ser a MESMA cidade nas regras de valor e nas escalas.
+function _semAcentoCidade(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toUpperCase();
+}
 function _cidadeBase(nome){
   if(!nome) return '';
-  return String(nome).split(/\s*-\s*|\(/)[0].trim().toUpperCase();
+  return _semAcentoCidade(String(nome).split(/\s*-\s*|\(/)[0]);
 }
 // Retorna {valor, semRegra}: além do valor cobrado (regra de rota, ou o valor original
 // do relatório quando não há regra/rota cadastrada), sinaliza semRegra=true nesse
@@ -3781,6 +3910,23 @@ function _mesclarEscalasConvenio(itensOriginais, regra){
           return (origA===p && destB===q) || (origA===q && destB===p);
         });
         if(!rota) continue;
+        // Guarda 2026-11-15 (pedido do usuário; caso @-4821/@-4819, São Raimundo Nonato): numa escala de verdade os dois trechos são
+        // consecutivos no MESMO sentido (A->B + B->C), então a rota combinada A->C nunca custa MENOS que um dos trechos. Se custa menos,
+        // é ida + volta (ex.: BARÃO->SRN + SRN->TERESINA, combinado BARÃO x TERESINA = 90 < 107,33), duas viagens independentes: não mescla.
+        // Só vale quando os dois trechos e a rota combinada têm valor cadastrado; senão o comportamento anterior é mantido.
+        const _vPar = (c1, c2, dt)=>{
+          const r2 = regra.rotas.find(r=>{
+            const [p,q] = r.cidades;
+            if(!((c1===p && c2===q) || (c1===q && c2===p))) return false;
+            if(r.vigenciaDesde && (!dt || dt < r.vigenciaDesde)) return false;
+            if(r.vigenciaAte && (!dt || dt > r.vigenciaAte)) return false;
+            return true;
+          });
+          return r2 ? r2.valor : null;
+        };
+        const _dtG = a.dataVenda || b.dataVenda || '';
+        const _vA = _vPar(origA, norm(_cidadeBase(a.destino)), _dtG), _vB = _vPar(norm(_cidadeBase(b.origem)), destB, _dtG), _vC = _vPar(origA, destB, _dtG);
+        if(_vA!==null && _vB!==null && _vC!==null && _vC < Math.max(_vA, _vB) - 0.005) continue;
         usados.add(indices[x]); usados.add(indices[y]);
         mesclados.push(Object.assign({}, a, {
           destino: b.destino,
@@ -3819,6 +3965,7 @@ function _aplicarSinonimosExibicao(itens, regra){
 // do valorOriginal bruto do relatório, nunca do valorCobrado antigo já gravado. Roda
 // depois da mesclagem de escala (pra usar origem/destino já combinados) e antes da
 // troca de nomenclatura de exibição (pra casar a cidade certa nos sinônimos).
+const CONVENIO_VALOR_RELATORIO_DESDE = '2026-11-01'; // Data Servi. a partir da qual vale o valor do relatório (vermelho se divergir da regra)
 function _precificarConvenio(itens, convenio, regra){
   return itens.map(it=>{
     // Correção pontual de valor pra um bilhete avulso (ver CORRECOES_VALOR_BILHETE) --
@@ -3833,6 +3980,21 @@ function _precificarConvenio(itens, convenio, regra){
     // rota cadastrada do convênio).
     if(it.valorCobradoManual!==undefined){
       return Object.assign({}, it, { valorCobrado: it.valorCobradoManual, semRegra: false });
+    }
+    // A PARTIR DE 01/11/2026 (pedido do usuário): todo bilhete dos relatórios do sistema LUNA entra com o valor cobrado que VEIO NO RELATÓRIO
+    // (valorOriginal) até o usuário corrigir. Se o valor do relatório bater com o valor esperado pela base de regras (rota, classe LD/LI,
+    // leito = valor original), a linha fica normal; se divergir (ou não houver regra p/ o trecho), a linha fica em VERMELHO (semRegra +
+    // divergente) mantendo o valor do relatório. Correções pontuais (CORRECOES_VALOR_BILHETE) acima continuam valendo.
+    if(it.dataVenda && it.dataVenda >= CONVENIO_VALOR_RELATORIO_DESDE){
+      let esperado = null, semRegraTrecho = false;
+      // Serviços diferenciados (linha terminada em LD, LI ou CA) -- pedido do usuário em 2026-11-03: em QUALQUER convênio o valor do próprio
+      // bilhete é o valor cobrado (sem valor de rota/classe), então nunca divergem nem ficam em vermelho.
+      // DPL CONSTRUÇÕES (pedido do usuário em 2026-11-15): sem regra de valor diferenciada -- o valor que vier no relatório é o válido (nunca diverge nem fica vermelho).
+      if(convenio === 'DPL CONSTRUÇÕES' || convenio === 'FAZENDA PROGRESSO') esperado = it.valorOriginal; // FAZENDA PROGRESSO: mesmo pedido em 2026-11-15
+      else if(/(?:^|[\s-])(?:LD|LI|CA)\s*$/i.test(String(it.linha||''))) esperado = it.valorOriginal;
+      else { const rN = _valorCobradoConvenio(convenio, it.origem, it.destino, it.valorOriginal, it.dataVenda); if(rN.semRegra) semRegraTrecho = true; else esperado = rN.valor; }
+      const divergente = esperado!==null && Math.abs((esperado||0) - (it.valorOriginal||0)) > 0.005;
+      return Object.assign({}, it, { valorCobrado: it.valorOriginal, semRegra: semRegraTrecho || divergente, divergente: divergente, valorEsperado: divergente ? esperado : undefined });
     }
     // Valor por classe (LD/LI) definido na regra do convênio (regra.classes) -- prioridade sobre LEITO=valor original.
     { const vc = _valorClasseConvenio(convenio, it.origem, it.destino, it.linha, it.dataVenda);
@@ -5673,6 +5835,7 @@ function _resumoItem(label, valor){
 // maiúsculas/minúsculas) — só este popup tem essa interatividade por enquanto.
 let _modalConvenioSortCol = 'dataVenda', _modalConvenioSortDir = 1;
 let _modalConvenioFiltros = {};
+let _modalConvenioSoPendentes = false; // popup de convênio: mostra só as linhas em vermelho (pendentes de correção)
 const MODAL_CONVENIO_COLS = [
   {key:'dataVenda', label:'DATA DO SERVIÇO'},
   {key:'convenio', label:'NOME DO CONVÊNIO'},
@@ -5694,6 +5857,7 @@ function _modalConvenioValorExibido(it, key){
 function _renderModalConvenioTabela(g){
   const tbl = document.getElementById('modalTabela');
   const itensFiltrados = g.itens.filter(it=>{
+    if(_modalConvenioSoPendentes && !(it.semRegra && !it.ajusteSaldo)) return false;
     return MODAL_CONVENIO_COLS.every(c=>{
       const termo = (_modalConvenioFiltros[c.key]||'').trim().toLowerCase();
       if(!termo) return true;
@@ -5718,7 +5882,7 @@ function _renderModalConvenioTabela(g){
     const classeAlerta = it.ajusteSaldo ? ' class="cv-linha-ajuste-saldo"' : (it.semRegra ? ' class="cv-linha-sem-regra"' : '');
     const titulo = it.ajusteSaldo
       ? ' title="Ajuste de Saldo -- lançamento manual, sem bilhete associado'+(it.observacaoAjuste?(': '+it.observacaoAjuste):'')+'"'
-      : (it.semRegra ? ' title="Trecho sem regra de valor cadastrada -- receita mostrada é o valor original do relatório"' : '');
+      : (it.divergente ? ' title="Valor do relatório (R$ '+(it.valorCobrado||0).toFixed(2).replace('.',',')+') difere do valor da regra (R$ '+(it.valorEsperado||0).toFixed(2).replace('.',',')+') -- mantido o valor do relatório até a correção"' : (it.semRegra ? ' title="Trecho sem regra de valor cadastrada -- receita mostrada é o valor original do relatório"' : ''));
     html += '<tr'+classeAlerta+titulo+'>'+MODAL_CONVENIO_COLS.map(c=>'<td>'+_modalConvenioValorExibido(it, c.key)+'</td>').join('')+'</tr>';
   });
   tbl.innerHTML = html;
@@ -5732,6 +5896,10 @@ function _renderModalConvenioTabela(g){
       if(novo){ novo.focus(); novo.setSelectionRange(cursor, cursor); }
     });
   });
+}
+function _toggleSoPendentesConvenio(ligado){
+  _modalConvenioSoPendentes = !!ligado;
+  if(window._modalGrupoAtual) _renderModalConvenioTabela(window._modalGrupoAtual);
 }
 function _ordenarModalConvenio(col){
   if(_modalConvenioSortCol===col) _modalConvenioSortDir*=-1; else { _modalConvenioSortCol=col; _modalConvenioSortDir=1; }
@@ -5824,9 +5992,11 @@ function abrirModalGrupo(g){
     document.getElementById('modalResumo').innerHTML =
       _resumoItem('Receita Total', fmtR$(g.receitaTotal))+
       _resumoItem('Bilhetes Emitidos', fmtInt(g.qtdBilhetes))+
-      resumoAlerta;
+      resumoAlerta+
+      (g.qtdSemRegra>0 ? '<label style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--red);cursor:pointer;"><input type="checkbox" id="cvSoPendentes" onchange="_toggleSoPendentesConvenio(this.checked)"> Mostrar só pendentes (em vermelho)</label>' : '');
     window._modalGrupoAtual = g;
     window._modalResumoPares = resumoPares;
+    _modalConvenioSoPendentes = false;
     _modalConvenioFiltros = {};
     _modalConvenioSortCol = 'dataVenda'; _modalConvenioSortDir = 1;
     _renderModalConvenioTabela(g);
@@ -6799,7 +6969,7 @@ function renderConvenios(){
     _cvGrupos.push(Object.assign({tipoModal:'convenio', itens:itensOrdenados}, g));
     html += '<tr class="clickable" data-idx="'+idx+'">'+cols.map(c=>{
       const classes = [c.key==='receitaTotal'?'cel-destaque':'', c.centro?'cel-centro':'', (c.key==='nome' && g.semRegra)?'cv-sem-regra':''].filter(Boolean).join(' ');
-      const titulo = (c.key==='nome' && g.semRegra) ? ' title="'+g.qtdSemRegra+' trecho(s) sem regra de valor cadastrada"' : '';
+      const titulo = (c.key==='nome' && g.semRegra) ? ' title="'+g.qtdSemRegra+' trecho(s) sem regra de valor ou com valor divergente da regra"' : '';
       return '<td'+(classes?' class="'+classes+'"':'')+titulo+'>'+(c.fmt? c.fmt(g[c.key]) : g[c.key])+'</td>';
     }).join('')+'</tr>';
   });
