@@ -102,6 +102,7 @@ header.top-publico{display:flex;}
 <div class="layout">
   <nav class="sidebar">
     <button class="active" data-tab="indicadores"><span class="ic">&#128202;</span>Indicadores</button>
+    <button data-tab="ativo"><span class="ic">&#127970;</span>Ativo</button>
   </nav>
   <main>
   <section class="tab" id="tab-indicadores">
@@ -396,9 +397,11 @@ function _renderFiltroAno(d){
 function render(manterMenu){
   const sec = CFG.secoes.find(s=>s.id===SEC) || CFG.secoes[0];
   const d = sd(sec.id), tab=$('indTabela'), fonte=$('indFonte'), pills=$('indSecoes');
-  if(CFG.secoes.length>1){
+  const _pillSecs = CFG.secoes.filter(s=>s.id!=='ativo');   // ATIVO é aba própria na barra lateral
+  const _h2=document.querySelector('#tab-indicadores .indp h2'); if(_h2) _h2.textContent = sec.id==='ativo' ? 'Ativo - Administrativo' : 'Indicadores - Administrativo';
+  if(_pillSecs.length>1 && sec.id!=='ativo'){
     pills.style.display='';
-    pills.innerHTML = CFG.secoes.map(s=>'<button type="button" class="'+(s.id===sec.id?'on':'')+'" onclick="IND.secao(\''+s.id+'\')">'+_esc(s.titulo)+'</button>').join('');
+    pills.innerHTML = _pillSecs.map(s=>'<button type="button" class="'+(s.id===sec.id?'on':'')+'" onclick="IND.secao(\''+s.id+'\')">'+_esc(s.titulo)+'</button>').join('');
   } else pills.style.display='none';
   if(sec.tipo==='frota'){
     $('indFiltro').style.display='none';
@@ -471,7 +474,7 @@ window.IND = {
   anoMarcar: function(cb){ const a=cb.value; if(cb.checked){ if(ANOS_SEL.indexOf(a)<0) ANOS_SEL.push(a); } else { if(ANOS_SEL.length<=1){ cb.checked=true; return; } ANOS_SEL=ANOS_SEL.filter(x=>x!==a); } render(true); },
   anoTodos: function(){ ANOS_SEL=_anosDoDb(sd(SEC)).slice(); render(true); return false; },
   anoAtual: function(){ ANOS_SEL=null; render(true); return false; },
-  secao: function(id){ SEC=id; ANOS_SEL=null; render(); },
+  secao: function(id){ SEC=id; ANOS_SEL=null; render(); document.querySelectorAll('nav.sidebar button[data-tab]').forEach(b=>b.classList.toggle('active', (b.dataset.tab==='ativo')===(id==='ativo'))); },
   abrir: function(){ $('indFile').click(); },
   csv: function(){
     const linhas=[]; document.querySelectorAll('#indTabela tr').forEach(tr=>{ const c=Array.from(tr.querySelectorAll('td')).map(x=>'"'+x.textContent.replace(/"/g,'""')+'"'); if(c.length) linhas.push(c.join(';')); });
@@ -482,6 +485,7 @@ window.IND = {
     DB = {}; normalizar(); await saveDB(); render(); $('indStatus').textContent='Base local apagada.';
   }
 };
+document.querySelector('nav.sidebar').addEventListener('click', e=>{ const b=e.target.closest('button[data-tab]'); if(!b) return; IND.secao(b.dataset.tab==='ativo' ? 'ativo' : 'ind'); });   // abas Indicadores | Ativo
 document.addEventListener('click', e=>{ const m=$('anoMenu'); if(m && !e.target.closest('#anoMS')) m.classList.remove('aberto'); });
 if(!PUBLICO){ const fi=$('indFile'); if(fi) fi.addEventListener('change', async ev=>{ const fs=Array.from(ev.target.files); if(fs.length) await processar(fs); ev.target.value=''; }); }
 (async function(){ await loadDB(); render(); })();
